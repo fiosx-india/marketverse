@@ -42,25 +42,38 @@ def get_data(symbol):
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
         
-if not df.empty:
-    
-    # RSI
-    df["RSI_14"] = ta.momentum.RSIIndicator(
-        close=df["Close"],
-        window=14
-    ).rsi()
+def get_data(symbol):
+    df = yf.download(
+        symbol,
+        period="3mo",
+        interval="1d",
+        auto_adjust=True,
+        progress=False
+    )
 
-    # MACD
-    macd = ta.trend.MACD(close=df["Close"])
+    # Fix MultiIndex Columns
+    if isinstance(df.columns, pd.MultiIndex):
+        df.columns = df.columns.get_level_values(0)
 
-    df["MACD_12_26_9"] = macd.macd()
-    df["MACDs_12_26_9"] = macd.macd_signal()
+    if not df.empty:
 
-    # EMA
-    df["EMA_20"] = ta.trend.EMAIndicator(
-        close=df["Close"],
-        window=20
-    ).ema_indicator()
+        # RSI
+        df["RSI_14"] = ta.momentum.RSIIndicator(
+            close=df["Close"],
+            window=14
+        ).rsi()
+
+        # MACD
+        macd = ta.trend.MACD(close=df["Close"])
+
+        df["MACD_12_26_9"] = macd.macd()
+        df["MACDs_12_26_9"] = macd.macd_signal()
+
+        # EMA
+        df["EMA_20"] = ta.trend.EMAIndicator(
+            close=df["Close"],
+            window=20
+        ).ema_indicator()
 
     return df
 # ==========================================
