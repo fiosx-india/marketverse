@@ -54,9 +54,14 @@ with tab1:
         "NIFTY 50",
         nifty if nifty else "Unavailable"
     )
+with c2:
+    sensex = get_live_price("^BSESN")
 
-    with c2:
-        st.metric("SENSEX", "Loading...", "0.00%")
+    st.metric(
+        "SENSEX",
+        sensex if sensex else "Unavailable"
+    )
+    
 
     with c3:
         st.metric("BANK NIFTY", "Loading...", "0.00%")
