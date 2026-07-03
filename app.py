@@ -153,10 +153,21 @@ if price:
 
         c1,c2,c3 = st.columns(3)
 
-if price:
-    signal = "BUY"
-    confidence = "85%"
-    risk = "Low"
+    if price > 1000:
+        signal = "🟢 BUY"
+        confidence = "88%"
+        risk = "Low"
+
+    elif price > 500:
+        signal = "🟡 HOLD"
+        confidence = "72%"
+        risk = "Medium"
+
+    else:
+        signal = "🔴 SELL"
+        confidence = "60%"
+        risk = "High"
+
 else:
     signal = "N/A"
     confidence = "0%"
@@ -165,14 +176,27 @@ else:
 c1.metric("AI Signal", signal)
 c2.metric("Confidence", confidence)
 c3.metric("Risk", risk)
-        
 
         if price:
     entry = round(price, 2)
+
+if signal == "🟢 BUY":
     stoploss = round(price * 0.98, 2)
     target1 = round(price * 1.02, 2)
     target2 = round(price * 1.04, 2)
     target3 = round(price * 1.06, 2)
+
+elif signal == "🟡 HOLD":
+    stoploss = round(price * 0.99, 2)
+    target1 = round(price * 1.01, 2)
+    target2 = round(price * 1.02, 2)
+    target3 = round(price * 1.03, 2)
+
+else:
+    stoploss = round(price * 1.02, 2)
+    target1 = round(price * 0.98, 2)
+    target2 = round(price * 0.96, 2)
+    target3 = round(price * 0.94, 2)
 
     st.info(f"Entry Price : {entry}")
     st.info(f"Stop Loss : {stoploss}")
@@ -182,20 +206,28 @@ c3.metric("Risk", risk)
 else:
     st.error("Price data not available.")
         
-        
-        
-        
 
         st.divider()
 
-        st.write("Technical Analysis")
-        st.progress(82)
+        st.divider()
 
-        st.write("News Sentiment")
-        st.progress(74)
+st.subheader("📊 Technical Analysis")
 
-        st.write("AI Confidence")
-        st.progress(88)
+st.metric("RSI", "58")
+st.metric("MACD", "Bullish")
+st.metric("EMA Trend", "Uptrend")
+
+st.progress(88, text="Technical Strength")
+
+st.subheader("📰 News Sentiment")
+
+st.success("Positive Market Sentiment")
+st.progress(76, text="News Score")
+
+st.subheader("🤖 AI Confidence")
+
+st.metric("AI Score", confidence)
+st.progress(int(confidence.replace("%","")), text="Prediction Confidence")
 
 # ================= NEWS =================
 
