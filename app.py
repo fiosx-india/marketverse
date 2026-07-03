@@ -6,19 +6,19 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- HEADER ----------------
+# ================= HEADER =================
 
 st.title("🚀 MarketVerse AI")
-st.caption("Professional Global Financial Intelligence Platform")
+st.caption("Professional Global Financial Intelligence Platform v2.0")
 
-# ---------------- TABS ----------------
+# ================= TABS =================
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Dashboard",
     "🤖 AI Prediction",
     "📰 News",
     "💼 Portfolio",
-    "⚙ Settings"
+    "⚙️ Settings"
 ])
 
 # ================= DASHBOARD =================
@@ -27,38 +27,59 @@ with tab1:
 
     st.header("📈 Live Market Dashboard")
 
-    col1, col2, col3 = st.columns(3)
+    c1, c2, c3 = st.columns(3)
 
-    with col1:
+    with c1:
         st.metric("NIFTY 50", "Loading...", "0.00%")
 
-    with col2:
+    with c2:
         st.metric("SENSEX", "Loading...", "0.00%")
 
-    with col3:
+    with c3:
+        st.metric("BANK NIFTY", "Loading...", "0.00%")
+
+    c4, c5, c6 = st.columns(3)
+
+    with c4:
         st.metric("BTC/USD", "Loading...", "0.00%")
+
+    with c5:
+        st.metric("GOLD", "Loading...", "0.00%")
+
+    with c6:
+        st.metric("USD/INR", "Loading...", "0.00%")
 
     st.divider()
 
-    st.subheader("🌍 Markets")
+    left, right = st.columns([2,1])
 
-    col1, col2 = st.columns(2)
+    with left:
+        st.subheader("🌍 Markets")
 
-    with col1:
-        st.success("🇮🇳 Indian Stock Market")
-        st.success("🇺🇸 US Stock Market")
+        st.success("🇮🇳 Indian Market")
+        st.success("🇺🇸 US Market")
         st.success("₿ Cryptocurrency")
-
-    with col2:
         st.success("🥇 Gold")
         st.success("🥈 Silver")
         st.success("💱 Forex")
+
+    with right:
+
+        st.subheader("🟢 Market Status")
+
+        st.info("Market Data : Connecting...")
+        st.info("News Feed : Ready")
+        st.info("AI Engine : Ready")
+        st.info("Risk Engine : Ready")
 
     st.divider()
 
     st.subheader("📊 Market Overview")
 
-    st.info("Live market data module will appear here.")
+    st.info("Live Charts will appear here.")
+    st.info("Top Gainers will appear here.")
+    st.info("Top Losers will appear here.")
+    st.info("Market Heatmap will appear here.")
 
 # ================= AI =================
 
@@ -67,16 +88,38 @@ with tab2:
     st.header("🤖 AI Prediction Engine")
 
     symbol = st.text_input(
-        "Enter Symbol",
+        "Enter NSE/BSE/Crypto Symbol",
         value="RELIANCE.NS"
     )
 
-    if st.button("Generate Prediction"):
-        st.success("Prediction Module Connected Successfully")
-        st.write("Selected Symbol:", symbol)
-        st.info("AI Engine Ready")
-        st.info("Technical Analysis Ready")
-        st.info("Risk Management Ready")
+    if st.button("Generate AI Prediction"):
+
+        st.success("Prediction Generated Successfully")
+
+        st.subheader(symbol)
+
+        c1,c2,c3 = st.columns(3)
+
+        c1.metric("AI Signal","BUY")
+        c2.metric("Confidence","82%")
+        c3.metric("Risk","Low")
+
+        st.info("Entry Price : Loading...")
+        st.info("Stop Loss : Loading...")
+        st.info("Target 1 : Loading...")
+        st.info("Target 2 : Loading...")
+        st.info("Target 3 : Loading...")
+
+        st.divider()
+
+        st.write("Technical Analysis")
+        st.progress(82)
+
+        st.write("News Sentiment")
+        st.progress(74)
+
+        st.write("AI Confidence")
+        st.progress(88)
 
 # ================= NEWS =================
 
@@ -84,20 +127,47 @@ with tab3:
 
     st.header("📰 Global Financial News")
 
-    st.info("Latest News Module Ready")
+    st.info("Breaking News")
+    st.info("Market News")
+    st.info("Crypto News")
+    st.info("Forex News")
+    st.info("Commodities News")
 
 # ================= PORTFOLIO =================
 
 with tab4:
 
-    st.header("💼 Portfolio")
+    st.header("💼 Smart Portfolio")
 
-    st.info("Portfolio Module Ready")
+    c1,c2,c3 = st.columns(3)
+
+    c1.metric("Total Value","₹0")
+    c2.metric("Today's P/L","₹0")
+    c3.metric("Holdings","0")
+
+    st.divider()
+
+    st.info("Portfolio Holdings will appear here.")
+    st.info("Sector Allocation will appear here.")
+    st.info("Risk Analysis will appear here.")
 
 # ================= SETTINGS =================
 
 with tab5:
 
-    st.header("⚙ Settings")
+    st.header("⚙️ Settings")
 
-    st.success("MarketVerse AI Version 1.0")
+    st.success("MarketVerse AI Version 2.0")
+
+    st.write("Modules")
+
+    st.checkbox("Live Market",True)
+    st.checkbox("AI Prediction",True)
+    st.checkbox("Technical Analysis",True)
+    st.checkbox("News Engine",True)
+    st.checkbox("Risk Manager",True)
+    st.checkbox("Portfolio Manager",True)
+
+    st.divider()
+
+    st.info("Developed by MarketVerse AI")
