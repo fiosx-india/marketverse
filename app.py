@@ -2,8 +2,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-st.set_page_config(
-    # ================= LIVE PRICE =================
+# ================= LIVE PRICE =================
 
 def get_live_price(symbol):
     try:
@@ -17,6 +16,9 @@ def get_live_price(symbol):
 
     except Exception:
         return None
+
+
+st.set_page_config(
     page_title="MarketVerse AI",
     page_icon="🚀",
     layout="wide"
