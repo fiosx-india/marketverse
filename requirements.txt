@@ -9,7 +9,6 @@ httpx
 websockets
 python-dotenv
 scikit-learn
-tensorflow
 torch
 transformers
 xgboost
