@@ -6,13 +6,16 @@ def get_stock_price(symbol):
         data = stock.history(period="1d")
 
         if data.empty:
-            return None
+            return {
+                "error": "No market data found"
+            }
 
         return {
             "symbol": symbol,
-            "price": round(data["Close"].iloc[-1], 2),
-            "high": round(data["High"].iloc[-1], 2),
-            "low": round(data["Low"].iloc[-1], 2),
+            "price": round(float(data["Close"].iloc[-1]), 2),
+            "high": round(float(data["High"].iloc[-1]), 2),
+            "low": round(float(data["Low"].iloc[-1]), 2),
+            "open": round(float(data["Open"].iloc[-1]), 2),
             "volume": int(data["Volume"].iloc[-1])
         }
 
