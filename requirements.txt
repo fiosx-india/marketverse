@@ -1,44 +1,27 @@
-fastapi
-uvicorn[standard]
-streamlit
+streamlit>=1.45.0
 
-pandas
-numpy
-plotly
-requests
-httpx
-websockets
-python-dotenv
+pandas>=2.2.2
+numpy>=1.26.4
+plotly>=5.24.1
 
-scikit-learn
-xgboost
-lightgbm
+yfinance>=0.2.54
+requests>=2.32.3
+httpx>=0.28.1
+websockets>=15.0
 
-torch
-transformers
-sentence-transformers
-faiss-cpu
+python-dotenv>=1.0.1
 
-yfinance
-ccxt
-newsapi-python
-feedparser
-beautifulsoup4
-lxml
+scikit-learn>=1.5.1
 
-redis
-sqlalchemy
-psycopg2-binary
-pymongo
+newsapi-python>=0.2.7
+feedparser>=6.0.11
+beautifulsoup4>=4.12.3
+lxml>=5.3.0
 
-schedule
-apscheduler
-python-telegram-bot
+schedule>=1.2.2
+APScheduler>=3.10.4
 
-openai
-google-generativeai
+python-telegram-bot>=22.0
 
-langchain
-langgraph
-
-pandas-ta
+openai>=1.97.0
+google-generativeai>=0.8.5
