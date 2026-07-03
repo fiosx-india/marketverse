@@ -167,11 +167,24 @@ c2.metric("Confidence", confidence)
 c3.metric("Risk", risk)
         
 
-        st.info("Entry Price : Loading...")
-        st.info("Stop Loss : Loading...")
-        st.info("Target 1 : Loading...")
-        st.info("Target 2 : Loading...")
-        st.info("Target 3 : Loading...")
+        if price:
+    entry = round(price, 2)
+    stoploss = round(price * 0.98, 2)
+    target1 = round(price * 1.02, 2)
+    target2 = round(price * 1.04, 2)
+    target3 = round(price * 1.06, 2)
+
+    st.info(f"Entry Price : {entry}")
+    st.info(f"Stop Loss : {stoploss}")
+    st.info(f"Target 1 : {target1}")
+    st.info(f"Target 2 : {target2}")
+    st.info(f"Target 3 : {target3}")
+else:
+    st.error("Price data not available.")
+        
+        
+        
+        
 
         st.divider()
 
