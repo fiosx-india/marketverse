@@ -1,6 +1,6 @@
-streamlit
 fastapi
-uvicorn
+uvicorn[standard]
+streamlit
 
 pandas
 numpy
@@ -40,3 +40,5 @@ google-generativeai
 
 langchain
 langgraph
+
+pandas-ta
