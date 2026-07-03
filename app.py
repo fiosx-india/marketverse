@@ -64,7 +64,12 @@ with c2:
     
 
     with c3:
-        st.metric("BANK NIFTY", "Loading...", "0.00%")
+    banknifty = get_live_price("^NSEBANK")
+
+    st.metric(
+        "BANK NIFTY",
+        banknifty if banknifty else "Unavailable"
+    )
 
     c4, c5, c6 = st.columns(3)
 
