@@ -17,4 +17,6 @@ def get_stock_price(symbol):
         }
 
     except Exception as e:
-        return {"error": str(e)}
+        return {
+            "error": str(e)
+        }
