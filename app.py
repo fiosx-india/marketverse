@@ -153,7 +153,7 @@ if price:
 
         c1,c2,c3 = st.columns(3)
 
-        if price:
+if price:
     signal = "BUY"
     confidence = "85%"
     risk = "Low"
