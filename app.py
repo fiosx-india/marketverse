@@ -206,9 +206,6 @@ else:
 else:
     st.error("Price data not available.")
         
-
-        st.divider()
-
         st.divider()
 
 st.subheader("📊 Technical Analysis")
