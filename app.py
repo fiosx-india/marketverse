@@ -1,7 +1,7 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+import ta
 import plotly.graph_objects as go
 from streamlit_autorefresh import st_autorefresh
 
@@ -43,9 +43,24 @@ def get_data(symbol):
         df.columns = df.columns.get_level_values(0)
 
     if not df.empty:
-        df.ta.rsi(length=14, append=True)
-        df.ta.macd(append=True)
-        df.ta.ema(length=20, append=True)
+        
+    # RSI
+    df["RSI_14"] = ta.momentum.RSIIndicator(
+        close=df["Close"],
+        window=14
+    ).rsi()
+
+    # MACD
+    macd = ta.trend.MACD(close=df["Close"])
+
+    df["MACD_12_26_9"] = macd.macd()
+    df["MACDs_12_26_9"] = macd.macd_signal()
+
+    # EMA
+    df["EMA_20"] = ta.trend.EMAIndicator(
+        close=df["Close"],
+        window=20
+    ).ema_indicator()
 
     return df
 # ==========================================
