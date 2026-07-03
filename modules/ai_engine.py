@@ -17,8 +17,14 @@ def analyze(symbol):
     # Technical Analysis
     technical = calculate_indicators(symbol)
 
+    if not technical or "error" in technical:
+        return {
+            "status": "error",
+            "message": "Technical analysis failed"
+        }
+
     # News
-    news = get_market_news(symbol)
+    news = get_market_news()
 
     # AI Prediction
     prediction = get_prediction(symbol, {
