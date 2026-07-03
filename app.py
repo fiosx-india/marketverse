@@ -41,9 +41,9 @@ def get_data(symbol):
     # Fix MultiIndex Columns
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
-
-    if not df.empty:
         
+if not df.empty:
+    
     # RSI
     df["RSI_14"] = ta.momentum.RSIIndicator(
         close=df["Close"],
