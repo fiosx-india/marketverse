@@ -1,115 +1,142 @@
 import yfinance as yf
 import pandas as pd
-
-
-def calculate_sma(data, period=20):
-    return data["Close"].rolling(window=period).mean()
-
-
-def calculate_ema(data, period=20):
-    return data["Close"].ewm(span=period, adjust=False).mean()
-
-
-def calculate_rsi(data, period=14):
-    delta = data["Close"].diff()
-
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-
-    avg_gain = gain.rolling(period).mean()
-    avg_loss = loss.rolling(period).mean()
-
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-
-    return rsi
-
-
-def calculate_macd(data):
-    ema12 = data["Close"].ewm(span=12, adjust=False).mean()
-    ema26 = data["Close"].ewm(span=26, adjust=False).mean()
-
-    macd = ema12 - ema26
-    signal = macd.ewm(span=9, adjust=False).mean()
-
-    return macd, signal
-
-
-def calculate_bollinger(data):
-    sma20 = data["Close"].rolling(20).mean()
-    std = data["Close"].rolling(20).std()
-
-    upper = sma20 + (std * 2)
-    lower = sma20 - (std * 2)
-
-    return upper, lower
-
-
-def calculate_atr(data, period=14):
-
-    high_low = data["High"] - data["Low"]
-
-    high_close = (data["High"] - data["Close"].shift()).abs()
-
-    low_close = (data["Low"] - data["Close"].shift()).abs()
-
-    tr = pd.concat(
-        [high_low, high_close, low_close],
-        axis=1
-    ).max(axis=1)
-
-    atr = tr.rolling(period).mean()
-
-    return atr
+import ta
 
 
 def calculate_indicators(symbol):
-
     try:
-
         stock = yf.Ticker(symbol)
-
         data = stock.history(period="6mo")
 
         if data.empty:
-            return {
-                "error": "No technical data"
-            }
+            return {"error": "No market data"}
 
-        sma20 = calculate_sma(data).iloc[-1]
-        ema20 = calculate_ema(data).iloc[-1]
-        rsi14 = calculate_rsi(data).iloc[-1]
+        close = data["Close"]
+        high = data["High"]
+        low = data["Low"]
+        volume = data["Volume"]
 
-        macd, macd_signal = calculate_macd(data)
+        # ==========================
+        # Moving Averages
+        # ==========================
+        sma20 = ta.trend.SMAIndicator(close, window=20).sma_indicator()
+        sma50 = ta.trend.SMAIndicator(close, window=50).sma_indicator()
 
-        bb_upper, bb_lower = calculate_bollinger(data)
+        ema20 = ta.trend.EMAIndicator(close, window=20).ema_indicator()
+        ema50 = ta.trend.EMAIndicator(close, window=50).ema_indicator()
 
-        atr = calculate_atr(data)
+        # ==========================
+        # RSI
+        # ==========================
+        rsi = ta.momentum.RSIIndicator(close, window=14).rsi()
 
+        # ==========================
+        # MACD
+        # ==========================
+        macd = ta.trend.MACD(close)
+
+        macd_line = macd.macd()
+        macd_signal = macd.macd_signal()
+        macd_hist = macd.macd_diff()
+
+        # ==========================
+        # Bollinger Bands
+        # ==========================
+        bb = ta.volatility.BollingerBands(close)
+
+        bb_upper = bb.bollinger_hband()
+        bb_middle = bb.bollinger_mavg()
+        bb_lower = bb.bollinger_lband()
+
+        # ==========================
+        # ATR
+        # ==========================
+        atr = ta.volatility.AverageTrueRange(
+            high,
+            low,
+            close
+        ).average_true_range()
+
+        # ==========================
+        # ADX
+        # ==========================
+        adx = ta.trend.ADXIndicator(
+            high,
+            low,
+            close
+        ).adx()
+
+        # ==========================
+        # Support / Resistance
+        # ==========================
+        support = low.tail(30).min()
+        resistance = high.tail(30).max()
+
+        # ==========================
+        # Trend Detection
+        # ==========================
+        latest_price = close.iloc[-1]
+
+        if latest_price > ema20.iloc[-1] > ema50.iloc[-1]:
+            trend = "Strong Bullish"
+
+        elif latest_price < ema20.iloc[-1] < ema50.iloc[-1]:
+            trend = "Strong Bearish"
+
+        else:
+            trend = "Sideways"
+
+        # ==========================
+        # Volume
+        # ==========================
+        latest_volume = int(volume.iloc[-1])
+        avg_volume = int(volume.tail(20).mean())
+
+        volume_strength = (
+            "High"
+            if latest_volume > avg_volume
+            else "Normal"
+        )
+
+        # ==========================
+        # Return
+        # ==========================
         return {
 
-            "price": round(float(data["Close"].iloc[-1]), 2),
+            "price": round(float(latest_price), 2),
 
-            "sma20": round(float(sma20), 2),
+            "sma20": round(float(sma20.iloc[-1]), 2),
+            "sma50": round(float(sma50.iloc[-1]), 2),
 
-            "ema20": round(float(ema20), 2),
+            "ema20": round(float(ema20.iloc[-1]), 2),
+            "ema50": round(float(ema50.iloc[-1]), 2),
 
-            "rsi": round(float(rsi14), 2),
+            "rsi": round(float(rsi.iloc[-1]), 2),
 
-            "macd": round(float(macd.iloc[-1]), 2),
-
-            "macd_signal": round(float(macd_signal.iloc[-1]), 2),
+            "macd": round(float(macd_line.iloc[-1]), 4),
+            "macd_signal": round(float(macd_signal.iloc[-1]), 4),
+            "macd_histogram": round(float(macd_hist.iloc[-1]), 4),
 
             "bollinger_upper": round(float(bb_upper.iloc[-1]), 2),
-
+            "bollinger_middle": round(float(bb_middle.iloc[-1]), 2),
             "bollinger_lower": round(float(bb_lower.iloc[-1]), 2),
 
-            "atr": round(float(atr.iloc[-1]), 2)
+            "atr": round(float(atr.iloc[-1]), 2),
+
+            "adx": round(float(adx.iloc[-1]), 2),
+
+            "support": round(float(support), 2),
+            "resistance": round(float(resistance), 2),
+
+            "volume": latest_volume,
+            "average_volume": avg_volume,
+            "volume_strength": volume_strength,
+
+            "trend": trend
 
         }
 
     except Exception as e:
-
         return {
             "error": str(e)
         }
