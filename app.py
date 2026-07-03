@@ -48,7 +48,12 @@ with tab1:
     c1, c2, c3 = st.columns(3)
 
     with c1:
-        st.metric("NIFTY 50", "Loading...", "0.00%")
+    nifty = get_live_price("^NSEI")
+
+    st.metric(
+        "NIFTY 50",
+        nifty if nifty else "Unavailable"
+    )
 
     with c2:
         st.metric("SENSEX", "Loading...", "0.00%")
