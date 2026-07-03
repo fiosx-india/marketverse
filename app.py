@@ -14,7 +14,7 @@ st.success("MarketVerse is running successfully!")
 st.markdown("## 🌍 Markets")
 
 st.write("""
-- 📈 Indian Stock Market
+- 🇮🇳 Indian Stock Market
 - 🇺🇸 US Stock Market
 - ₿ Cryptocurrency
 - 🥇 Gold
