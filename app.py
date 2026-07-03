@@ -80,9 +80,14 @@ with c2:
         "BTC/USD",
         btc if btc else "Unavailable"
     )
+with c5:
+    gold = get_live_price("GC=F")
 
-    with c5:
-        st.metric("GOLD", "Loading...", "0.00%")
+    st.metric(
+        "GOLD",
+        gold if gold else "Unavailable"
+    )
+    
 
     with c6:
         st.metric("USD/INR", "Loading...", "0.00%")
