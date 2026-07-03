@@ -3,6 +3,20 @@ import yfinance as yf
 import pandas as pd
 
 st.set_page_config(
+    # ================= LIVE PRICE =================
+
+def get_live_price(symbol):
+    try:
+        stock = yf.Ticker(symbol)
+        data = stock.history(period="1d")
+
+        if data.empty:
+            return None
+
+        return round(float(data["Close"].iloc[-1]), 2)
+
+    except Exception:
+        return None
     page_title="MarketVerse AI",
     page_icon="🚀",
     layout="wide"
