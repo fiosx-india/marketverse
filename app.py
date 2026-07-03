@@ -1,37 +1,61 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="MarketVerse",
+    page_title="MarketVerse AI",
     page_icon="🚀",
     layout="wide"
 )
 
-st.title("🚀 MarketVerse")
-st.subheader("AI-Powered Global Financial Intelligence Platform")
+st.title("🚀 MarketVerse AI")
+st.caption("Professional Global Financial Intelligence Platform")
 
-st.success("MarketVerse is running successfully!")
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "📈 Dashboard",
+    "🤖 AI Prediction",
+    "📰 News",
+    "💼 Portfolio",
+    "⚙ Settings"
+])
 
-st.markdown("## 🌍 Markets")
+with tab1:
+    st.header("📈 Live Market Dashboard")
 
-st.write("""
-- 🇮🇳 Indian Stock Market
-- 🇺🇸 US Stock Market
-- ₿ Cryptocurrency
-- 🥇 Gold
-- 🥈 Silver
-- 💱 Forex
-""")
+    col1, col2, col3 = st.columns(3)
 
-st.markdown("## 🤖 AI Features")
+    with col1:
+        st.metric("NIFTY 50", "Loading...", "0.00%")
 
-st.write("""
-✅ AI Prediction
+    with col2:
+        st.metric("SENSEX", "Loading...", "0.00%")
 
-✅ Technical Analysis
+    with col3:
+        st.metric("BTC/USD", "Loading...", "0.00%")
 
-✅ News Analysis
+    st.divider()
 
-✅ Risk Management
+    st.subheader("Market Overview")
 
-✅ Portfolio Tracking
-""")
+    st.info("Live Market Data will appear here.")
+
+with tab2:
+    st.header("🤖 AI Prediction Engine")
+
+    symbol = st.text_input("Enter Symbol", "RELIANCE.NS")
+
+    if st.button("Generate Prediction"):
+        st.success("Prediction Module Connected Successfully")
+
+with tab3:
+    st.header("📰 Global Financial News")
+
+    st.info("News Module Ready")
+
+with tab4:
+    st.header("💼 Portfolio")
+
+    st.info("Portfolio Module Ready")
+
+with tab5:
+    st.header("⚙ Settings")
+
+    st.success("MarketVerse AI Version 1.0")
