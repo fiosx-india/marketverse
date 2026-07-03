@@ -42,7 +42,8 @@ def get_data(symbol):
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
         
-def get_data(symbol):
+   def get_data(symbol):
+
     df = yf.download(
         symbol,
         period="3mo",
