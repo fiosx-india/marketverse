@@ -10,25 +10,53 @@ def get_prediction(symbol, data):
     rsi = indicators["rsi"]
     sma20 = indicators["sma20"]
     ema20 = indicators["ema20"]
+    macd = indicators["macd"]
+    macd_signal = indicators["macd_signal"]
 
     signal = "HOLD"
     confidence = 50
     reason = []
 
-    if price > sma20 and price > ema20 and rsi < 70:
+    if (
+        rsi < 30
+        and macd > macd_signal
+        and price > ema20
+    ):
+        signal = "STRONG BUY"
+        confidence = 95
+        reason.extend([
+            "RSI Oversold",
+            "MACD Bullish",
+            "Price above EMA20"
+        ])
+
+    elif (
+        rsi > 70
+        and macd < macd_signal
+        and price < ema20
+    ):
+        signal = "STRONG SELL"
+        confidence = 95
+        reason.extend([
+            "RSI Overbought",
+            "MACD Bearish",
+            "Price below EMA20"
+        ])
+
+    elif price > sma20 and price > ema20:
         signal = "BUY"
         confidence = 80
-        reason.append("Bullish trend")
+        reason.append("Bullish Trend")
 
-    elif price < sma20 and price < ema20 and rsi > 30:
+    elif price < sma20 and price < ema20:
         signal = "SELL"
         confidence = 80
-        reason.append("Bearish trend")
+        reason.append("Bearish Trend")
 
     else:
         signal = "HOLD"
-        confidence = 50
-        reason.append("Market is neutral")
+        confidence = 55
+        reason.append("Market is Neutral")
 
     risk = calculate_risk(price)
 
