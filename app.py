@@ -98,3 +98,51 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "💼 Portfolio",
     "⚙️ Settings"
 ])
+
+# ==========================================
+# Dashboard
+# ==========================================
+
+with tab1:
+
+    st.header("📊 Live Market Dashboard")
+
+    if not data.empty and "Close" in data.columns:
+
+        curr_price = float(data["Close"].iloc[-1])
+
+        rsi = float(data["RSI_14"].iloc[-1]) \
+            if pd.notna(data["RSI_14"].iloc[-1]) else None
+
+        macd = float(data["MACD_12_26_9"].iloc[-1]) \
+            if pd.notna(data["MACD_12_26_9"].iloc[-1]) else None
+
+        macd_signal = float(data["MACDs_12_26_9"].iloc[-1]) \
+            if pd.notna(data["MACDs_12_26_9"].iloc[-1]) else None
+
+        ema20 = float(data["EMA_20"].iloc[-1]) \
+            if pd.notna(data["EMA_20"].iloc[-1]) else None
+
+        volume = int(data["Volume"].iloc[-1])
+
+        c1, c2, c3, c4 = st.columns(4)
+
+        c1.metric(
+            "Current Price",
+            f"₹{curr_price:.2f}"
+        )
+
+        c2.metric(
+            "RSI",
+            f"{rsi:.2f}" if rsi is not None else "N/A"
+        )
+
+        c3.metric(
+            "EMA 20",
+            f"{ema20:.2f}" if ema20 is not None else "N/A"
+        )
+
+        c4.metric(
+            "Volume",
+            f"{volume:,}"
+        )
