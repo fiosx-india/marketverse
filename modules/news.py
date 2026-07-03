@@ -1,7 +1,6 @@
 from newsapi import NewsApiClient
 
-# உங்கள் NewsAPI Key-ஐ இங்கே இடுங்கள்
-API_KEY = "YOUR_NEWS_API_KEY"
+API_KEY = "0ff63bf45b2c4e30be128d5362382ebe"
 
 newsapi = NewsApiClient(api_key=API_KEY)
 
@@ -12,7 +11,6 @@ def get_market_news():
             language="en",
             page_size=10
         )
-
         return news["articles"]
 
     except Exception as e:
