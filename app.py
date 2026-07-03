@@ -41,20 +41,6 @@ def get_data(symbol):
     # Fix MultiIndex Columns
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
-        
-   def get_data(symbol):
-
-    df = yf.download(
-        symbol,
-        period="3mo",
-        interval="1d",
-        auto_adjust=True,
-        progress=False
-    )
-
-    # Fix MultiIndex Columns
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
 
     if not df.empty:
 
