@@ -1,3 +1,6 @@
+from .risk_manager import calculate_risk
+
+
 def get_prediction(symbol, data):
     market = data["market"]
     indicators = data["indicators"]
@@ -23,13 +26,20 @@ def get_prediction(symbol, data):
         reason.append("Bearish trend")
 
     else:
+        signal = "HOLD"
+        confidence = 50
         reason.append("Market is neutral")
+
+    risk = calculate_risk(price)
 
     return {
         "signal": signal,
         "confidence": confidence,
-        "target": round(price * 1.03, 2),
-        "stop_loss": round(price * 0.98, 2),
+        "entry": risk["entry"],
+        "stop_loss": risk["stop_loss"],
+        "take_profit_1": risk["take_profit_1"],
+        "take_profit_2": risk["take_profit_2"],
+        "risk_reward": risk["risk_reward"],
         "reason": reason,
         "news_count": len(news)
     }
