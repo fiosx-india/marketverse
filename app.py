@@ -54,7 +54,7 @@ with tab1:
         "NIFTY 50",
         nifty if nifty else "Unavailable"
     )
-with c2:
+   with c2:
     sensex = get_live_price("^BSESN")
 
     st.metric(
@@ -80,7 +80,7 @@ with c2:
         "BTC/USD",
         btc if btc else "Unavailable"
     )
-with c5:
+   with c5:
     gold = get_live_price("GC=F")
 
     st.metric(
@@ -90,7 +90,12 @@ with c5:
     
 
     with c6:
-        st.metric("USD/INR", "Loading...", "0.00%")
+    usdinr = get_live_price("INR=X")
+
+    st.metric(
+        "USD/INR",
+        usdinr if usdinr else "Unavailable"
+    )
 
     st.divider()
 
