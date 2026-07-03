@@ -48,3 +48,53 @@ def get_data(symbol):
         df.ta.ema(length=20, append=True)
 
     return df
+# ==========================================
+# Sidebar
+# ==========================================
+
+st.sidebar.title("🎯 MarketVerse Control")
+
+symbol = st.sidebar.text_input(
+    "Enter NSE/BSE/Crypto Symbol",
+    value="RELIANCE.NS"
+)
+
+st.sidebar.markdown("---")
+
+st.sidebar.success("✅ Live Market")
+st.sidebar.success("✅ AI Prediction")
+st.sidebar.success("✅ Technical Analysis")
+st.sidebar.success("✅ Auto Refresh : 60 Seconds")
+
+# ==========================================
+# Download Data
+# ==========================================
+
+try:
+    data = get_data(symbol)
+
+except Exception as e:
+    st.error(f"Download Error : {e}")
+    st.stop()
+
+# ==========================================
+# Main Header
+# ==========================================
+
+st.title("🚀 MarketVerse AI")
+
+st.caption(
+    "Professional Global Financial Intelligence Platform"
+)
+
+# ==========================================
+# Tabs
+# ==========================================
+
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "📊 Dashboard",
+    "🤖 AI Prediction",
+    "📰 News",
+    "💼 Portfolio",
+    "⚙️ Settings"
+])
