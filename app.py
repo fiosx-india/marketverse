@@ -74,7 +74,12 @@ with c2:
     c4, c5, c6 = st.columns(3)
 
     with c4:
-        st.metric("BTC/USD", "Loading...", "0.00%")
+    btc = get_live_price("BTC-USD")
+
+    st.metric(
+        "BTC/USD",
+        btc if btc else "Unavailable"
+    )
 
     with c5:
         st.metric("GOLD", "Loading...", "0.00%")
