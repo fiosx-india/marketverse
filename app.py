@@ -144,13 +144,28 @@ with tab2:
 
         st.success("Prediction Generated Successfully")
 
+        price = get_live_price(symbol)
+
+if price:
+    st.metric("Current Price", price)
+    
         st.subheader(symbol)
 
         c1,c2,c3 = st.columns(3)
 
-        c1.metric("AI Signal","BUY")
-        c2.metric("Confidence","82%")
-        c3.metric("Risk","Low")
+        if price:
+    signal = "BUY"
+    confidence = "85%"
+    risk = "Low"
+else:
+    signal = "N/A"
+    confidence = "0%"
+    risk = "Unknown"
+
+c1.metric("AI Signal", signal)
+c2.metric("Confidence", confidence)
+c3.metric("Risk", risk)
+        
 
         st.info("Entry Price : Loading...")
         st.info("Stop Loss : Loading...")
