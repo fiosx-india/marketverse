@@ -151,10 +151,6 @@ with tab1:
 
         curr_price = float(data["Close"].iloc[-1])
 
-        rsi = float(data["RSI_14"].iloc[-1])
-
-        curr_price = float(data["Close"].iloc[-1])
-
         rsi = float(data["RSI_14"].iloc[-1]) \
             if pd.notna(data["RSI_14"].iloc[-1]) else None
 
