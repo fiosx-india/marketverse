@@ -3,11 +3,11 @@ import plotly.graph_objects as go
 from streamlit_autorefresh import st_autorefresh
 
 from modules.ai_engine import analyze
-from modules.market_scanner import MarketScanner
+from modules.market_scanner import scan_market
 from modules.performance_tracker import PerformanceTracker
 from modules.trade_executor import TradeExecutor
 from modules.system_manager import SystemManager
-from modules.dashboard_utils import DashboardUtils
+from modules.dashboard_utils import dashboard_summary
 
 import yfinance as yf
 import pandas as pd
