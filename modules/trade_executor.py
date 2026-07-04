@@ -149,3 +149,70 @@ class TradeExecutor:
             "success": True,
             "balance": round(self.balance, 2)
         }
+    ####################################################
+    # HOLD
+    ####################################################
+
+    def hold(self, symbol):
+        return {
+            "success": True,
+            "action": "HOLD",
+            "symbol": symbol.upper()
+        }
+
+    ####################################################
+    # GET POSITIONS
+    ####################################################
+
+    def get_positions(self):
+        return self.positions
+
+    ####################################################
+    # GET TRADE HISTORY
+    ####################################################
+
+    def get_trade_history(self):
+        return self.history
+
+    ####################################################
+    # PORTFOLIO SUMMARY
+    ####################################################
+
+    def portfolio_summary(self):
+
+        return {
+            "balance": round(self.balance, 2),
+            "total_positions": len(self.positions),
+            "positions": self.positions,
+            "total_trades": len(self.history)
+        }
+
+    ####################################################
+    # RESET PAPER ACCOUNT
+    ####################################################
+
+    def reset(self):
+
+        self.balance = 100000.0
+        self.positions = {}
+        self.history = []
+
+        self.save()
+
+        return {
+            "success": True,
+            "message": "Paper Trading Account Reset Successfully"
+        }
+
+
+if __name__ == "__main__":
+
+    trader = TradeExecutor()
+
+    trader.buy("RELIANCE", 10, 1500)
+
+    trader.sell("RELIANCE", 5, 1550)
+
+    print(trader.portfolio_summary())
+
+    print(trader.get_trade_history())
