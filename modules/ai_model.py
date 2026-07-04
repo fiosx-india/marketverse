@@ -193,9 +193,9 @@ def predict_ai(df):
     return model.predict(latest)
 
 
-############################################################
+########################################################
 # Future Models
-############################################################
+########################################################
 
 def train_xgboost(df):
     """
@@ -203,7 +203,17 @@ def train_xgboost(df):
     """
     return {
         "success": False,
-        "message": "XGBoost training not implemented yet."
+        "message": "XGBoost model not implemented yet."
+    }
+
+
+def train_lightgbm(df):
+    """
+    Placeholder for future LightGBM implementation.
+    """
+    return {
+        "success": False,
+        "message": "LightGBM model not implemented yet."
     }
 
 
@@ -213,32 +223,15 @@ def train_lstm(df):
     """
     return {
         "success": False,
-        "message": "LSTM training not implemented yet."
+        "message": "LSTM model not implemented yet."
     }
 
 
-def predict_with_saved_model(df):
+def train_deep_learning(df):
     """
-    Predict using saved Random Forest model.
+    Placeholder for future Deep Learning implementation.
     """
-
-    model = AIModel()
-
-    if not model.load():
-        return {
-            "signal": "HOLD",
-            "confidence": 0,
-            "error": "Model not trained"
-        }
-
-    latest = df[
-        [
-            "Open",
-            "High",
-            "Low",
-            "Close",
-            "Volume"
-        ]
-    ].tail(1)
-
-    return model.predict(latest)
+    return {
+        "success": False,
+        "message": "Deep Learning model not implemented yet."
+    }
