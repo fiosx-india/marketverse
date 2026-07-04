@@ -163,53 +163,52 @@ with tab1:
         )
 
         c4.metric(
-            "Volume",
-            f"{volume:,}"
-        )
-        # ==========================================
-        # Candlestick Chart
-        # ==========================================
+    "Volume",
+    f"{volume:,}"
+)
 
-        fig = go.Figure(
-            data=[
-                go.Candlestick(
-                    x=data.index,
-                    open=data["Open"],
-                    high=data["High"],
-                    low=data["Low"],
-                    close=data["Close"]
-                )
-            ]
-        )
+# ==========================================
+# Candlestick Chart
+# ==========================================
 
-        fig.update_layout(
-            title="Price Trend",
-            xaxis_rangeslider_visible=False
+fig = go.Figure(
+    data=[
+        go.Candlestick(
+            x=data.index,
+            open=data["Open"],
+            high=data["High"],
+            low=data["Low"],
+            close=data["Close"]
         )
+    ]
+)
 
-        st.plotly_chart(
+fig.update_layout(
+    title="Price Trend",
+    xaxis_rangeslider_visible=False
+)
+
+st.plotly_chart(
     fig,
     width="stretch"
 )
-            use_container_width=True
-        )
 
-        # ==========================================
-        # AI Prediction
-        # ==========================================
+# ==========================================
+# AI Prediction
+# ==========================================
 
-        st.subheader("🤖 AI Prediction Engine")
+st.subheader("🤖 AI Prediction Engine")
 
-        if (
-            rsi is None
-            or macd is None
-            or macd_signal is None
-            or ema20 is None
-        ):
+if (
+    rsi is None
+    or macd is None
+    or macd_signal is None
+    or ema20 is None
+):
 
-            st.warning(
-                "AI Signal : Waiting for sufficient data..."
-            )
+    st.warning(
+        "AI Signal : Waiting for sufficient data..."
+    )
 
         else:
 
