@@ -5,6 +5,7 @@ from streamlit_autorefresh import st_autorefresh
 from modules.ai_engine import analyze
 import yfinance as yf
 import pandas as pd
+import ta
 # ==========================================
 # Auto Refresh
 # ==========================================
