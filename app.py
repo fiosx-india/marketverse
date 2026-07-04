@@ -187,11 +187,11 @@ with tab1:
             title="Price Trend",
             xaxis_rangeslider_visible=False
         )
- 
-  st.plotly_chart(
-    fig,
-    use_container_width=True
-   )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
 
         # ==========================================
         # AI Prediction
