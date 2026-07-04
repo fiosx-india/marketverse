@@ -19,7 +19,10 @@ def get_market_data(symbol):
         previous = round(data["Close"].iloc[-2], 2)
 
         change = round(current - previous, 2)
-        percent = round((change / previous) * 100, 2)
+        if previous != 0:
+    percent = round((change / previous) * 100, 2)
+else:
+    percent = 0
 
         return {
             "symbol": symbol,
