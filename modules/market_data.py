@@ -46,5 +46,5 @@ def get_dashboard_data():
         "TCS": get_market_data("TCS.NS"),
         "INFY": get_market_data("INFY.NS"),
         "GOLD": get_market_data("GC=F"),
-        "SILVER": get_market_data("SI=F"),
+        "SILVER": get_market_data("SI=F")
     }
