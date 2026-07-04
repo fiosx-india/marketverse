@@ -138,7 +138,11 @@ with tab1:
         ema20 = float(data["EMA_20"].iloc[-1]) \
             if pd.notna(data["EMA_20"].iloc[-1]) else None
 
-        volume = int(data["Volume"].iloc[-1])
+        volume = (
+    int(data["Volume"].iloc[-1])
+    if pd.notna(data["Volume"].iloc[-1])
+    else 0
+)
 
         c1, c2, c3, c4 = st.columns(4)
 
