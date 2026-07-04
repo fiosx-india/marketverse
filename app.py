@@ -188,7 +188,9 @@ with tab1:
         )
 
         st.plotly_chart(
-            fig,
+    fig,
+    width="stretch"
+)
             use_container_width=True
         )
 
