@@ -157,7 +157,7 @@ with tab1:
             f"{rsi:.2f}" if rsi is not None else "N/A"
         )
 
-                c3.metric(
+        c3.metric(
             "EMA 20",
             f"{ema20:.2f}" if ema20 is not None else "N/A"
         )
@@ -225,7 +225,6 @@ with tab1:
 
             else:
                 st.info("🟡 HOLD (Neutral)")
-
             # ==========================================
             # AI Confidence Score
             # ==========================================
