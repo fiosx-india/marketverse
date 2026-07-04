@@ -138,7 +138,20 @@ with tab1:
 
     st.header("📊 Live Market Dashboard")
 
+    # ==========================================
+    # Dashboard Summary
+    # ==========================================
+
+    try:
+        dashboard_summary()
+    except Exception:
+        pass
+
     if not data.empty and "Close" in data.columns:
+
+        curr_price = float(data["Close"].iloc[-1])
+
+        rsi = float(data["RSI_14"].iloc[-1])
 
         curr_price = float(data["Close"].iloc[-1])
 
