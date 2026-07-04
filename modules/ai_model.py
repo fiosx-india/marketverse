@@ -203,7 +203,12 @@ def train_xgboost(df):
     """
     pass
 
-
+if not model.load():
+    return {
+        "signal": "HOLD",
+        "confidence": 0,
+        "error": "Model not trained"
+    }
 def train_lstm(df):
     """
     Future Deep Learning Model
