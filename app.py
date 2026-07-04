@@ -31,7 +31,6 @@ st_autorefresh(
 # ==========================================
 
 def get_data(symbol):
-    ...
 
     df = yf.download(
         symbol,
