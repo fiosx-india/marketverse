@@ -5,7 +5,7 @@ import ta
 
 def calculate_indicators(symbol):
     try:
-                stock = yf.Ticker(symbol)
+        stock = yf.Ticker(symbol)
 
         data = stock.history(
             period="6mo",
@@ -21,6 +21,7 @@ def calculate_indicators(symbol):
         high = data["High"]
         low = data["Low"]
         volume = data["Volume"]
+
         # ==========================
         # Moving Averages
         # ==========================
