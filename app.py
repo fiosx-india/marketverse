@@ -157,67 +157,63 @@ with tab1:
             f"{rsi:.2f}" if rsi is not None else "N/A"
         )
 
-        c3.metric(
+                c3.metric(
             "EMA 20",
             f"{ema20:.2f}" if ema20 is not None else "N/A"
         )
 
         c4.metric(
-    "Volume",
-    f"{volume:,}"
-)
-
-# ==========================================
-# Candlestick Chart
-# ==========================================
-
-fig = go.Figure(
-    data=[
-        go.Candlestick(
-            x=data.index,
-            open=data["Open"],
-            high=data["High"],
-            low=data["Low"],
-            close=data["Close"]
+            "Volume",
+            f"{volume:,}"
         )
-    ]
-)
 
-fig.update_layout(
-    title="Price Trend",
-    xaxis_rangeslider_visible=False
-)
+        # ==========================================
+        # Candlestick Chart
+        # ==========================================
 
-st.plotly_chart(
-    fig,
-    width="stretch"
-)
+        fig = go.Figure(
+            data=[
+                go.Candlestick(
+                    x=data.index,
+                    open=data["Open"],
+                    high=data["High"],
+                    low=data["Low"],
+                    close=data["Close"]
+                )
+            ]
+        )
 
-# ==========================================
-# AI Prediction
-# ==========================================
+        fig.update_layout(
+            title="Price Trend",
+            xaxis_rangeslider_visible=False
+        )
 
-st.subheader("🤖 AI Prediction Engine")
+        st.plotly_chart(
+            fig,
+            width="stretch"
+        )
 
-if (
-    rsi is None
-    or macd is None
-    or macd_signal is None
-    or ema20 is None
-):
+        # ==========================================
+        # AI Prediction
+        # ==========================================
 
-    st.warning(
-        "AI Signal : Waiting for sufficient data..."
-    )
+        st.subheader("🤖 AI Prediction Engine")
 
+        if (
+            rsi is None
+            or macd is None
+            or macd_signal is None
+            or ema20 is None
+        ):
+            st.warning(
+                "AI Signal : Waiting for sufficient data..."
+            )
         else:
-
             if (
                 rsi < 30
                 and macd > macd_signal
                 and curr_price > ema20
             ):
-
                 st.success("🟢 STRONG BUY")
 
             elif (
@@ -225,11 +221,9 @@ if (
                 and macd < macd_signal
                 and curr_price < ema20
             ):
-
                 st.error("🔴 STRONG SELL")
 
             else:
-
                 st.info("🟡 HOLD (Neutral)")
 
             # ==========================================
