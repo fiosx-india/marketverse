@@ -24,9 +24,10 @@ def get_market_data(symbol):
         else:
             percent = 0
 
-                # ===========================
+        # ===========================
         # Return Market Data
         # ===========================
+
         return {
             "symbol": symbol,
             "price": current,
