@@ -24,11 +24,20 @@ def get_market_data(symbol):
         else:
             percent = 0
 
+                # ===========================
+        # Return Market Data
+        # ===========================
         return {
             "symbol": symbol,
             "price": current,
+            "open": round(data["Open"].iloc[-1], 2),
+            "high": round(data["High"].iloc[-1], 2),
+            "low": round(data["Low"].iloc[-1], 2),
+            "close": round(data["Close"].iloc[-1], 2),
+            "volume": int(data["Volume"].iloc[-1]),
             "change": change,
-            "change_percent": percent
+            "change_percent": percent,
+            "timestamp": str(data.index[-1])
         }
 
     except Exception as e:
