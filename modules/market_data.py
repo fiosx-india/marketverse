@@ -8,7 +8,7 @@ def get_market_data(symbol):
 
     try:
         ticker = yf.Ticker(symbol)
-        data = ticker.history(period="2d")
+        data = ticker.history(period="5d", auto_adjust=True)
 
         if data.empty:
             return None
