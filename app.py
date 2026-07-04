@@ -301,10 +301,20 @@ with tab1:
         st.error("No data available for this symbol.")
 
 # ==========================================
-# NEWS TAB
+# AI PREDICTION TAB
 # ==========================================
 
 with tab2:
+
+    st.header("🤖 AI Prediction")
+
+    st.info("Detailed AI Prediction module coming soon.")
+
+# ==========================================
+# NEWS TAB
+# ==========================================
+
+with tab3:
 
     st.header("📰 Global Financial News")
 
@@ -318,7 +328,7 @@ with tab2:
 # PORTFOLIO TAB
 # ==========================================
 
-with tab3:
+with tab4:
 
     st.header("💼 Portfolio")
 
@@ -328,7 +338,7 @@ with tab3:
 # SETTINGS TAB
 # ==========================================
 
-with tab4:
+with tab5:
 
     st.header("⚙️ Settings")
 
