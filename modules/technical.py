@@ -5,8 +5,9 @@ import ta
 
 def calculate_indicators(symbol):
     try:
-        stock = yf.Ticker(symbol)
-                data = stock.history(
+                stock = yf.Ticker(symbol)
+
+        data = stock.history(
             period="6mo",
             auto_adjust=True
         )
