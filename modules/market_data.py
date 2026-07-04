@@ -10,7 +10,7 @@ def get_market_data(symbol):
         ticker = yf.Ticker(symbol)
         data = ticker.history(period="5d", auto_adjust=True)
 
-                if data.empty or len(data) < 2:
+        if data.empty or len(data) < 2:
             return {
                 "error": "Not enough market data"
             }
@@ -19,7 +19,8 @@ def get_market_data(symbol):
         previous = round(data["Close"].iloc[-2], 2)
 
         change = round(current - previous, 2)
-                if previous != 0:
+
+        if previous != 0:
             percent = round((change / previous) * 100, 2)
         else:
             percent = 0
@@ -38,7 +39,6 @@ def get_market_data(symbol):
 
 
 def get_dashboard_data():
-
     return {
         "NIFTY50": get_market_data("^NSEI"),
         "SENSEX": get_market_data("^BSESN"),
