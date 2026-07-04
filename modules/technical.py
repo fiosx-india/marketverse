@@ -6,9 +6,15 @@ import ta
 def calculate_indicators(symbol):
     try:
         stock = yf.Ticker(symbol)
-        data = stock.history(period="6mo")
+        data = stock.history(
+    period="6mo",
+    auto_adjust=True
+)
 
-        if data.empty:
+        if data.empty or len(data) < 50:
+    return {
+        "error": "Not enough market data"
+    }
             return {"error": "No market data"}
 
         close = data["Close"]
