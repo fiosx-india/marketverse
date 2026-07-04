@@ -6,14 +6,6 @@ from modules.ai_engine import analyze
 import yfinance as yf
 import pandas as pd
 import ta
-# ==========================================
-# Auto Refresh
-# ==========================================
-
-st_autorefresh(
-    interval=60000,
-    key="data_refresh"
-)
 
 # ==========================================
 # Page Settings
@@ -26,10 +18,20 @@ st.set_page_config(
 )
 
 # ==========================================
+# Auto Refresh
+# ==========================================
+
+st_autorefresh(
+    interval=60000,
+    key="data_refresh"
+)
+
+# ==========================================
 # Download Market Data
 # ==========================================
 
 def get_data(symbol):
+    ...
 
     df = yf.download(
         symbol,
