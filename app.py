@@ -188,9 +188,10 @@ with tab1:
             xaxis_rangeslider_visible=False
         )
 
-        st.plotly_chart(
-            fig,
-            width="stretch"
+st.plotly_chart(
+    fig,
+    use_container_width=True
+)
         )
 
         # ==========================================
