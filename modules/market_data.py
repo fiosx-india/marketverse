@@ -10,8 +10,10 @@ def get_market_data(symbol):
         ticker = yf.Ticker(symbol)
         data = ticker.history(period="5d", auto_adjust=True)
 
-        if data.empty:
-            return None
+        if data.empty or len(data) < 2:
+    return {
+        "error": "Not enough market data"
+    }
 
         current = round(data["Close"].iloc[-1], 2)
         previous = round(data["Close"].iloc[-2], 2)
