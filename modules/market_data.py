@@ -39,6 +39,7 @@ def get_market_data(symbol):
 
 
 def get_dashboard_data():
+
     return {
         "NIFTY50": get_market_data("^NSEI"),
         "SENSEX": get_market_data("^BSESN"),
