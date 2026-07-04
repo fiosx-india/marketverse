@@ -11,11 +11,10 @@ def calculate_indicators(symbol):
     auto_adjust=True
 )
 
-        if data.empty or len(data) < 50:
-    return {
-        "error": "Not enough market data"
-    }
-            return {"error": "No market data"}
+                if data.empty or len(data) < 50:
+            return {
+                "error": "Not enough market data"
+            }
 
         close = data["Close"]
         high = data["High"]
