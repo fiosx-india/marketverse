@@ -6,12 +6,12 @@ import ta
 def calculate_indicators(symbol):
     try:
         stock = yf.Ticker(symbol)
-        data = stock.history(
-    period="6mo",
-    auto_adjust=True
-)
+                data = stock.history(
+            period="6mo",
+            auto_adjust=True
+        )
 
-                if data.empty or len(data) < 50:
+        if data.empty or len(data) < 50:
             return {
                 "error": "Not enough market data"
             }
@@ -20,7 +20,6 @@ def calculate_indicators(symbol):
         high = data["High"]
         low = data["Low"]
         volume = data["Volume"]
-
         # ==========================
         # Moving Averages
         # ==========================
