@@ -33,6 +33,14 @@ st_autorefresh(
 )
 
 # ==========================================
+# Initialize Modules
+# ==========================================
+
+tracker = PerformanceTracker()
+executor = TradeExecutor()
+system = SystemManager()
+
+# ==========================================
 # Download Market Data
 # ==========================================
 
