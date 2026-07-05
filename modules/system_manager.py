@@ -22,8 +22,7 @@ class SystemManager:
 
     def analyze(self, symbol):
 
-        # Market Data
-        df = get_stock_data(symbol)
+        df = get_market_data(symbol)
 
         if df is None or len(df) == 0:
             return {
