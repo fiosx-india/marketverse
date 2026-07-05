@@ -130,21 +130,29 @@ def get_market_news(symbol=None, limit=10):
 
             impact = 50
 
-            if sentiment == "Positive":
-                impact = 80
+        if sentiment == "Positive":
+            impact = 80
+            ai_confidence = 85
 
-            elif sentiment == "Negative":
-                impact = 75
+        elif sentiment == "Negative":
+            impact = 75
+            ai_confidence = 80
 
-            articles.append({
-                "title": title,
-                "description": description,
-                "source": article.get("source", {}).get("name", ""),
-                "url": url,
-                "published": article.get("publishedAt"),
-                "sentiment": sentiment,
-                "impact_score": impact
-            })
+        else:
+            impact = 50
+            ai_confidence = 60
+
+        articles.append({
+            "title": title,
+            "description": description,
+            "source": article.get("source", {}).get("name", ""),
+            "url": url,
+            "published": article.get("publishedAt"),
+            "sentiment": sentiment,
+            "market_impact": impact,
+            "impact_score": impact,
+            "ai_confidence": ai_confidence
+          }) 
 
         # ==========================================
         # Sort News
