@@ -107,6 +107,27 @@ st.sidebar.success("✅ Auto Refresh : 60 Seconds")
 
 try:
     data = get_data(symbol)
+    # Default values
+    curr_price = None
+    rsi = None
+    macd = None
+    macd_signal = None
+    ema20 = None
+
+    if not data.empty and "Close" in data.columns:
+        curr_price = float(data["Close"].iloc[-1])
+
+    if pd.notna(data["RSI_14"].iloc[-1]):
+        rsi = float(data["RSI_14"].iloc[-1])
+
+    if pd.notna(data["MACD_12_26_9"].iloc[-1]):
+        macd = float(data["MACD_12_26_9"].iloc[-1])
+
+    if pd.notna(data["MACDs_12_26_9"].iloc[-1]):
+        macd_signal = float(data["MACDs_12_26_9"].iloc[-1])
+
+    if pd.notna(data["EMA_20"].iloc[-1]):
+        ema20 = float(data["EMA_20"].iloc[-1])
 
 except Exception as e:
     st.error(f"Download Error : {e}")
