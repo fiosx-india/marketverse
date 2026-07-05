@@ -111,3 +111,38 @@ def calculate_strategy(market, technical, prediction, sentiment=None):
         "confidence": confidence,
         "reasons": reasons
     }
+def generate_strategy(technical, sentiment, prediction):
+    """
+    Compatibility wrapper for SystemManager.
+    """
+
+    signal = prediction.get("signal", "HOLD")
+
+    if signal == "STRONG BUY":
+        return {
+            "action": "BUY",
+            "strength": "Strong"
+        }
+
+    elif signal == "STRONG SELL":
+        return {
+            "action": "SELL",
+            "strength": "Strong"
+        }
+
+    elif signal == "BUY":
+        return {
+            "action": "BUY",
+            "strength": "Normal"
+        }
+
+    elif signal == "SELL":
+        return {
+            "action": "SELL",
+            "strength": "Normal"
+        }
+
+    return {
+        "action": "HOLD",
+        "strength": "Neutral"
+    }
