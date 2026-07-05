@@ -16,6 +16,10 @@ import yfinance as yf
 import pandas as pd
 import ta
 
+from modules.guardian import run_guardian
+
+run_guardian()
+
 # ==========================================
 # Page Settings
 # ==========================================
