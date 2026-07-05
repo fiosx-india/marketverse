@@ -1,4 +1,6 @@
 import streamlit as st
+from modules.news import get_market_news
+from modules.news_analysis import analyze_news
 import plotly.graph_objects as go
 from streamlit_autorefresh import st_autorefresh
 
@@ -337,11 +339,40 @@ with tab3:
 
     st.header("📰 Global Financial News")
 
-    st.info("Breaking Market News")
-    st.info("Stock Market Updates")
-    st.info("Crypto News")
-    st.info("Forex News")
-    st.info("Gold & Silver News")
+    news = get_market_news(symbol)
+
+    if not news:
+        st.warning("No news available.")
+
+    else:
+
+        headlines = []
+
+        for item in news:
+
+            st.subheader(item["title"])
+
+            if item["description"]:
+                st.write(item["description"])
+
+            st.caption(
+                f'{item["source"]} | {item["published"]}'
+            )
+
+            st.markdown("---")
+
+            headlines.append(item["title"])
+
+        sentiment = analyze_news(symbol, headlines)
+
+        st.success(
+            f"Overall Sentiment : {sentiment['overall_sentiment']}"
+        )
+
+        st.metric(
+            "Confidence",
+            f"{sentiment['confidence']}%"
+        )
 
 # ==========================================
 # PORTFOLIO TAB
