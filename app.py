@@ -331,7 +331,69 @@ with tab2:
 
     st.header("🤖 AI Prediction")
 
-    st.info("Detailed AI Prediction module coming soon.")
+    if not data.empty:
+
+        st.subheader("AI Trading Signal")
+
+        score = 0
+
+        if rsi is not None:
+            if rsi < 30:
+                score += 2
+            elif rsi > 70:
+                score -= 2
+
+        if macd is not None and macd_signal is not None:
+            if macd > macd_signal:
+                score += 2
+            else:
+                score -= 2
+
+        if curr_price > ema20:
+            score += 2
+        else:
+            score -= 2
+
+        if score >= 4:
+            prediction = "🟢 STRONG BUY"
+            confidence = 92
+        elif score >= 2:
+            prediction = "🟢 BUY"
+            confidence = 80
+        elif score <= -4:
+            prediction = "🔴 STRONG SELL"
+            confidence = 92
+        elif score <= -2:
+            prediction = "🔴 SELL"
+            confidence = 80
+        else:
+            prediction = "🟡 HOLD"
+            confidence = 65
+
+        st.metric("Prediction", prediction)
+        st.metric("Confidence", f"{confidence}%")
+
+        st.progress(confidence / 100)
+
+        st.write("### AI Explanation")
+
+        if prediction == "🟢 STRONG BUY":
+            st.success("Trend is bullish. Momentum and indicators support buying.")
+
+        elif prediction == "🟢 BUY":
+            st.success("Indicators are mostly bullish. Buy opportunity detected.")
+
+        elif prediction == "🟡 HOLD":
+            st.warning("Market is neutral. Wait for confirmation before trading.")
+
+        elif prediction == "🔴 SELL":
+            st.error("Indicators are turning bearish. Selling pressure detected.")
+
+        else:
+            st.error("Strong bearish trend. Avoid fresh buying.")
+
+    else:
+        st.warning("No market data available.")
 
 # ==========================================
 # NEWS TAB
