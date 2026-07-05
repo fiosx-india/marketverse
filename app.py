@@ -12,6 +12,7 @@ from modules.system_manager import SystemManager
 from modules.dashboard_utils import dashboard_summary
 from modules.market_events import detect_market_events
 from modules.central_brain import CentralBrain
+from modules.system_controller import SystemController
 
 import yfinance as yf
 import pandas as pd
