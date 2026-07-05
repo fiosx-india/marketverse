@@ -71,3 +71,15 @@ def get_prediction(symbol, data):
         "reason": reason,
         "news_count": len(news)
     }
+def predict_market(df):
+    """
+    Compatibility wrapper for SystemManager.
+    """
+
+    latest = df.iloc[-1]
+
+    return {
+        "signal": "BUY" if latest["Close"] > latest["EMA_20"] else "SELL",
+        "confidence": 75,
+        "price": float(latest["Close"])
+    }
