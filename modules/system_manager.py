@@ -6,7 +6,7 @@ Central Integration Module
 =========================================================
 """
 
-from modules.market_data import get_stock_data
+from modules.market_data import get_market_data
 from modules.technical import analyze_technical
 from modules.news_analysis import calculate_sentiment
 from modules.prediction import predict_market
