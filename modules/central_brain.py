@@ -8,6 +8,7 @@ from modules.market_scanner import scan_market
 from modules.news import get_market_news
 from modules.news_analysis import analyze_news
 from modules.market_events import detect_market_events
+from modules.decision_core import DecisionCore
 
 from modules.pattern import detect_patterns
 from modules.technical import technical_analysis
