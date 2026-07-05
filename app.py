@@ -341,6 +341,8 @@ with tab3:
     st.header("📰 Global Financial News")
 
     news = get_market_news(symbol)
+    
+    market_events = detect_market_events(news)
 
     if not news:
         st.warning("No news available.")
