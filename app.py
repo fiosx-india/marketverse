@@ -10,6 +10,7 @@ from modules.performance_tracker import PerformanceTracker
 from modules.trade_executor import TradeExecutor
 from modules.system_manager import SystemManager
 from modules.dashboard_utils import dashboard_summary
+from modules.market_events import detect_market_events
 
 import yfinance as yf
 import pandas as pd
