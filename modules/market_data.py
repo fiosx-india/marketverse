@@ -3,48 +3,28 @@ import yfinance as yf
 
 def get_market_data(symbol):
     """
-    Returns live market data for any stock/crypto symbol.
+    Returns OHLC DataFrame for analysis.
     """
     try:
-        ticker = yf.Ticker(symbol)
-        data = ticker.history(period="5d", auto_adjust=True)
+        df = yf.download(
+            symbol,
+            period="3mo",
+            interval="1d",
+            auto_adjust=True,
+            progress=False
+        )
 
-        if data.empty or len(data) < 2:
-            return {
-                "error": "Not enough market data"
-            }
+        if df.empty:
+            return None
 
-        current = round(data["Close"].iloc[-1], 2)
-        previous = round(data["Close"].iloc[-2], 2)
+        # Fix MultiIndex columns
+        if hasattr(df.columns, "nlevels") and df.columns.nlevels > 1:
+            df.columns = df.columns.get_level_values(0)
 
-        change = round(current - previous, 2)
+        return df
 
-        if previous != 0:
-            percent = round((change / previous) * 100, 2)
-        else:
-            percent = 0
-
-        # ===========================
-        # Return Market Data
-        # ===========================
-
-        return {
-            "symbol": symbol,
-            "price": current,
-            "open": round(data["Open"].iloc[-1], 2),
-            "high": round(data["High"].iloc[-1], 2),
-            "low": round(data["Low"].iloc[-1], 2),
-            "close": round(data["Close"].iloc[-1], 2),
-            "volume": int(data["Volume"].iloc[-1]),
-            "change": change,
-            "change_percent": percent,
-            "timestamp": str(data.index[-1])
-        }
-
-    except Exception as e:
-        return {
-            "error": str(e)
-        }
+    except Exception:
+        return None
 
 
 def get_dashboard_data():
