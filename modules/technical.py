@@ -146,3 +146,23 @@ def calculate_indicators(symbol):
         return {
             "error": str(e)
         }
+def analyze_technical(df):
+    """
+    Analyze technical indicators from dataframe.
+    """
+
+    try:
+        latest = df.iloc[-1]
+
+        return {
+            "price": float(latest["Close"]),
+            "trend": "Bullish" if latest["Close"] > latest["EMA_20"] else "Bearish",
+            "rsi": float(latest["RSI_14"]),
+            "macd": float(latest["MACD_12_26_9"]),
+            "signal": float(latest["MACDs_12_26_9"])
+        }
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
