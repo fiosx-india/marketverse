@@ -559,3 +559,32 @@ def get_market_news(symbol=None, limit=10):
 
             if any(k in text for k in fii_keywords):
                 analytics["institutional_news"] += 1
+                
+# ==========================================
+# Return Result
+# ==========================================
+
+return {
+    "articles": articles,
+    "analytics": analytics
+}
+
+except Exception as e:
+
+    return {
+        "articles": [],
+        "analytics": {
+            "total_news": 0,
+            "positive_news": 0,
+            "negative_news": 0,
+            "neutral_news": 0,
+            "bullish_percent": 0,
+            "bearish_percent": 0,
+            "neutral_percent": 0,
+            "market_mood": "Unknown",
+            "confidence": 0,
+            "signal": "HOLD",
+            "error": str(e),
+            "generated_at": str(datetime.now())
+        }
+        }
