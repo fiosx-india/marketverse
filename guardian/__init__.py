@@ -11,6 +11,9 @@ from .dependency import DependencyAnalyzer
 from .health import HealthMonitor
 from .advisor import GuardianAdvisor
 from .import_checker import ImportChecker
+from .notifier import Notifier
+from .registry import ProjectRegistry, ModuleInfo
+from .registry_sync import RegistrySync
 
 __all__ = [
     "GuardianController",
@@ -20,6 +23,10 @@ __all__ = [
     "HealthMonitor",
     "GuardianAdvisor",
     "ImportChecker",
+    "Notifier",
+    "ProjectRegistry",
+    "ModuleInfo",
+    "RegistrySync",
 ]
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
