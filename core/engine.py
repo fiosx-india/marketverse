@@ -1,32 +1,32 @@
 """
 MarketVerse Core
-startup.py
+engine.py
 
 Purpose:
-Manage MarketVerse startup sequence.
+Core engine for MarketVerse.
 """
 
-from datetime import datetime
+from .bootstrap import Bootstrap
+from .startup import StartupManager
 
 
-class StartupManager:
-    """Handles application startup."""
+class MarketVerseEngine:
+    """Main MarketVerse engine."""
 
     def __init__(self):
-        self.started_at = None
+        self.bootstrap = Bootstrap()
+        self.startup = StartupManager()
 
-    def start(self):
-        self.started_at = datetime.now()
+    def run(self):
+        boot = self.bootstrap.initialize()
+
+        if boot["status"] != "READY":
+            return boot
+
+        startup = self.startup.start()
 
         return {
-            "status": "RUNNING",
-            "started_at": self.started_at.strftime("%Y-%m-%d %H:%M:%S"),
-            "message": "MarketVerse startup completed successfully."
+            "bootstrap": boot,
+            "startup": startup,
+            "status": "ONLINE"
         }
-
-    def uptime(self):
-        if self.started_at is None:
-            return "Application has not started."
-
-        elapsed = datetime.now() - self.started_at
-        return str(elapsed)
