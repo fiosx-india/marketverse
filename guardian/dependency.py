@@ -16,19 +16,34 @@ class DependencyAnalyzer:
     def analyze(self, file_path):
         file_path = Path(file_path)
 
-        source = file_path.read_text(encoding="utf-8")
-        tree = ast.parse(source)
+        try:
+            source = file_path.read_text(encoding="utf-8")
+            tree = ast.parse(source)
 
-        imports = []
+            imports = []
 
-        for node in ast.walk(tree):
+            for node in ast.walk(tree):
 
-            if isinstance(node, ast.Import):
-                for item in node.names:
-                    imports.append(item.name)
+                if isinstance(node, ast.Import):
+                    for item in node.names:
+                        imports.append(item.name)
 
-            elif isinstance(node, ast.ImportFrom):
-                module = node.module or ""
-                imports.append(module)
+                elif isinstance(node, ast.ImportFrom):
+                    module = node.module or ""
 
-        return sorted(set(imports))
+                    if node.level > 0:
+                        module = "." * node.level + module
+
+                    imports.append(module)
+
+            return {
+                "success": True,
+                "imports": sorted(set(imports))
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "imports": [],
+                "error": str(e)
+            }
