@@ -11,14 +11,9 @@ from pathlib import Path
 
 
 class ValidationResult:
+    """Stores validation result."""
 
-    def __init__(
-        self,
-        file_path,
-        valid=True,
-        error=None,
-        warnings=None
-    ):
+    def __init__(self, file_path, valid=True, error=None, warnings=None):
         self.file_path = file_path
         self.valid = valid
         self.error = error
@@ -26,18 +21,14 @@ class ValidationResult:
 
 
 class ProjectValidator:
+    """Validates Python files."""
 
     def validate(self, file_path):
-
         file_path = Path(file_path)
-
         warnings = []
 
         try:
-
-            source = file_path.read_text(
-                encoding="utf-8"
-            )
+            source = file_path.read_text(encoding="utf-8")
 
             if not source.strip():
                 warnings.append("Empty file.")
@@ -45,15 +36,9 @@ class ProjectValidator:
             tree = ast.parse(source)
 
             for node in ast.walk(tree):
-
                 if isinstance(node, ast.Call):
-
-                    if hasattr(node.func, "id"):
-
-                        if node.func.id in ("eval", "exec"):
-                            warnings.append(
-                                f"Dangerous function: {node.func.id}"
-                            )
+                    if hasattr(node.func, "id") and node.func.id in ("eval", "exec"):
+                        warnings.append(f"Dangerous function: {node.func.id}")
 
             return ValidationResult(
                 file_path=file_path,
@@ -62,7 +47,6 @@ class ProjectValidator:
             )
 
         except SyntaxError as e:
-
             return ValidationResult(
                 file_path=file_path,
                 valid=False,
@@ -70,7 +54,6 @@ class ProjectValidator:
             )
 
         except UnicodeDecodeError:
-
             return ValidationResult(
                 file_path=file_path,
                 valid=False,
@@ -78,7 +61,6 @@ class ProjectValidator:
             )
 
         except Exception as e:
-
             return ValidationResult(
                 file_path=file_path,
                 valid=False,
