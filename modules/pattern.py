@@ -102,3 +102,9 @@ def is_bearish(pattern):
         "SELL",
         "STRONG SELL"
     ]
+
+def detect_patterns(df):
+    """
+    Compatibility wrapper for CentralBrain.
+    """
+    return analyze_pattern(df)
