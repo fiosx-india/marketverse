@@ -1,11 +1,3 @@
-"""
-MarketVerse Guardian
-scanner.py
-
-Purpose:
-Scan the project and discover Python modules.
-"""
-
 from pathlib import Path
 
 
@@ -15,11 +7,17 @@ class ProjectScanner:
     def __init__(self, root_path="."):
         self.root_path = Path(root_path)
 
-    def scan(self):
+    def scan(self, root_path=None):
         """Return all Python files in the project."""
+
+        if root_path is None:
+            root = self.root_path
+        else:
+            root = Path(root_path)
+
         files = []
 
-        for file in self.root_path.rglob("*.py"):
+        for file in root.rglob("*.py"):
             if "__pycache__" in str(file):
                 continue
 
