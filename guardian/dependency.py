@@ -37,14 +37,7 @@ class DependencyAnalyzer:
 
                     imports.append(module)
 
-            return {
-                "success": True,
-                "imports": sorted(set(imports))
-            }
+            return sorted(set(imports))
 
-        except Exception as e:
-            return {
-                "success": False,
-                "imports": [],
-                "error": str(e)
-            }
+        except Exception:
+            return []
