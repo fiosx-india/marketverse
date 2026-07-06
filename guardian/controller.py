@@ -21,6 +21,7 @@ class GuardianController:
         self.dependency = DependencyAnalyzer()
         self.health = HealthMonitor()
         self.advisor = GuardianAdvisor()
+        self.import_checker = ImportChecker()
 
     def run(self, root="."):
 
@@ -41,7 +42,12 @@ class GuardianController:
                     "error": result.error
                 })
 
-            dependencies[str(file)] = self.dependency.analyze(file)
+            imports = self.dependency.analyze(file)
+
+dependencies[str(file)] = {
+    "imports": imports,
+    "check": self.import_checker.check(imports)
+}
 
         report = self.health.generate(
             files,
