@@ -18,17 +18,24 @@ import yfinance as yf
 import pandas as pd
 import ta
 
+st.set_page_config(
+    page_title="MarketVerse AI v3.0 RC",
+    page_icon="📈",
+    layout="wide"
+)
+
+# ===========================
+# Guardian
+# ===========================
 from guardian.controller import GuardianController
 
 guardian = GuardianController()
-
 guardian_result = guardian.run()
 
 if guardian_result["report"].errors > 0:
     st.error("Guardian detected project errors.")
 
     with st.expander("Guardian Report"):
-
         st.write(guardian_result["report"])
 
         st.write("### Advice")
@@ -38,19 +45,18 @@ if guardian_result["report"].errors > 0:
         st.write("### Validation Errors")
         st.json(guardian_result["validation_errors"])
 
-# ==========================================
-# Page Settings
-# ==========================================
-
 st.set_page_config(
     page_title="MarketVerse AI v3.0 RC",
-    page_icon="🚀",
+    page_icon="📈",
     layout="wide"
 )
 
-# ==========================================
-# Auto Refresh
-# ==========================================
+from guardian.controller import GuardianController
+
+guardian = GuardianController()
+guardian_result = guardian.run()
+
+...
 
 st_autorefresh(
     interval=60000,
