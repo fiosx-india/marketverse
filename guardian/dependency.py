@@ -31,6 +31,7 @@ class DependencyAnalyzer:
                 elif isinstance(node, ast.ImportFrom):
                     module = node.module or ""
 
+                    # Handle relative imports
                     if node.level > 0:
                         module = "." * node.level + module
 
