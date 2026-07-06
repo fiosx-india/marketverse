@@ -1,3 +1,11 @@
+"""
+MarketVerse Guardian
+scanner.py
+
+Purpose:
+Scan the project directory for Python files.
+"""
+
 from pathlib import Path
 
 
@@ -17,8 +25,19 @@ class ProjectScanner:
 
         files = []
 
+        ignore = {
+            "__pycache__",
+            ".git",
+            ".venv",
+            "venv",
+            ".streamlit",
+            ".idea",
+            ".vscode"
+        }
+
         for file in root.rglob("*.py"):
-            if "__pycache__" in str(file):
+
+            if any(part in ignore for part in file.parts):
                 continue
 
             files.append(file)
