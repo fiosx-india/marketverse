@@ -19,15 +19,26 @@ class HealthReport:
     warnings: int
     health_score: int
     last_scan: str
+    integration_status: dict
 
 
 class HealthMonitor:
 
-    def generate(self, files, validation_results):
+    def generate(
+        self,
+        files,
+        validation_results,
+        integration_status=None
+    ):
+
+        if integration_status is None:
+            integration_status = {}
+
         total = len(files)
 
         valid = sum(
-            1 for r in validation_results
+            1
+            for r in validation_results
             if r.valid
         )
 
@@ -54,8 +65,4 @@ class HealthMonitor:
             status=status,
             files=total,
             valid_files=valid,
-            errors=errors,
-            warnings=warnings,
-            health_score=health_score,
-            last_scan=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        )
+            errors
