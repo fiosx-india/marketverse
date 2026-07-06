@@ -31,4 +31,17 @@ def run_guardian():
                 "message": e.msg
             })
 
-    return report
+        except Exception as e:
+
+            report.append({
+                "file": str(file.relative_to(PROJECT_ROOT)),
+                "status": "ERROR",
+                "message": str(e)
+            })
+
+    return {
+        "status": "OK" if all(r["status"] == "OK" for r in report) else "ERROR",
+        "total_files": len(report),
+        "errors": sum(1 for r in report if r["status"] == "ERROR"),
+        "report": report
+    }
