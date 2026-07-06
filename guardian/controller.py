@@ -11,7 +11,7 @@ from .validator import ProjectValidator
 from .dependency import DependencyAnalyzer
 from .health import HealthMonitor
 from .advisor import GuardianAdvisor
-
+from .import_checker import ImportChecker
 
 class GuardianController:
 
