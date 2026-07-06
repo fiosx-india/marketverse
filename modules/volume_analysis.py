@@ -86,3 +86,24 @@ def analyze_volume(df):
         "strength": strength,
         "score": score
     }
+
+# ==========================================
+# Compatibility Wrapper for CentralBrain
+# ==========================================
+
+def volume_analysis(df=None):
+    """
+    Compatibility wrapper for CentralBrain.
+    """
+    if df is None:
+        return {
+            "current_volume": 0,
+            "average_volume": 0,
+            "relative_volume": 0,
+            "buy_pressure": 0,
+            "sell_pressure": 0,
+            "strength": "LOW",
+            "score": 0
+        }
+
+    return analyze_volume(df)
