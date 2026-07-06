@@ -1,39 +1,34 @@
-import os
 import ast
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent
-MODULES_DIR = PROJECT_ROOT
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 
 def run_guardian():
 
     report = []
 
-    for file in MODULES_DIR.glob("*.py"):
+    for file in PROJECT_ROOT.rglob("*.py"):
 
-        if file.name == "guardian.py":
+        if "__pycache__" in str(file):
             continue
 
         try:
             source = file.read_text(encoding="utf-8")
             ast.parse(source)
 
-            report.append(
-                {
-                    "file": file.name,
-                    "status": "OK"
-                }
-            )
+            report.append({
+                "file": str(file.relative_to(PROJECT_ROOT)),
+                "status": "OK"
+            })
 
         except SyntaxError as e:
 
-            report.append(
-                {
-                    "file": file.name,
-                    "status": "ERROR",
-                    "line": e.lineno,
-                    "message": e.msg
-                }
-            )
+            report.append({
+                "file": str(file.relative_to(PROJECT_ROOT)),
+                "status": "ERROR",
+                "line": e.lineno,
+                "message": e.msg
+            })
 
     return report
