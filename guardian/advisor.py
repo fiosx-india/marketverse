@@ -8,6 +8,7 @@ Provide recommendations based on project health.
 
 
 class GuardianAdvisor:
+    """Provides recommendations based on project health."""
 
     def advise(self, report):
 
@@ -37,11 +38,17 @@ class GuardianAdvisor:
             ])
 
         if report.errors > 0:
-            advice.append(f"Detected {report.errors} file(s) with errors.")
+            advice.append(
+                f"Detected {report.errors} file(s) with errors."
+            )
 
         if report.warnings > 0:
-            advice.append(f"Detected {report.warnings} warning(s).")
+            advice.append(
+                f"Detected {report.warnings} warning(s)."
+            )
 
-        advice.append(f"Health Score: {report.health_score}%")
+        advice.append(
+            f"Health Score: {report.health_score}%"
+        )
 
         return advice
