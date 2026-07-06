@@ -65,27 +65,6 @@ class GuardianController:
                 "imports": imports,
                 "check": self.import_checker.check(imports)
             }
-            
-      # ==========================
-      # Integration Health Report
-      # ==========================
-       integration_report = {
-      "app": self.app_monitor.check(),
-      "system": self.system_monitor.check(),
-      "central_brain": self.central_brain_monitor.check(),
-      "dashboard": self.dashboard_monitor.check()
-       }
-
-       # ==========================
-       # Health Report
-       # ==========================
-       report = self.health.generate(
-       files,
-       results,
-       integration_report
-       )
-
-        advice = self.advisor.advise(report)
 
         # ==========================
         # Integration Health Report
@@ -96,6 +75,17 @@ class GuardianController:
             "central_brain": self.central_brain_monitor.check(),
             "dashboard": self.dashboard_monitor.check()
         }
+
+        # ==========================
+        # Health Report
+        # ==========================
+        report = self.health.generate(
+            files,
+            results,
+            integration_report
+        )
+
+        advice = self.advisor.advise(report)
 
         return {
             "report": report,
