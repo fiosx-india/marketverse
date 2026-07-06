@@ -65,4 +65,9 @@ class HealthMonitor:
             status=status,
             files=total,
             valid_files=valid,
-            errors
+            errors=errors,
+            warnings=warnings,
+            health_score=health_score,
+            last_scan=datetime.now().isoformat(),
+            integration_status=integration_status
+        )
