@@ -21,7 +21,22 @@ import ta
 from guardian.controller import GuardianController
 
 guardian = GuardianController()
-guardian.run()
+
+guardian_result = guardian.run()
+
+if guardian_result["report"].errors > 0:
+    st.error("Guardian detected project errors.")
+
+    with st.expander("Guardian Report"):
+
+        st.write(guardian_result["report"])
+
+        st.write("### Advice")
+        for item in guardian_result["advice"]:
+            st.write("•", item)
+
+        st.write("### Validation Errors")
+        st.json(guardian_result["validation_errors"])
 
 # ==========================================
 # Page Settings
