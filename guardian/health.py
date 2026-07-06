@@ -16,6 +16,8 @@ class HealthReport:
     files: int
     valid_files: int
     errors: int
+    warnings: int
+    health_score: int
     last_scan: str
 
 
@@ -31,6 +33,16 @@ class HealthMonitor:
 
         errors = total - valid
 
+        warnings = sum(
+            len(getattr(r, "warnings", []))
+            for r in validation_results
+        )
+
+        if total == 0:
+            health_score = 0
+        else:
+            health_score = round((valid / total) * 100)
+
         if errors == 0:
             status = "GREEN"
         elif errors < 5:
@@ -43,5 +55,7 @@ class HealthMonitor:
             files=total,
             valid_files=valid,
             errors=errors,
+            warnings=warnings,
+            health_score=health_score,
             last_scan=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         )
