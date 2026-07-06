@@ -68,3 +68,16 @@ def analyze_sentiment(news_list):
         "positive": positive_count,
         "negative": negative_count
     }
+
+# =========================================
+# Compatibility Wrapper for CentralBrain
+# =========================================
+
+def sentiment_analysis(news_list=None):
+    """
+    Compatibility wrapper for CentralBrain.
+    """
+    if news_list is None:
+        news_list = []
+
+    return analyze_sentiment(news_list)
