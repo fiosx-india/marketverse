@@ -18,9 +18,10 @@ import yfinance as yf
 import pandas as pd
 import ta
 
-from modules.guardian import run_guardian
+from guardian.controller import GuardianController
 
-run_guardian()
+guardian = GuardianController()
+guardian.run()
 
 # ==========================================
 # Page Settings
