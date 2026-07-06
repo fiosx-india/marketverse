@@ -50,7 +50,7 @@ class HealthMonitor:
         )
 
         if total == 0:
-            health_score = 0
+           health_score = 0
         else:
             health_score = round((valid / total) * 100)
 
