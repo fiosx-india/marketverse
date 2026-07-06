@@ -83,3 +83,36 @@ def predict_market(df):
         "confidence": 75,
         "price": float(latest["Close"])
     }
+
+# =========================================
+# Compatibility Wrapper for CentralBrain
+# =========================================
+
+def predict_price(df=None):
+    """
+    Safe compatibility wrapper for CentralBrain.
+    """
+
+    if df is None:
+        return {
+            "signal": "UNKNOWN",
+            "confidence": 0,
+            "price": 0
+        }
+
+    try:
+        if df.empty:
+            return {
+                "signal": "UNKNOWN",
+                "confidence": 0,
+                "price": 0
+            }
+
+        return predict_market(df)
+
+    except Exception:
+        return {
+            "signal": "UNKNOWN",
+            "confidence": 0,
+            "price": 0
+        }
