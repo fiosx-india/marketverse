@@ -13,6 +13,7 @@ from .health import HealthMonitor
 from .advisor import GuardianAdvisor
 from .import_checker import ImportChecker
 
+
 class GuardianController:
 
     def __init__(self):
@@ -44,10 +45,10 @@ class GuardianController:
 
             imports = self.dependency.analyze(file)
 
-dependencies[str(file)] = {
-    "imports": imports,
-    "check": self.import_checker.check(imports)
-}
+            dependencies[str(file)] = {
+                "imports": imports,
+                "check": self.import_checker.check(imports)
+            }
 
         report = self.health.generate(
             files,
