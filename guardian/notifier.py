@@ -40,3 +40,60 @@ class Notifier:
             "Error",
             message
         )
+
+    def success(self, message):
+        return Notification(
+            "SUCCESS",
+            "Success",
+            message
+        )
+
+    def integration_notifications(self, integration_report):
+
+        notifications = []
+
+        for name, result in integration_report.items():
+
+            if isinstance(result, dict):
+
+                status = result.get("status", "UNKNOWN")
+
+                if status == "OK":
+                    notifications.append(
+                        self.success(
+                            f"{name} monitor is healthy."
+                        )
+                    )
+
+                else:
+                    notifications.append(
+                        self.error(
+                            f"{name} monitor failed: "
+                            f"{result.get('message', '')}"
+                        )
+                    )
+
+            elif isinstance(result, list):
+
+                failed = [
+                    item for item in result
+                    if item.get("status") != "OK"
+                ]
+
+                if failed:
+
+                    notifications.append(
+                        self.warning(
+                            f"{name}: {len(failed)} module(s) failed."
+                        )
+                    )
+
+                else:
+
+                    notifications.append(
+                        self.success(
+                            f"{name}: All modules loaded successfully."
+                        )
+                    )
+
+        return notifications
