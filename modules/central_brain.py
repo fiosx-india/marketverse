@@ -44,12 +44,12 @@ class CentralBrain:
         result["guardian"] = guardian_report
 
         # Stop execution if Guardian detects critical health
-     if (
-         isinstance(guardian_report, dict)
-         and "report" in guardian_report
-         and guardian_report["report"].status == "RED"
-      ):
-      return result
+        if (
+            isinstance(guardian_report, dict)
+            and "report" in guardian_report
+            and guardian_report["report"].status == "RED"
+        ):
+            return result
 
         # Market Scan
         result["scanner"] = scan_market(symbol)
