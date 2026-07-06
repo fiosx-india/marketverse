@@ -11,22 +11,37 @@ class GuardianAdvisor:
 
     def advise(self, report):
 
+        advice = []
+
         if report.status == "GREEN":
-            return [
+            advice.extend([
                 "Project is healthy.",
-                "No action required."
-            ]
+                "Deployment is safe.",
+                "No critical issues detected."
+            ])
 
         elif report.status == "YELLOW":
-            return [
+            advice.extend([
                 "Review project warnings.",
                 "Validate imports.",
-                "Check missing modules."
-            ]
+                "Check missing modules.",
+                "Run project tests before deployment."
+            ])
 
-        return [
-            "Critical issues detected.",
-            "Fix broken files immediately.",
-            "Run full Guardian scan.",
-            "Revalidate project."
-        ]
+        else:
+            advice.extend([
+                "Critical issues detected.",
+                "Fix broken files immediately.",
+                "Run full Guardian scan.",
+                "Revalidate project before deployment."
+            ])
+
+        if report.errors > 0:
+            advice.append(f"Detected {report.errors} file(s) with errors.")
+
+        if report.warnings > 0:
+            advice.append(f"Detected {report.warnings} warning(s).")
+
+        advice.append(f"Health Score: {report.health_score}%")
+
+        return advice
