@@ -3,7 +3,6 @@ MarketVerse AI
 Master System Controller
 """
 
-from modules.guardian import run_guardian
 from modules.central_brain import CentralBrain
 
 
@@ -16,13 +15,10 @@ class SystemController:
 
         print("========== MARKETVERSE START ==========")
 
-        # Health Check
-        guardian_report = run_guardian()
-
-        # Brain Analysis
+        # Central Brain (Guardian runs internally)
         result = self.brain.think(symbol)
 
         return {
-            "guardian": guardian_report,
+            "status": "ONLINE",
             "analysis": result
         }
