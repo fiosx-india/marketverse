@@ -37,18 +37,19 @@ class GuardianAdvisor:
                 "Revalidate project before deployment."
             ])
 
-        if report.errors > 0:
+        if hasattr(report, "errors") and report.errors > 0:
             advice.append(
                 f"Detected {report.errors} file(s) with errors."
             )
 
-        if report.warnings > 0:
+        if hasattr(report, "warnings") and report.warnings > 0:
             advice.append(
                 f"Detected {report.warnings} warning(s)."
             )
 
-        advice.append(
-            f"Health Score: {report.health_score}%"
-        )
+        if hasattr(report, "health_score"):
+            advice.append(
+                f"Health Score: {report.health_score}%"
+            )
 
         return advice
