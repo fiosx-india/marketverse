@@ -166,3 +166,9 @@ def analyze_technical(df):
         return {
             "error": str(e)
         }
+
+def technical_analysis(df):
+    """
+    Compatibility wrapper for CentralBrain.
+    """
+    return analyze_technical(df)
