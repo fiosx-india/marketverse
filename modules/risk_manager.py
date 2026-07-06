@@ -101,3 +101,27 @@ def calculate_risk(
         "risk_reward": "1:3"
 
     }
+# ==========================================
+# Compatibility Wrapper for CentralBrain
+# ==========================================
+
+class RiskManager:
+    """
+    Compatibility wrapper for CentralBrain.
+    """
+
+    @staticmethod
+    def calculate(
+        entry_price,
+        signal="HOLD",
+        confidence=50,
+        capital=DEFAULT_CAPITAL,
+        risk_percent=2
+    ):
+        return calculate_risk(
+            entry_price=entry_price,
+            signal=signal,
+            confidence=confidence,
+            capital=capital,
+            risk_percent=risk_percent
+        )
