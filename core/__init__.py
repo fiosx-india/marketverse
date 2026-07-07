@@ -7,7 +7,7 @@ Core engine initialization.
 from .bootstrap import Bootstrap
 from .startup import StartupManager
 from .engine import MarketVerseEngine
-
+from marketverse.guardian import GuardianController
 __all__ = [
     "Bootstrap",
     "StartupManager",
