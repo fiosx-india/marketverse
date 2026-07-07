@@ -97,3 +97,15 @@ class Notifier:
                     )
 
         return notifications
+
+def guardian_summary(self, report):
+
+    score = report.get("health_score", 0)
+
+    if score >= 90:
+        return self.success("Guardian Health: GREEN")
+
+    elif score >= 70:
+        return self.warning("Guardian Health: YELLOW")
+
+    return self.error("Guardian Health: RED")
