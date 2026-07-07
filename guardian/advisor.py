@@ -91,3 +91,28 @@ class GuardianAdvisor:
                         )
 
         return advice
+
+report = self.health.generate(
+    files,
+    results,
+    integration_report
+)
+
+advice = self.advisor.advise(report)
+
+notifications = self.notifier.integration_notifications(
+    integration_report
+)
+
+notifications.append(
+    self.notifier.guardian_summary(report)
+)
+
+return {
+    "report": report,
+    "advice": advice,
+    "dependencies": dependencies,
+    "validation_errors": validation_errors,
+    "integrations": integration_report,
+    "notifications": notifications
+}
