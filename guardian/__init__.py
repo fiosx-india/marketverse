@@ -30,3 +30,9 @@ __all__ = [
 ]
 
 __version__ = "2.0.0"
+"notifications": notifications,
+self.notifier = Notifier()
+notifications = self.notifier.integration_notifications(integration_report)
+notifications.append(
+    self.notifier.guardian_summary(report)
+)
