@@ -27,21 +27,7 @@ st.set_page_config(
     page_icon="📈",
     layout="wide"
 )
-guardian = run_guardian()
-for notification in guardian["notifications"]:
 
-    if notification.level == "SUCCESS":
-        st.success(notification.message)
-
-    elif notification.level == "WARNING":
-        st.warning(notification.message)
-
-    elif notification.level == "ERROR":
-        st.error(notification.message)
-
-    else:
-        st.info(notification.message)
-        
 # ==========================================
 # Guardian
 # ==========================================
