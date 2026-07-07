@@ -20,7 +20,7 @@ from .integrations.app_monitor import AppMonitor
 from .integrations.system_monitor import SystemMonitor
 from .integrations.central_brain_monitor import CentralBrainMonitor
 from .integrations.dashboard_monitor import DashboardMonitor
-
+from .notifier import Notifier
 
 class GuardianController:
 
