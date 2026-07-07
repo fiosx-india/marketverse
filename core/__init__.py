@@ -13,3 +13,9 @@ __all__ = [
     "StartupManager",
     "MarketVerseEngine",
 ]
+def run_guardian():
+    """Run Guardian system checks."""
+
+    controller = GuardianController()
+
+    return controller.run()
