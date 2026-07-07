@@ -13,6 +13,7 @@ from modules.dashboard_utils import dashboard_summary
 from modules.market_events import detect_market_events
 from modules.central_brain import CentralBrain
 from modules.system_controller import SystemController
+from core import run_guardian
 
 import yfinance as yf
 import pandas as pd
@@ -26,7 +27,21 @@ st.set_page_config(
     page_icon="📈",
     layout="wide"
 )
+guardian = run_guardian()
+for notification in guardian["notifications"]:
 
+    if notification.level == "SUCCESS":
+        st.success(notification.message)
+
+    elif notification.level == "WARNING":
+        st.warning(notification.message)
+
+    elif notification.level == "ERROR":
+        st.error(notification.message)
+
+    else:
+        st.info(notification.message)
+        
 # ==========================================
 # Guardian
 # ==========================================
