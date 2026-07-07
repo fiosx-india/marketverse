@@ -4,7 +4,6 @@ MarketVerse Guardian
 Guardian package initializer.
 """
 
-from .controller import GuardianController
 from .scanner import ProjectScanner
 from .validator import ProjectValidator
 from .dependency import DependencyAnalyzer
@@ -15,8 +14,15 @@ from .notifier import Notifier
 from .registry import ProjectRegistry, ModuleInfo
 from .registry_sync import RegistrySync
 
+from .controller import GuardianController
+
+def run_guardian():
+    guardian = GuardianController()
+    return guardian.run()
+    
 __all__ = [
     "GuardianController",
+    "run_guardian",
     "ProjectScanner",
     "ProjectValidator",
     "DependencyAnalyzer",
