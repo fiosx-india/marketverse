@@ -109,10 +109,4 @@ notifications.append(
 )
 
 return {
-    "report": report,
-    "advice": advice,
-    "dependencies": dependencies,
-    "validation_errors": validation_errors,
-    "integrations": integration_report,
-    "notifications": notifications
-}
+    
