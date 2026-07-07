@@ -3,7 +3,6 @@ MarketVerse AI
 Central Brain Controller
 """
 
-
 from modules.ai_engine import analyze
 from modules.market_scanner import scan_market
 from modules.news import get_market_news
