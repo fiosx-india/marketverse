@@ -3,7 +3,6 @@ MarketVerse AI
 Central Brain Controller
 """
 
-from guardian.controller import GuardianController
 
 from modules.ai_engine import analyze
 from modules.market_scanner import scan_market
@@ -29,8 +28,6 @@ class CentralBrain:
 
     def __init__(self):
 
-        self.guardian = GuardianController()
-
         self.risk = RiskManager()
         self.executor = TradeExecutor()
         self.tracker = PerformanceTracker()
@@ -39,17 +36,6 @@ class CentralBrain:
 
         result = {}
 
-        # Guardian Health Check
-        guardian_report = self.guardian.run()
-        result["guardian"] = guardian_report
-
-        # Stop execution if Guardian detects critical health
-        if (
-            isinstance(guardian_report, dict)
-            and "report" in guardian_report
-            and guardian_report["report"].status == "RED"
-        ):
-            return result
 
         # Market Scan
         result["scanner"] = scan_market(symbol)
