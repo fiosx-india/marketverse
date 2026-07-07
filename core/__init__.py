@@ -19,3 +19,7 @@ def run_guardian():
     controller = GuardianController()
 
     return controller.run()
+
+self.advisor = GuardianAdvisor()
+self.import_checker = ImportChecker()
+self.notifier = Notifier()
