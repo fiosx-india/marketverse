@@ -13,7 +13,7 @@ from modules.dashboard_utils import dashboard_summary
 from modules.market_events import detect_market_events
 from modules.central_brain import CentralBrain
 from modules.system_controller import SystemController
-from core import run_guardian
+from guardian import run_guardian
 
 import yfinance as yf
 import pandas as pd
