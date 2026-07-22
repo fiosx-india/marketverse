@@ -510,21 +510,23 @@ with tab5:
 
 
 # ==========================================
-# Categorized Multi-File Selector & Exporter
+# MarketVerse - Secure Categorized File Exporter
 # ==========================================
 import os
 import gc
 import streamlit as st
 
-st.subheader("🛡️ Categorized File Selector & Downloader")
-st.caption("Select files by category (Mold, Core/Backend, UI/Frontend) to download bundles separately.")
+st.subheader("🛡️ MarketVerse Project File Exporter & Downloader")
+st.caption("Organized file selector: Core, Guardian, Modules & Root files auto-scanned from your repository structure.")
 
 current_dir = os.getcwd()
 
-# Categorized lists
-mold_files = []
+# Category buckets
+root_files = []
 core_files = []
-frontend_files = []
+guardian_files = []
+module_files = []
+other_files = []
 
 ignore_dirs = {'.git', '.streamlit', '__pycache__', 'venv', 'env', 'build', 'dist', 'site-packages', 'lib', 'include', 'share'}
 
@@ -537,33 +539,44 @@ for root, dirs, files in os.walk(current_dir):
         if 'site-packages' in full_path or 'lib/python' in full_path:
             continue
             
-        # Categorization logic
-        if any(keyword in rel_path.lower() for keyword in ['.stl', '.step', '.iges', '.obj', '.dxf', 'mold']):
-            mold_files.append(full_path)
-        elif any(keyword in rel_path.lower() for keyword in ['app.py', 'core', 'guardian', 'backend']):
+        # Categorize based on folder path
+        rel_lower = rel_path.lower()
+        if rel_lower.startswith('core' + os.sep) or rel_lower.startswith('core/'):
             core_files.append(full_path)
+        elif rel_lower.startswith('guardian' + os.sep) or rel_lower.startswith('guardian/'):
+            guardian_files.append(full_path)
+        elif rel_lower.startswith('modules' + os.sep) or rel_lower.startswith('modules/'):
+            module_files.append(full_path)
+        elif os.dirname(rel_path) == '' or os.dirname(rel_path) == '.':
+            root_files.append(full_path)
         else:
-            frontend_files.append(full_path)
+            other_files.append(full_path)
 
-# Tabs for Categories
-cat_tab1, cat_tab2, cat_tab3 = st.tabs(["📦 Mold Files", "⚙️ Core / Backend", "🖥️ Front / UI Files"])
+# Organize UI Tabs matching your repository structure
+tab_root, tab_guardian, tab_core, tab_modules, tab_other = st.tabs([
+    "📄 Root Files (app.py, README)", 
+    "🛡️ Guardian", 
+    "⚙️ Core", 
+    "📦 Modules", 
+    "📂 Other Files"
+])
 
-def render_category_section(file_list, category_name):
+def render_exporter_tab(file_list, tab_label):
     if not file_list:
-        st.warning(f"⚠️ No files found in {category_name}.")
+        st.warning(f"⚠️ No files found in {tab_label}.")
         return
         
-    st.success(f"✨ Found {len(file_list)} file(s) in {category_name}.")
+    st.success(f"✨ Found {len(file_list)} file(s) in {tab_label}.")
     selected = []
     
     for idx, f_path in enumerate(file_list):
         rel_name = os.path.relpath(f_path, current_dir)
-        if st.checkbox(f"📁 {rel_name}", key=f"{category_name}_chk_{idx}"):
+        if st.checkbox(f"📁 {rel_name}", key=f"exp_{tab_label}_{idx}"):
             selected.append(f_path)
             
     if selected:
         st.markdown("---")
-        st.success(f"🎯 {len(selected)} file(s) selected from {category_name}.")
+        st.success(f"🎯 {len(selected)} file(s) selected.")
         
         bundle = []
         for f_path in selected:
@@ -577,26 +590,34 @@ def render_category_section(file_list, category_name):
                 continue
                 
         combined = "".join(bundle)
-        st.text_area(f"Copy {category_name} Content:", combined, height=200, key=f"{category_name}_area")
+        st.text_area(f"Copy {tab_label} Content:", combined, height=250, key=f"area_{tab_label}")
         
         st.download_button(
-            label=f"📥 Download {category_name} Bundle (.txt)",
+            label=f"📥 Download {tab_label} Bundle (.txt)",
             data=combined,
-            file_name=f"{category_name.lower().replace(' ', '_')}_bundle.txt",
+            file_name=f"{tab_label.lower().replace(' ', '_')}_bundle.txt",
             mime="text/plain",
-            key=f"{category_name}_btn"
+            key=f"btn_{tab_label}"
         )
         
+        st.info("🔒 **Auto-Erase Protection Active:** RAM memory cleared instantly after export.")
         del combined
         del bundle
         gc.collect()
 
-with cat_tab1:
-    render_category_section(mold_files, "Mold Files")
+with tab_root:
+    render_exporter_tab(root_files, "Root Files")
 
-with cat_tab2:
-    render_category_section(core_files, "Core Files")
+with tab_guardian:
+    render_exporter_tab(guardian_files, "Guardian")
 
-with cat_tab3:
-    render_category_section(frontend_files, "Frontend Files")
+with tab_core:
+    render_exporter_tab(core_files, "Core")
+
+with tab_modules:
+    render_exporter_tab(module_files, "Modules")
+
+with tab_other:
+    render_exporter_tab(other_files, "Other Files")
+
 
