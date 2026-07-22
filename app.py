@@ -619,9 +619,11 @@ with tab_modules:
 with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
+
 # ==========================================
 # Code Pass Multiplier & Indentation Tool
 # ==========================================
+
 st.markdown("---")
 st.subheader("🔄 Code Pass Multiplier & Indentation Tool")
 
@@ -630,20 +632,49 @@ st.caption(
     "(4, 6, 8, 12, 16, 20...) and copy easily."
 )
 
+# -----------------------------
 # Session State
+# -----------------------------
 if "target_code_input" not in st.session_state:
-    st.session_state["target_code_input"] = ""
+    st.session_state.target_code_input = ""
 
-# Input
-user_target_code = st.text_area(
-    "Paste your code:",
-    key="target_code_input",
-    height=180
-)
+if "generated_output" not in st.session_state:
+    st.session_state.generated_output = ""
 
-col1, col2 = st.columns(2)
+# -----------------------------
+# Top Input + Delete
+# -----------------------------
+top_left, top_right = st.columns([8, 1])
 
-with col1:
+with top_left:
+
+    user_target_code = st.text_area(
+        "Paste your code:",
+        key="target_code_input",
+        height=180,
+        placeholder="Paste your code here..."
+    )
+
+with top_right:
+
+    st.write("")
+    st.write("")
+
+    if st.button(
+        "🗑",
+        key="delete_top",
+        help="Clear Input"
+    ):
+        st.session_state.target_code_input = ""
+        st.session_state.generated_output = ""
+        st.rerun()
+
+# -----------------------------
+# Options
+# -----------------------------
+left, right = st.columns(2)
+
+with left:
 
     selected_pass_count = st.selectbox(
         "Pass Count",
@@ -651,7 +682,7 @@ with col1:
         index=2
     )
 
-with col2:
+with right:
 
     indent_spaces = st.selectbox(
         "Indentation (Spaces)",
@@ -659,32 +690,34 @@ with col2:
         index=3
     )
 
-c1,c2 = st.columns(2)
+# -----------------------------
+# Buttons
+# -----------------------------
+b1, b2 = st.columns(2)
 
-with c1:
+with b1:
 
-    generate_btn = st.button(
-        "🚀 Generate"
+    generate = st.button(
+        "🚀 Generate",
+        use_container_width=True
     )
 
-with c2:
+with b2:
 
-    clear_btn = st.button(
-        "🗑 Clear"
-    )
+    if st.button(
+        "🗑 Clear All",
+        use_container_width=True
+    ):
 
-# Clear
-if clear_btn:
+        st.session_state.target_code_input = ""
+        st.session_state.generated_output = ""
 
-    st.session_state["target_code_input"] = ""
+        st.rerun()
 
-    if "generated_output" in st.session_state:
-        del st.session_state["generated_output"]
-
-    st.rerun()
-
+# -----------------------------
 # Generate
-if generate_btn:
+# -----------------------------
+if generate:
 
     if user_target_code.strip():
 
@@ -697,37 +730,65 @@ if generate_btn:
         for line in lines:
 
             if line.strip():
+
                 shifted.append(indent + line)
+
             else:
+
                 shifted.append("")
 
-        single_block = "\n".join(shifted)
+        block = "\n".join(shifted)
 
-        passes = []
+        output = []
 
         for _ in range(selected_pass_count):
-            passes.append(single_block)
 
-        st.session_state["generated_output"] = "\n\n".join(
-            passes
-        )
+            output.append(block)
+
+        st.session_state.generated_output = "\n\n".join(output)
 
         st.success(
-            f"{selected_pass_count} Pass Generated "
-            f"with {indent_spaces} Spaces."
+            f"Generated {selected_pass_count} pass(es) "
+            f"with {indent_spaces} spaces."
         )
 
     else:
 
         st.warning("Paste some code first.")
 
+# -----------------------------
 # Output
-if "generated_output" in st.session_state:
+# -----------------------------
+if st.session_state.generated_output:
+
+    st.markdown("### 📋 Copy Output")
 
     st.text_area(
-        "Copy Output",
-        st.session_state["generated_output"],
-        height=300
+        "",
+        st.session_state.generated_output,
+        height=320,
+        key="output_box"
     )
 
+    d1, d2 = st.columns(2)
+
+    with d1:
+
+        st.download_button(
+            "📥 Download .py",
+            data=st.session_state.generated_output,
+            file_name="generated_code.py",
+            mime="text/plain",
+            use_container_width=True
+        )
+
+    with d2:
+
+        if st.button(
+            "🗑 Delete Output",
+            use_container_width=True
+        ):
+
+            st.session_state.generated_output = ""
+            st.rerun()
 
