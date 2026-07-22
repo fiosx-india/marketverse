@@ -648,9 +648,10 @@ with col_m2:
         index=1
     )
     pass_spacing_points = st.selectbox(
-        "Spacing Points from Frame:", 
-        [4, 8, 12, 16, 20, 24, 32], 
-        index=3
+    "Blank Lines Between Passes:",
+    [1, 2, 4, 8, 12, 16],
+    index=2,
+    help="Number of blank lines inserted between each generated pass."
     )
 
 btn_col1, btn_col2 = st.columns([1, 1])
