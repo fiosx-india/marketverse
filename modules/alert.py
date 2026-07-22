@@ -130,8 +130,8 @@ def send_all_alerts(
     telegram=False,
     email=False,
     sound=True,
-    bot_token="",
-    chat_id=""
+    bot_token=None,
+    chat_id=None
 ):
     """
     Send all enabled alerts.
@@ -149,12 +149,12 @@ def send_all_alerts(
     if sound:
         play_sound()
 
-    if telegram:
+    if telegram and bot_token and chat_id:
         send_telegram_alert(
-            message,
-            bot_token,
-            chat_id
-        )
+        message,
+        bot_token,
+        chat_id
+    )
 
     if email:
         print("Email alert enabled.")
