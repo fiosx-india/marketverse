@@ -531,23 +531,23 @@ with tab4:
 
     for symbol in portfolio.get_portfolio():
 
-    try:
-        live = yf.download(
-            symbol,
-            period="1d",
-            interval="1d",
-            auto_adjust=True,
-            progress=False
-        )
+          try:
+              live = yf.download(
+                  symbol,
+                  period="1d",
+                  interval="1d",
+                  auto_adjust=True,
+                  progress=False
+              )
 
-        if not live.empty:
-            portfolio.update_price(
-                symbol,
-                float(live["Close"].iloc[-1])
-            )
+              if not live.empty:
+                  portfolio.update_price(
+                      symbol,
+                      float(live["Close"].iloc[-1])
+                  )
 
-    except Exception:
-        pass
+          except Exception:
+              pass
 
     holdings = portfolio.get_portfolio()
 
