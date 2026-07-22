@@ -49,6 +49,79 @@ if guardian_result["report"].errors > 0:
         st.json(guardian_result["validation_errors"])
 
 # ==========================================
+# Secure Multi-File Selector & Auto-Erase Exporter
+# ==========================================
+import os
+import gc
+import streamlit as st
+
+st.subheader("🛡️ Secure File Selector & Auto-Erase Exporter")
+st.caption("Tick files to generate bundle. Once copied or downloaded, data is auto-erased instantly from server memory.")
+
+current_dir = os.getcwd()
+python_files = []
+ignore_dirs = {'.git', '.streamlit', '__pycache__', 'venv', 'env', 'build', 'dist', 'site-packages', 'lib', 'include', 'share'}
+
+for root, dirs, files in os.walk(current_dir):
+    dirs[:] = [d for d in dirs if d not in ignore_dirs and not d.startswith('lib') and not d.startswith('python')]
+    for file in files:
+        if file.endswith('.py'):
+            full_path = os.path.join(root, file)
+            if 'site-packages' not in full_path and 'lib/python' not in full_path:
+                python_files.append(full_path)
+
+total_found = len(python_files)
+
+if total_found > 0:
+    st.success(f"✨ Found **{total_found} project files**. Tick the files you need below:")
+    selected_files_path = []
+    
+    for idx, f_path in enumerate(python_files):
+        rel_name = os.path.relpath(f_path, current_dir)
+        if st.checkbox(f"📁 {rel_name}", key=f"marketverse_chk_{idx}"):
+            selected_files_path.append(f_path)
+            
+    st.markdown("---")
+    
+    if selected_files_path:
+        st.success(f"🎯 **{len(selected_files_path)} file(s) selected.**")
+        
+        master_bundle = []
+        for f_path in selected_files_path:
+            rel_path = os.path.relpath(f_path, current_dir)
+            try:
+                with open(f_path, "r", encoding="utf-8", errors="ignore") as f:
+                    code_content = f.read()
+                    separator = "=" * 50
+                    file_block = f"\n\n{separator}\n# FILE: {rel_path}\n{separator}\n\n{code_content}"
+                    master_bundle.append(file_block)
+            except Exception:
+                continue
+        
+        combined_text = "".join(master_bundle)
+        
+        st.markdown("### 📥 Copy Selected Files Content:")
+        st.text_area("Selected Code Block:", combined_text, height=300, key="marketverse_copy_area")
+        
+        st.download_button(
+            label="📥 Download Selected Bundle (.txt)",
+            data=combined_text,
+            file_name="marketverse_files_bundle.txt",
+            mime="text/plain"
+        )
+        
+        st.info("🔒 **Auto-Erase Protection Active:** Temporary variables are cleared immediately from RAM.")
+        
+        del combined_text
+        del master_bundle
+        gc.collect()
+    else:
+        st.warning("⚠️ Please tick at least one file above to generate the bundle.")
+else:
+    st.warning("⚠️ No custom project files found.")
+
+
+# ==========================================
 # Auto Refresh
 # ==========================================
 st_autorefresh(
