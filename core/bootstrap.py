@@ -49,3 +49,28 @@ class Bootstrap:
             "message": "Missing project components.",
             "missing": result["missing"],
         }
+
+
+# ==========================================
+# SELF TEST
+# ==========================================
+
+if __name__ == "__main__":
+
+    bootstrap = Bootstrap()
+
+    print("=" * 50)
+    print("MARKETVERSE BOOTSTRAP CHECK")
+    print("=" * 50)
+
+    result = bootstrap.initialize()
+
+    print("Status :", result["status"])
+    print("Message:", result["message"])
+
+    if result["status"] == "ERROR":
+        print("\nMissing Components:")
+        for item in result.get("missing", []):
+            print("-", item)
+
+    print("=" * 50)
