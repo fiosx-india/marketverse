@@ -620,13 +620,13 @@ with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
 # ==========================================
-# Code Pass Multiplier & Shifting Tool (Custom HTML Copy & Delete)
+# Code Pass Multiplier & Shifting Tool (Fixed Shifting)
 # ==========================================
 import streamlit.components.v1 as components
 
 st.markdown("---")
 st.subheader("🔄 Code Pass Multiplier & Shifting Tool")
-st.caption("Generate unified single block passes, control spacing points, copy cleanly, and delete output instantly.")
+st.caption("Generate unified single block passes, control exact spacing from frame, copy cleanly, and delete output instantly.")
 
 col_m1, col_m2 = st.columns([2, 1])
 
@@ -644,14 +644,14 @@ with col_m1:
 with col_m2:
     selected_pass_count = st.selectbox(
         "Select Passes:", 
-        [1, 2, 4, 8, 12, 16], 
+        [2, 4, 8, 12, 16], 
         index=1
     )
-    pass_spacing_points = st.selectbox(
-    "Blank Lines Between Passes:",
-    [1, 2, 4, 8, 12, 16],
-    index=2,
-    help="Number of blank lines inserted between each generated pass."
+    # Frame shifting spaces (4, 8, 12, 16, 20 spaces)
+    pass_spacing_spaces = st.selectbox(
+        "Spacing Points from Frame:", 
+        [4, 8, 12, 16, 20, 24, 32], 
+        index=3
     )
 
 btn_col1, btn_col2 = st.columns([1, 1])
@@ -671,15 +671,19 @@ if "generated_output" not in st.session_state:
 
 if generate_clicked:
     if user_target_code.strip():
-        gap_block = "\n" * pass_spacing_points
-        clean_code = user_target_code.strip()
+        # Correctly shift each line by selected spaces for each pass
+        indent_str = " " * pass_spacing_spaces
+        raw_lines = user_target_code.strip().splitlines()
         
         generated_passes = []
         for p in range(1, selected_pass_count + 1):
-            generated_passes.append(clean_code)
+            # Apply shifting spaces to every line of the block
+            shifted_block = "\n".join([f"{indent_str}{line}" if line.strip() else "" for line in raw_lines])
+            generated_passes.append(shifted_block)
             
-        st.session_state.generated_output = gap_block.join(generated_passes)
-        st.success(f"✨ Successfully generated **{selected_pass_count} Passes** with {pass_spacing_points}-point spacing!")
+        # Join passes with standard newlines so they stack cleanly
+        st.session_state.generated_output = "\n\n".join(generated_passes)
+        st.success(f"✨ Successfully generated **{selected_pass_count} Passes** shifted by {pass_spacing_spaces} points!")
     else:
         st.warning("⚠️ Please paste some code above to generate passes.")
 
@@ -732,3 +736,4 @@ if st.session_state.generated_output:
     ):
         st.session_state.generated_output = ""
         st.rerun()
+
