@@ -620,15 +620,19 @@ with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
 # ==========================================
-# Code Pass Multiplier & Shifting Tool (Single Output File)
+# Code Pass Multiplier & Shifting Tool (Final Edition)
 # ==========================================
 st.markdown("---")
 st.subheader("🔄 Code Pass Multiplier & Shifting Tool")
-st.caption("Generate your shifted passes into a single, unified code block without creating extra files.")
+st.caption("Generate unified single block passes, control spacing points (8, 16, 20+), copy easily, and clear text instantly.")
 
 col_m1, col_m2 = st.columns([2, 1])
 
 with col_m1:
+    # Session state for input clearing
+    if "target_code_input" not in st.session_state:
+        st.session_state["target_code_input"] = ""
+
     user_target_code = st.text_area(
         "Paste target code line or block:", 
         height=130, 
@@ -642,33 +646,46 @@ with col_m2:
         [2, 4, 8, 12, 16], 
         index=1
     )
-    pass_gap_lines = st.selectbox(
-        "Spacing Gap between Passes:", 
-        [1, 2, 3, 4], 
-        index=1
+    # Custom numerical spacing points from frame (8, 16, 20, etc.)
+    pass_spacing_points = st.selectbox(
+        "Spacing Points from Frame:", 
+        [4, 8, 12, 16, 20, 24, 32], 
+        index=3
     )
 
-if st.button("🚀 Generate Single Unified Block"):
+# Action Buttons Layout
+btn_col1, btn_col2 = st.columns([1, 1])
+
+with btn_col1:
+    generate_clicked = st.button("🚀 Generate Single Block")
+
+with btn_col2:
+    if st.button("🗑️ Clear / Delete Input"):
+        st.session_state["target_code_input"] = ""
+        st.rerun()
+
+if generate_clicked:
     if user_target_code.strip():
-        gap_block = "\n" * pass_gap_lines
+        gap_block = "\n" * pass_spacing_points
         clean_code = user_target_code.strip()
         
         generated_passes = []
         for p in range(1, selected_pass_count + 1):
             generated_passes.append(clean_code)
             
-        # Everything combined into a single unified string
+        # Single unified block output
         final_shifted_output = gap_block.join(generated_passes)
         
-        st.success(f"✨ Successfully generated **{selected_pass_count} Passes** inside a single block!")
+        st.success(f"✨ Successfully generated **{selected_pass_count} Passes** with {pass_spacing_points}-point spacing!")
         
-        # Single output box to copy everything at once
+        # Output box for copying
         st.text_area(
-            "Copy Single Unified Output:", 
+            "Copy Final Unified Output:", 
             final_shifted_output, 
             height=220, 
             key="final_shifted_output_box"
         )
     else:
         st.warning("⚠️ Please paste some code above to generate passes.")
+
 
