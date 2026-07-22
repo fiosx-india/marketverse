@@ -622,6 +622,7 @@ with tab_other:
 # -----------------------------
 # Output
 # -----------------------------
+
 if st.session_state.generated_output:
 
     st.markdown("### 📋 Copy Output")
