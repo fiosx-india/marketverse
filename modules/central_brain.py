@@ -70,8 +70,13 @@ class CentralBrain:
 
         # Strategy
         result["strategy"] = generate_strategy(result)
-
         # Risk
-        result["risk"] = self.risk.evaluate(result) 
+        result["risk"] = self.risk.evaluate(result)
+
+        # Final Decision
+        result["decision"] = self.decision.evaluate(result)
+
+        # Confidence
+        result["confidence"] = result["decision"].get("confidence", 0)
 
         return result
