@@ -521,7 +521,6 @@ st.caption("Organized file selector: Core, Guardian, Modules & Root files auto-s
 
 current_dir = os.getcwd()
 
-# Category buckets
 root_files = []
 core_files = []
 guardian_files = []
@@ -539,20 +538,20 @@ for root, dirs, files in os.walk(current_dir):
         if 'site-packages' in full_path or 'lib/python' in full_path:
             continue
             
-        # Categorize based on folder path
         rel_lower = rel_path.lower()
+        file_dir = os.path.dirname(rel_path)
+        
         if rel_lower.startswith('core' + os.sep) or rel_lower.startswith('core/'):
             core_files.append(full_path)
         elif rel_lower.startswith('guardian' + os.sep) or rel_lower.startswith('guardian/'):
             guardian_files.append(full_path)
         elif rel_lower.startswith('modules' + os.sep) or rel_lower.startswith('modules/'):
             module_files.append(full_path)
-        elif os.dirname(rel_path) == '' or os.dirname(rel_path) == '.':
+        elif file_dir == '' or file_dir == '.':
             root_files.append(full_path)
         else:
             other_files.append(full_path)
 
-# Organize UI Tabs matching your repository structure
 tab_root, tab_guardian, tab_core, tab_modules, tab_other = st.tabs([
     "📄 Root Files (app.py, README)", 
     "🛡️ Guardian", 
@@ -619,5 +618,4 @@ with tab_modules:
 
 with tab_other:
     render_exporter_tab(other_files, "Other Files")
-
 
