@@ -30,6 +30,7 @@ class CentralBrain:
         self.risk = RiskManager()
         self.executor = TradeExecutor()
         self.tracker = PerformanceTracker()
+        self.decision = DecisionCore()
 
     def think(self, symbol):
 
@@ -71,6 +72,6 @@ class CentralBrain:
         result["strategy"] = generate_strategy(result)
 
         # Risk
-        self.decision = DecisionCore()
+        result["risk"] = self.risk.evaluate(result) 
 
         return result
