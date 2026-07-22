@@ -14,6 +14,7 @@ from modules.market_events import detect_market_events
 from modules.central_brain import CentralBrain
 from modules.system_controller import SystemController
 from modules.portfolio import Portfolio
+from modules.intelligence_engine import IntelligenceEngine
 
 import yfinance as yf
 import pandas as pd
@@ -35,6 +36,7 @@ from guardian.controller import GuardianController
 
 guardian = GuardianController()
 guardian_result = guardian.run()
+engine = IntelligenceEngine()
 
 if guardian_result["report"].errors > 0:
     st.error("Guardian detected project errors.")
@@ -77,7 +79,7 @@ def get_data(symbol):
         auto_adjust=True,
         progress=False
     )
-
+    
     # Fix MultiIndex Columns
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
@@ -102,6 +104,7 @@ def get_data(symbol):
             window=20
         ).ema_indicator()
     return df
+    
 # ==========================================
 # Sidebar
 # ==========================================
@@ -127,13 +130,26 @@ st.sidebar.success("✅ Auto Refresh : 60 Seconds")
 try:
     data = get_data(symbol)
 
+    try:
+        engine_result = engine.run(symbol)
+    except Exception as e:
+        st.warning(f"Intelligence Engine: {e}")
+        engine_result = {
+            "signal": "N/A",
+            "market": {},
+            "news": {"sentiment": "Unknown"},
+            "options": {"signal": "N/A"},
+            "volume_alert": False,
+            "volatility": 0.0
+        }
+
     # Default values
     curr_price = None
     rsi = None
     macd = None
     macd_signal = None
     ema20 = None
-
+    
     if not data.empty and "Close" in data.columns:
         curr_price = float(data["Close"].iloc[-1])
 
@@ -182,6 +198,20 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
 
     st.header("📊 Live Market Dashboard")
+    
+    st.subheader("🧠 Market Intelligence Engine")
+
+    st.write(f"AI Signal : {engine_result['signal']}")
+
+    st.write(f"Current Price : ₹{engine_result['market'].get('price', 'N/A')}")
+
+    st.write(f"News Sentiment : {engine_result['news']['sentiment']}")
+
+    st.write(f"Options Signal : {engine_result['options']['signal']}")
+
+    st.write(f"Volume Alert : {engine_result['volume_alert']}")
+
+    st.write(f"Volatility : {engine_result['volatility']:.2f}")
 
     # ==========================================
     # Dashboard Summary
