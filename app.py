@@ -619,7 +619,6 @@ with tab_modules:
 with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
-
 # -----------------------------
 # Output
 # -----------------------------
@@ -629,39 +628,25 @@ if st.session_state.generated_output:
 
     components.html(
         f"""
-        <textarea id="copyText"
-            style="width:100%;height:320px;
-            font-family:monospace;
-            font-size:14px;
-            padding:10px;">{st.session_state.generated_output}</textarea>
+        <textarea id="copyText" style="width:100%;height:320px;font-family:monospace;">{st.session_state.generated_output}</textarea>
 
         <br><br>
 
-        <button
-            onclick="
-                navigator.clipboard.writeText(
-                    document.getElementById('copyText').value
-                );
-                alert('✅ Code Copied Successfully!');
-            "
-            style="
-                background:#4CAF50;
-                color:white;
-                border:none;
-                padding:10px 18px;
-                border-radius:6px;
-                cursor:pointer;
-                margin-right:10px;
-            ">
-            📋 Copy Output
-        </button>
+        <button onclick="copyCode()">📋 Copy Output</button>
+
+        <script>
+        function copyCode() {{
+            var copyText = document.getElementById("copyText");
+            copyText.select();
+            copyText.setSelectionRange(0, 999999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("✅ Code Copied Successfully!");
+        }}
+        </script>
         """,
         height=420,
     )
 
-    if st.button(
-        "🗑 Delete Output",
-        use_container_width=True
-    ):
+    if st.button("🗑 Delete Output", use_container_width=True):
         st.session_state.generated_output = ""
         st.rerun()
