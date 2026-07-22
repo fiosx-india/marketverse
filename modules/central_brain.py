@@ -71,6 +71,6 @@ class CentralBrain:
         result["strategy"] = generate_strategy(result)
 
         # Risk
-        result["risk"] = self.risk.evaluate(result)
+        self.decision = DecisionCore()
 
         return result
