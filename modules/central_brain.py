@@ -46,10 +46,17 @@ class CentralBrain:
         # News
         news = get_market_news(symbol)
         result["news"] = news
-
+        
         # News Analysis
-        result["news_analysis"] = analyze_news(news)
+        headlines = [
+            article["title"]
+            for article in news["articles"]
+        ]
 
+        result["news_analysis"] = analyze_news(
+            symbol,
+            headlines
+        )
         # Market Events
         result["events"] = detect_market_events(symbol)
 
