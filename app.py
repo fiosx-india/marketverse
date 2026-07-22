@@ -49,79 +49,6 @@ if guardian_result["report"].errors > 0:
         st.json(guardian_result["validation_errors"])
 
 # ==========================================
-# Secure Multi-File Selector & Auto-Erase Exporter
-# ==========================================
-import os
-import gc
-import streamlit as st
-
-st.subheader("🛡️ Secure File Selector & Auto-Erase Exporter")
-st.caption("Tick files to generate bundle. Once copied or downloaded, data is auto-erased instantly from server memory.")
-
-current_dir = os.getcwd()
-python_files = []
-ignore_dirs = {'.git', '.streamlit', '__pycache__', 'venv', 'env', 'build', 'dist', 'site-packages', 'lib', 'include', 'share'}
-
-for root, dirs, files in os.walk(current_dir):
-    dirs[:] = [d for d in dirs if d not in ignore_dirs and not d.startswith('lib') and not d.startswith('python')]
-    for file in files:
-        if file.endswith('.py'):
-            full_path = os.path.join(root, file)
-            if 'site-packages' not in full_path and 'lib/python' not in full_path:
-                python_files.append(full_path)
-
-total_found = len(python_files)
-
-if total_found > 0:
-    st.success(f"✨ Found **{total_found} project files**. Tick the files you need below:")
-    selected_files_path = []
-    
-    for idx, f_path in enumerate(python_files):
-        rel_name = os.path.relpath(f_path, current_dir)
-        if st.checkbox(f"📁 {rel_name}", key=f"marketverse_chk_{idx}"):
-            selected_files_path.append(f_path)
-            
-    st.markdown("---")
-    
-    if selected_files_path:
-        st.success(f"🎯 **{len(selected_files_path)} file(s) selected.**")
-        
-        master_bundle = []
-        for f_path in selected_files_path:
-            rel_path = os.path.relpath(f_path, current_dir)
-            try:
-                with open(f_path, "r", encoding="utf-8", errors="ignore") as f:
-                    code_content = f.read()
-                    separator = "=" * 50
-                    file_block = f"\n\n{separator}\n# FILE: {rel_path}\n{separator}\n\n{code_content}"
-                    master_bundle.append(file_block)
-            except Exception:
-                continue
-        
-        combined_text = "".join(master_bundle)
-        
-        st.markdown("### 📥 Copy Selected Files Content:")
-        st.text_area("Selected Code Block:", combined_text, height=300, key="marketverse_copy_area")
-        
-        st.download_button(
-            label="📥 Download Selected Bundle (.txt)",
-            data=combined_text,
-            file_name="marketverse_files_bundle.txt",
-            mime="text/plain"
-        )
-        
-        st.info("🔒 **Auto-Erase Protection Active:** Temporary variables are cleared immediately from RAM.")
-        
-        del combined_text
-        del master_bundle
-        gc.collect()
-    else:
-        st.warning("⚠️ Please tick at least one file above to generate the bundle.")
-else:
-    st.warning("⚠️ No custom project files found.")
-
-
-# ==========================================
 # Auto Refresh
 # ==========================================
 st_autorefresh(
@@ -580,3 +507,96 @@ with tab5:
     st.checkbox("News Module", True)
 
     st.success("MarketVerse AI v3.0 RC")
+
+
+# ==========================================
+# Categorized Multi-File Selector & Exporter
+# ==========================================
+import os
+import gc
+import streamlit as st
+
+st.subheader("🛡️ Categorized File Selector & Downloader")
+st.caption("Select files by category (Mold, Core/Backend, UI/Frontend) to download bundles separately.")
+
+current_dir = os.getcwd()
+
+# Categorized lists
+mold_files = []
+core_files = []
+frontend_files = []
+
+ignore_dirs = {'.git', '.streamlit', '__pycache__', 'venv', 'env', 'build', 'dist', 'site-packages', 'lib', 'include', 'share'}
+
+for root, dirs, files in os.walk(current_dir):
+    dirs[:] = [d for d in dirs if d not in ignore_dirs and not d.startswith('lib') and not d.startswith('python')]
+    for file in files:
+        full_path = os.path.join(root, file)
+        rel_path = os.path.relpath(full_path, current_dir)
+        
+        if 'site-packages' in full_path or 'lib/python' in full_path:
+            continue
+            
+        # Categorization logic
+        if any(keyword in rel_path.lower() for keyword in ['.stl', '.step', '.iges', '.obj', '.dxf', 'mold']):
+            mold_files.append(full_path)
+        elif any(keyword in rel_path.lower() for keyword in ['app.py', 'core', 'guardian', 'backend']):
+            core_files.append(full_path)
+        else:
+            frontend_files.append(full_path)
+
+# Tabs for Categories
+cat_tab1, cat_tab2, cat_tab3 = st.tabs(["📦 Mold Files", "⚙️ Core / Backend", "🖥️ Front / UI Files"])
+
+def render_category_section(file_list, category_name):
+    if not file_list:
+        st.warning(f"⚠️ No files found in {category_name}.")
+        return
+        
+    st.success(f"✨ Found {len(file_list)} file(s) in {category_name}.")
+    selected = []
+    
+    for idx, f_path in enumerate(file_list):
+        rel_name = os.path.relpath(f_path, current_dir)
+        if st.checkbox(f"📁 {rel_name}", key=f"{category_name}_chk_{idx}"):
+            selected.append(f_path)
+            
+    if selected:
+        st.markdown("---")
+        st.success(f"🎯 {len(selected)} file(s) selected from {category_name}.")
+        
+        bundle = []
+        for f_path in selected:
+            rel_path = os.path.relpath(f_path, current_dir)
+            try:
+                with open(f_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    sep = "=" * 50
+                    bundle.append(f"\n\n{sep}\n# FILE: {rel_path}\n{sep}\n\n{content}")
+            except Exception:
+                continue
+                
+        combined = "".join(bundle)
+        st.text_area(f"Copy {category_name} Content:", combined, height=200, key=f"{category_name}_area")
+        
+        st.download_button(
+            label=f"📥 Download {category_name} Bundle (.txt)",
+            data=combined,
+            file_name=f"{category_name.lower().replace(' ', '_')}_bundle.txt",
+            mime="text/plain",
+            key=f"{category_name}_btn"
+        )
+        
+        del combined
+        del bundle
+        gc.collect()
+
+with cat_tab1:
+    render_category_section(mold_files, "Mold Files")
+
+with cat_tab2:
+    render_category_section(core_files, "Core Files")
+
+with cat_tab3:
+    render_category_section(frontend_files, "Frontend Files")
+
