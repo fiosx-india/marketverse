@@ -63,7 +63,6 @@ st_autorefresh(
 tracker = PerformanceTracker()
 executor = TradeExecutor()
 system = SystemManager()
-portfolio = Portfolio()
 
 # ==========================================
 # Download Market Data
@@ -527,6 +526,26 @@ with tab3:
     st.markdown("---")
 
     st.subheader("📋 Portfolio Holdings")
+
+    for symbol in portfolio.get_portfolio():
+
+    try:
+        live = yf.download(
+            symbol,
+            period="1d",
+            interval="1d",
+            auto_adjust=True,
+            progress=False
+        )
+
+        if not live.empty:
+            portfolio.update_price(
+                symbol,
+                float(live["Close"].iloc[-1])
+            )
+
+    except Exception:
+        pass
 
     holdings = portfolio.get_portfolio()
 
