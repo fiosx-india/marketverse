@@ -510,7 +510,7 @@ with tab5:
 
 
 # ==========================================
-# MarketVerse - Secure Categorized File Exporter
+# MarketVerse - Secure Categorized File Exporter & Pass Multiplier
 # ==========================================
 import os
 import gc
@@ -619,3 +619,40 @@ with tab_modules:
 with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
+# ==========================================
+# Code Pass Multiplier Tool (Added Below Exporter)
+# ==========================================
+st.markdown("---")
+st.subheader("🔄 Code Pass Multiplier Tool")
+st.caption("Multiply your selected or pasted code into 4, 8, or custom passes automatically.")
+
+col_p1, col_p2 = st.columns([2, 1])
+
+with col_p1:
+    pass_input_code = st.text_area("Paste code to multiply passes:", height=150, key="pass_input_area", placeholder="Paste your snippet here...")
+
+with col_p2:
+    pass_count = st.selectbox("Select Passes:", [2, 4, 8, 16], index=1)
+    pass_separator = st.text_input("Pass Divider / Header", value="--- PASS BLOCK ---")
+
+if st.button("🚀 Generate Multi-Pass Code"):
+    if pass_input_code.strip():
+        multi_passed_bundle = []
+        for i in range(1, pass_count + 1):
+            block = f"\n\n# {pass_separator} [PASS {i} of {pass_count}]\n{pass_input_code}"
+            multi_passed_bundle.append(block)
+            
+        final_multi_text = "".join(multi_passed_bundle)
+        
+        st.success(f"✨ Successfully generated **{pass_count} Passes**!")
+        st.text_area("Multi-Pass Result Output:", final_multi_text, height=200, key="pass_output_area")
+        
+        st.download_button(
+            label=f"📥 Download {pass_count}-Pass Bundle (.txt)",
+            data=final_multi_text,
+            file_name=f"code_{pass_count}_passes.txt",
+            mime="text/plain",
+            key="pass_download_btn"
+        )
+    else:
+        st.warning("⚠️ Please paste some code above to multiply passes.")
