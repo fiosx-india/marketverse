@@ -483,7 +483,9 @@ with tab3:
             "Confidence",
             f"{sentiment['confidence']}%"
         )
-
+        
+with tab4:
+    
     if "portfolio" not in st.session_state:
         st.session_state.portfolio = Portfolio()
 
