@@ -620,39 +620,55 @@ with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
 # ==========================================
-# Code Pass Multiplier Tool (Added Below Exporter)
+# Code Pass Multiplier & Shifting Tool (Single Output File)
 # ==========================================
 st.markdown("---")
-st.subheader("🔄 Code Pass Multiplier Tool")
-st.caption("Multiply your selected or pasted code into 4, 8, or custom passes automatically.")
+st.subheader("🔄 Code Pass Multiplier & Shifting Tool")
+st.caption("Generate your shifted passes into a single, unified code block without creating extra files.")
 
-col_p1, col_p2 = st.columns([2, 1])
+col_m1, col_m2 = st.columns([2, 1])
 
-with col_p1:
-    pass_input_code = st.text_area("Paste code to multiply passes:", height=150, key="pass_input_area", placeholder="Paste your snippet here...")
+with col_m1:
+    user_target_code = st.text_area(
+        "Paste target code line or block:", 
+        height=130, 
+        key="target_code_input", 
+        placeholder="Paste your code here..."
+    )
 
-with col_p2:
-    pass_count = st.selectbox("Select Passes:", [2, 4, 8, 16], index=1)
-    pass_separator = st.text_input("Pass Divider / Header", value="--- PASS BLOCK ---")
+with col_m2:
+    selected_pass_count = st.selectbox(
+        "Select Passes:", 
+        [2, 4, 8, 12, 16], 
+        index=1
+    )
+    pass_gap_lines = st.selectbox(
+        "Spacing Gap between Passes:", 
+        [1, 2, 3, 4], 
+        index=1
+    )
 
-if st.button("🚀 Generate Multi-Pass Code"):
-    if pass_input_code.strip():
-        multi_passed_bundle = []
-        for i in range(1, pass_count + 1):
-            block = f"\n\n# {pass_separator} [PASS {i} of {pass_count}]\n{pass_input_code}"
-            multi_passed_bundle.append(block)
+if st.button("🚀 Generate Single Unified Block"):
+    if user_target_code.strip():
+        gap_block = "\n" * pass_gap_lines
+        clean_code = user_target_code.strip()
+        
+        generated_passes = []
+        for p in range(1, selected_pass_count + 1):
+            generated_passes.append(clean_code)
             
-        final_multi_text = "".join(multi_passed_bundle)
+        # Everything combined into a single unified string
+        final_shifted_output = gap_block.join(generated_passes)
         
-        st.success(f"✨ Successfully generated **{pass_count} Passes**!")
-        st.text_area("Multi-Pass Result Output:", final_multi_text, height=200, key="pass_output_area")
+        st.success(f"✨ Successfully generated **{selected_pass_count} Passes** inside a single block!")
         
-        st.download_button(
-            label=f"📥 Download {pass_count}-Pass Bundle (.txt)",
-            data=final_multi_text,
-            file_name=f"code_{pass_count}_passes.txt",
-            mime="text/plain",
-            key="pass_download_btn"
+        # Single output box to copy everything at once
+        st.text_area(
+            "Copy Single Unified Output:", 
+            final_shifted_output, 
+            height=220, 
+            key="final_shifted_output_box"
         )
     else:
-        st.warning("⚠️ Please paste some code above to multiply passes.")
+        st.warning("⚠️ Please paste some code above to generate passes.")
+
