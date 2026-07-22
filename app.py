@@ -644,7 +644,7 @@ with col_m1:
 with col_m2:
     selected_pass_count = st.selectbox(
         "Select Passes:", 
-        [2, 4, 8, 12, 16], 
+        [1, 2, 4, 8, 12, 16], 
         index=1
     )
     pass_spacing_points = st.selectbox(
