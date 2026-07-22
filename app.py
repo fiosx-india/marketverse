@@ -619,35 +619,115 @@ with tab_modules:
 with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
-# -----------------------------
-# Output
-# -----------------------------
+# ==========================================
+# Code Pass Multiplier & Shifting Tool (Custom HTML Copy & Delete)
+# ==========================================
+import streamlit.components.v1 as components
 
+st.markdown("---")
+st.subheader("🔄 Code Pass Multiplier & Shifting Tool")
+st.caption("Generate unified single block passes, control spacing points, copy cleanly, and delete output instantly.")
+
+col_m1, col_m2 = st.columns([2, 1])
+
+with col_m1:
+    if "target_code_input" not in st.session_state:
+        st.session_state["target_code_input"] = ""
+
+    user_target_code = st.text_area(
+        "Paste target code line or block:", 
+        height=130, 
+        key="target_code_input", 
+        placeholder="Paste your code here..."
+    )
+
+with col_m2:
+    selected_pass_count = st.selectbox(
+        "Select Passes:", 
+        [2, 4, 8, 12, 16], 
+        index=1
+    )
+    pass_spacing_points = st.selectbox(
+        "Spacing Points from Frame:", 
+        [4, 8, 12, 16, 20, 24, 32], 
+        index=3
+    )
+
+btn_col1, btn_col2 = st.columns([1, 1])
+
+with btn_col1:
+    generate_clicked = st.button("🚀 Generate Single Block")
+
+with btn_col2:
+    if st.button("🗑️ Clear / Delete Input"):
+        st.session_state["target_code_input"] = ""
+        if "generated_output" in st.session_state:
+            st.session_state.generated_output = ""
+        st.rerun()
+
+if "generated_output" not in st.session_state:
+    st.session_state.generated_output = ""
+
+if generate_clicked:
+    if user_target_code.strip():
+        gap_block = "\n" * pass_spacing_points
+        clean_code = user_target_code.strip()
+        
+        generated_passes = []
+        for p in range(1, selected_pass_count + 1):
+            generated_passes.append(clean_code)
+            
+        st.session_state.generated_output = gap_block.join(generated_passes)
+        st.success(f"✨ Successfully generated **{selected_pass_count} Passes** with {pass_spacing_points}-point spacing!")
+    else:
+        st.warning("⚠️ Please paste some code above to generate passes.")
+
+# =================-----------------------------
+# Output & Custom HTML Copy Component
+# ---------------------------------------------
 if st.session_state.generated_output:
 
     st.markdown("### 📋 Copy Output")
 
     components.html(
         f"""
-        <textarea id="copyText" style="width:100%;height:320px;font-family:monospace;">{st.session_state.generated_output}</textarea>
+        <textarea id="copyText"
+            style="width:100%;height:280px;
+            font-family:monospace;
+            font-size:14px;
+            padding:10px;
+            background:#1e1e1e;
+            color:#fff;
+            border:1px solid #444;
+            border-radius:6px;">{st.session_state.generated_output}</textarea>
 
         <br><br>
 
-        <button onclick="copyCode()">📋 Copy Output</button>
-
-        <script>
-        function copyCode() {{
-            var copyText = document.getElementById("copyText");
-            copyText.select();
-            copyText.setSelectionRange(0, 999999);
-            navigator.clipboard.writeText(copyText.value);
-            alert("✅ Code Copied Successfully!");
-        }}
-        </script>
+        <button
+            onclick="
+                navigator.clipboard.writeText(
+                    document.getElementById('copyText').value
+                );
+                alert('✅ Code Copied Successfully!');
+            "
+            style="
+                background:#4CAF50;
+                color:white;
+                border:none;
+                padding:10px 18px;
+                border-radius:6px;
+                cursor:pointer;
+                margin-right:10px;
+            ">
+            📋 Copy Output
+        </button>
         """,
-        height=420,
+        height=380,
     )
 
-    if st.button("🗑 Delete Output", use_container_width=True):
+    if st.button(
+        "🗑 Delete Output",
+        use_container_width=True
+    ):
         st.session_state.generated_output = ""
         st.rerun()
