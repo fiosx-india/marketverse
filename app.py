@@ -620,72 +620,114 @@ with tab_other:
     render_exporter_tab(other_files, "Other Files")
 
 # ==========================================
-# Code Pass Multiplier & Shifting Tool (Final Edition)
+# Code Pass Multiplier & Indentation Tool
 # ==========================================
 st.markdown("---")
-st.subheader("🔄 Code Pass Multiplier & Shifting Tool")
-st.caption("Generate unified single block passes, control spacing points (8, 16, 20+), copy easily, and clear text instantly.")
+st.subheader("🔄 Code Pass Multiplier & Indentation Tool")
 
-col_m1, col_m2 = st.columns([2, 1])
+st.caption(
+    "Generate multiple code passes with custom indentation "
+    "(4, 6, 8, 12, 16, 20...) and copy easily."
+)
 
-with col_m1:
-    # Session state for input clearing
-    if "target_code_input" not in st.session_state:
-        st.session_state["target_code_input"] = ""
+# Session State
+if "target_code_input" not in st.session_state:
+    st.session_state["target_code_input"] = ""
 
-    user_target_code = st.text_area(
-        "Paste target code line or block:", 
-        height=130, 
-        key="target_code_input", 
-        placeholder="Paste your code here..."
-    )
+# Input
+user_target_code = st.text_area(
+    "Paste your code:",
+    key="target_code_input",
+    height=180
+)
 
-with col_m2:
+col1, col2 = st.columns(2)
+
+with col1:
+
     selected_pass_count = st.selectbox(
-        "Select Passes:", 
-        [2, 4, 8, 12, 16], 
-        index=1
+        "Pass Count",
+        [1,2,4,8,12,16],
+        index=2
     )
-    # Custom numerical spacing points from frame (8, 16, 20, etc.)
-    pass_spacing_points = st.selectbox(
-        "Spacing Points from Frame:", 
-        [4, 8, 12, 16, 20, 24, 32], 
+
+with col2:
+
+    indent_spaces = st.selectbox(
+        "Indentation (Spaces)",
+        [0,4,6,8,12,16,20,24,32],
         index=3
     )
 
-# Action Buttons Layout
-btn_col1, btn_col2 = st.columns([1, 1])
+c1,c2 = st.columns(2)
 
-with btn_col1:
-    generate_clicked = st.button("🚀 Generate Single Block")
+with c1:
 
-with btn_col2:
-    if st.button("🗑️ Clear / Delete Input"):
-        st.session_state["target_code_input"] = ""
-        st.rerun()
+    generate_btn = st.button(
+        "🚀 Generate"
+    )
 
-if generate_clicked:
+with c2:
+
+    clear_btn = st.button(
+        "🗑 Clear"
+    )
+
+# Clear
+if clear_btn:
+
+    st.session_state["target_code_input"] = ""
+
+    if "generated_output" in st.session_state:
+        del st.session_state["generated_output"]
+
+    st.rerun()
+
+# Generate
+if generate_btn:
+
     if user_target_code.strip():
-        gap_block = "\n" * pass_spacing_points
-        clean_code = user_target_code.strip()
-        
-        generated_passes = []
-        for p in range(1, selected_pass_count + 1):
-            generated_passes.append(clean_code)
-            
-        # Single unified block output
-        final_shifted_output = gap_block.join(generated_passes)
-        
-        st.success(f"✨ Successfully generated **{selected_pass_count} Passes** with {pass_spacing_points}-point spacing!")
-        
-        # Output box for copying
-        st.text_area(
-            "Copy Final Unified Output:", 
-            final_shifted_output, 
-            height=220, 
-            key="final_shifted_output_box"
+
+        indent = " " * indent_spaces
+
+        lines = user_target_code.splitlines()
+
+        shifted = []
+
+        for line in lines:
+
+            if line.strip():
+                shifted.append(indent + line)
+            else:
+                shifted.append("")
+
+        single_block = "\n".join(shifted)
+
+        passes = []
+
+        for _ in range(selected_pass_count):
+            passes.append(single_block)
+
+        st.session_state["generated_output"] = "\n\n".join(
+            passes
         )
+
+        st.success(
+            f"{selected_pass_count} Pass Generated "
+            f"with {indent_spaces} Spaces."
+        )
+
     else:
-        st.warning("⚠️ Please paste some code above to generate passes.")
+
+        st.warning("Paste some code first.")
+
+# Output
+if "generated_output" in st.session_state:
+
+    st.text_area(
+        "Copy Output",
+        st.session_state["generated_output"],
+        height=300
+    )
 
 
