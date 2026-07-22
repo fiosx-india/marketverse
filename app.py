@@ -13,6 +13,7 @@ from modules.dashboard_utils import dashboard_summary
 from modules.market_events import detect_market_events
 from modules.central_brain import CentralBrain
 from modules.system_controller import SystemController
+from modules.portfolio import Portfolio
 
 import yfinance as yf
 import pandas as pd
@@ -62,6 +63,7 @@ st_autorefresh(
 tracker = PerformanceTracker()
 executor = TradeExecutor()
 system = SystemManager()
+portfolio = Portfolio()
 
 # ==========================================
 # Download Market Data
@@ -483,15 +485,94 @@ with tab3:
             f"{sentiment['confidence']}%"
         )
 
-# ==========================================
-# PORTFOLIO TAB
-# ==========================================
+    if "portfolio" not in st.session_state:
+        st.session_state.portfolio = Portfolio()
 
-with tab4:
+    portfolio = st.session_state.portfolio
 
-    st.header("💼 Portfolio")
+    st.subheader("➕ Add Stock")
 
-    st.info("Portfolio module coming soon.")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        stock_symbol = st.text_input(
+            "Symbol",
+            value="RELIANCE.NS",
+            key="portfolio_symbol"
+        )
+
+    with col2:
+        quantity = st.number_input(
+            "Quantity",
+            min_value=1,
+            value=1
+        )
+
+    with col3:
+        buy_price = st.number_input(
+            "Buy Price",
+            min_value=0.0,
+            value=0.0,
+            format="%.2f"
+        )
+
+    if st.button("➕ Add Stock"):
+        portfolio.add_stock(
+            stock_symbol,
+            quantity,
+            buy_price
+        )
+        st.success(f"{stock_symbol} added successfully.")
+
+    st.markdown("---")
+
+    st.subheader("📋 Portfolio Holdings")
+
+    holdings = portfolio.get_portfolio()
+
+    if holdings:
+
+        table = []
+
+        for symbol, info in holdings.items():
+
+            table.append({
+                "Symbol": symbol,
+                "Quantity": info["quantity"],
+                "Buy Price": info["buy_price"],
+                "Current Price": info.get("current_price", "-")
+            })
+
+        st.dataframe(
+            pd.DataFrame(table),
+            use_container_width=True
+        )
+
+        summary = portfolio.summary()
+
+        c1, c2, c3 = st.columns(3)
+
+        c1.metric(
+            "Stocks",
+            summary["stocks"]
+        )
+
+        c2.metric(
+            "Portfolio Value",
+            f"₹{summary['value']}"
+        )
+
+        c3.metric(
+            "Profit / Loss",
+            f"₹{summary['profit']}"
+        )
+
+        if st.button("🗑 Clear Portfolio"):
+            portfolio.clear()
+            st.rerun()
+
+    else:
+        st.info("No stocks added yet.")
 
 # ==========================================
 # SETTINGS TAB
