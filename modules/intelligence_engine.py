@@ -20,7 +20,7 @@ class IntelligenceEngine:
         stock = yf.Ticker(symbol)
 
         df = stock.history(
-            period="3mo",
+            period="6mo",
             interval="1d"
         )
 
