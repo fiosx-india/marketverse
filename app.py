@@ -146,6 +146,7 @@ if st.button("🔍 Run Project Check"):
     checker.scan()
 
     st.session_state["project_report"] = checker.report
+    st.stop()
 
 # ==========================================
 # Download Data
