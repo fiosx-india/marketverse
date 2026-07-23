@@ -12,18 +12,32 @@ from modules.intelligence_engine import IntelligenceEngine
 
 def scan_market(stocks):
 
+    engine = IntelligenceEngine()
+
     if not stocks:
         return []
 
     results = []
 
-    for stock in stocks:
+     for stock in stocks:
 
-        symbol = stock.get("symbol", "UNKNOWN")
-        price = stock.get("price", 0)
-        change = stock.get("change_percent", 0)
-        volume = stock.get("volume", 0)
-        confidence = stock.get("confidence", 50)
+    symbol = stock["symbol"]
+
+    try:
+        result = engine.run(symbol)
+
+        market = result["market"]
+
+        price = market.get("price", 0)
+
+        volume = market.get("volume", 0)
+
+        confidence = result["news"].get("confidence", 50)
+
+        change = result["volatility"]
+
+    except Exception:
+        continue
 
         signal = "HOLD"
 
