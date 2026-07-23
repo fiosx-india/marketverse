@@ -15,6 +15,7 @@ from modules.central_brain import CentralBrain
 from modules.system_controller import SystemController
 from modules.portfolio import Portfolio
 from modules.intelligence_engine import IntelligenceEngine
+
 from project_check import ProjectChecker
 
 import yfinance as yf
