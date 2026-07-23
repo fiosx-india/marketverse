@@ -1,1 +1,504 @@
+"""
+MarketVerse Project Checker
+Part 1 - Core Scanner
 
+Author: ChatGPT
+"""
+
+import ast
+import os
+from pathlib import Path
+from datetime import datetime
+
+
+class ProjectChecker:
+
+    def __init__(self, root="."):
+        self.root = Path(root)
+
+        self.report = {
+            "project": self.root.name,
+            "scan_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "total_files": 0,
+            "python_files": [],
+            "errors": [],
+            "warnings": [],
+            "info": [],
+            "health": 100,
+        }
+
+    # ---------------------------------------------------
+    # Scan Project
+    # ---------------------------------------------------
+
+    def scan(self):
+
+        print("=" * 60)
+        print(" MARKETVERSE PROJECT CHECKER ")
+        print("=" * 60)
+
+        for path in self.root.rglob("*.py"):
+
+            if "__pycache__" in str(path):
+                continue
+
+            if ".git" in str(path):
+                continue
+
+            self.report["python_files"].append(path)
+            self.report["total_files"] += 1
+
+            self.check_empty(path)
+            self.check_syntax(path)
+
+        print(f"Python Files : {self.report['total_files']}")
+        print()
+
+    # ---------------------------------------------------
+    # Empty File
+    # ---------------------------------------------------
+
+    def check_empty(self, file):
+
+        try:
+
+            if file.stat().st_size == 0:
+
+                self.report["warnings"].append({
+                    "file": str(file),
+                    "type": "Empty File"
+                })
+
+                self.report["health"] -= 2
+
+        except Exception as e:
+
+            self.report["errors"].append({
+                "file": str(file),
+                "error": str(e)
+            })
+
+    # ---------------------------------------------------
+    # Syntax Checker
+    # ---------------------------------------------------
+
+    def check_syntax(self, file):
+
+        try:
+
+            source = file.read_text(encoding="utf-8")
+
+            ast.parse(source)
+
+        except SyntaxError as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "line": e.lineno,
+                "type": "Syntax Error",
+                "message": e.msg
+
+            })
+
+            self.report["health"] -= 5
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Read Error",
+                "message": str(e)
+
+            })
+
+            self.report["health"] -= 2
+
+    # ---------------------------------------------------
+    # Print Report
+    # ---------------------------------------------------
+
+    def show(self):
+
+        print("=" * 60)
+        print("SCAN REPORT")
+        print("=" * 60)
+
+        print(f"Project        : {self.report['project']}")
+        print(f"Files          : {self.report['total_files']}")
+        print(f"Health Score   : {self.report['health']}%")
+        print()
+
+        print("ERRORS")
+
+        if not self.report["errors"]:
+            print("  None")
+
+        for item in self.report["errors"]:
+            print(item)
+
+        print()
+
+        print("WARNINGS")
+
+        if not self.report["warnings"]:
+            print("  None")
+
+        for item in self.report["warnings"]:
+            print(item)
+
+        print()
+
+        print("=" * 60)
+
+
+if __name__ == "__main__":
+
+    checker = ProjectChecker(".")
+
+    checker.scan()
+
+    checker.show()
+
+# ---------------------------------------------------
+# Import Checker
+# ---------------------------------------------------
+
+def check_imports(self):
+
+    print("Checking imports...")
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(encoding="utf-8")
+
+            tree = ast.parse(source)
+
+            imports = []
+            names = []
+
+            for node in ast.walk(tree):
+
+                if isinstance(node, ast.Import):
+
+                    for alias in node.names:
+
+                        imports.append(alias.name)
+
+                elif isinstance(node, ast.ImportFrom):
+
+                    if node.module:
+
+                        imports.append(node.module)
+
+            duplicate = []
+
+            for item in imports:
+
+                if item in names:
+                    duplicate.append(item)
+
+                else:
+                    names.append(item)
+
+            if duplicate:
+
+                self.report["warnings"].append({
+
+                    "file": str(file),
+                    "type": "Duplicate Import",
+                    "imports": duplicate
+
+                })
+
+                self.report["health"] -= 1
+
+            for module in imports:
+
+                try:
+
+                    __import__(module.split(".")[0])
+
+                except Exception:
+
+                    self.report["errors"].append({
+
+                        "file": str(file),
+                        "type": "Missing Module",
+                        "module": module
+
+                    })
+
+                    self.report["health"] -= 2
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Import Scan Error",
+                "message": str(e)
+
+            })
+
+
+# ---------------------------------------------------
+# File Statistics
+# ---------------------------------------------------
+
+def file_statistics(self):
+
+    print("Collecting statistics...")
+
+    total_lines = 0
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            lines = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            ).splitlines()
+
+            count = len(lines)
+
+            total_lines += count
+
+            if count == 0:
+
+                continue
+
+            if count > 800:
+
+                self.report["warnings"].append({
+
+                    "file": str(file),
+                    "type": "Large File",
+                    "lines": count
+
+                })
+
+        except:
+
+            pass
+
+    self.report["info"].append({
+
+        "Total Lines": total_lines
+
+    })
+
+# ---------------------------------------------------
+# Code Quality Checker
+# ---------------------------------------------------
+
+def check_code_quality(self):
+
+    print("Checking code quality...")
+
+    function_names = {}
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            # TODO / FIXME
+            for line_no, line in enumerate(source.splitlines(), start=1):
+
+                text = line.upper()
+
+                if "TODO" in text or "FIXME" in text:
+
+                    self.report["warnings"].append({
+
+                        "file": str(file),
+                        "line": line_no,
+                        "type": "TODO/FIXME",
+                        "text": line.strip()
+
+                    })
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                # Duplicate function names
+                if isinstance(node, ast.FunctionDef):
+
+                    if node.name not in function_names:
+                        function_names[node.name] = []
+
+                    function_names[node.name].append(str(file))
+
+                    # Empty function
+                    if len(node.body) == 1:
+
+                        stmt = node.body[0]
+
+                        if isinstance(stmt, ast.Pass):
+
+                            self.report["warnings"].append({
+
+                                "file": str(file),
+                                "line": node.lineno,
+                                "type": "Empty Function",
+                                "name": node.name
+
+                            })
+
+                # Empty class
+                if isinstance(node, ast.ClassDef):
+
+                    if len(node.body) == 1:
+
+                        stmt = node.body[0]
+
+                        if isinstance(stmt, ast.Pass):
+
+                            self.report["warnings"].append({
+
+                                "file": str(file),
+                                "line": node.lineno,
+                                "type": "Empty Class",
+                                "name": node.name
+
+                            })
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Quality Scan Error",
+                "message": str(e)
+
+            })
+
+    # Duplicate function report
+    for name, files in function_names.items():
+
+        if len(files) > 1:
+
+            self.report["warnings"].append({
+
+                "type": "Duplicate Function Name",
+                "function": name,
+                "files": files
+
+            })
+
+            self.report["health"] -= 1
+
+
+# ---------------------------------------------------
+# AI Recommendation Engine
+# ---------------------------------------------------
+
+def ai_recommendations(self):
+
+    recommendations = []
+
+    if self.report["errors"]:
+
+        recommendations.append(
+            "Fix all syntax and import errors before deployment."
+        )
+
+    if self.report["health"] < 80:
+
+        recommendations.append(
+            "Project health is below 80%. Review warnings carefully."
+        )
+
+    if len(self.report["warnings"]) > 10:
+
+        recommendations.append(
+            "Large number of warnings detected. Consider code cleanup."
+        )
+
+    if not recommendations:
+
+        recommendations.append(
+            "Project looks healthy. Continue development."
+        )
+
+    self.report["recommendations"] = recommendations
+
+# ---------------------------------------------------
+# Save Reports
+# ---------------------------------------------------
+
+import json
+
+def save_reports(self):
+
+    print("Saving reports...")
+
+    report_dir = self.root / "reports"
+    report_dir.mkdir(exist_ok=True)
+
+    # JSON Report
+    json_report = {
+        "project": self.report["project"],
+        "scan_time": self.report["scan_time"],
+        "health": self.report["health"],
+        "total_files": self.report["total_files"],
+        "errors": self.report["errors"],
+        "warnings": self.report["warnings"],
+        "info": self.report["info"],
+        "recommendations": self.report.get("recommendations", [])
+    }
+
+    with open(report_dir / "project_report.json",
+              "w",
+              encoding="utf-8") as f:
+
+        json.dump(json_report, f, indent=4)
+
+    # Text Report
+    with open(report_dir / "project_report.txt",
+              "w",
+              encoding="utf-8") as f:
+
+        f.write("=" * 60 + "\n")
+        f.write("MARKETVERSE PROJECT REPORT\n")
+        f.write("=" * 60 + "\n\n")
+
+        f.write(f"Project : {self.report['project']}\n")
+        f.write(f"Health  : {self.report['health']}%\n")
+        f.write(f"Files   : {self.report['total_files']}\n\n")
+
+        f.write("ERRORS\n")
+        f.write("-" * 60 + "\n")
+
+        if self.report["errors"]:
+            for item in self.report["errors"]:
+                f.write(str(item) + "\n")
+        else:
+            f.write("None\n")
+
+        f.write("\nWARNINGS\n")
+        f.write("-" * 60 + "\n")
+
+        if self.report["warnings"]:
+            for item in self.report["warnings"]:
+                f.write(str(item) + "\n")
+        else:
+            f.write("None\n")
+
+        f.write("\nRECOMMENDATIONS\n")
+        f.write("-" * 60 + "\n")
+
+        for item in self.report.get("recommendations", []):
+            f.write("- " + item + "\n")
+
+    print("Reports saved in reports/")
