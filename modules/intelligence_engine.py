@@ -7,6 +7,7 @@ import yfinance as yf
 import pandas as pd
 from modules.news_analysis import analyze_news, get_dummy_news
 
+
 class IntelligenceEngine:
 
     def __init__(self):
@@ -22,7 +23,6 @@ class IntelligenceEngine:
         df = stock.history(
             period="6mo",
             interval="1d"
-            
         )
 
         return df
@@ -41,7 +41,6 @@ class IntelligenceEngine:
         result["high"] = float(df["High"].max())
         result["low"] = float(df["Low"].min())
         result["volume"] = int(df["Volume"].iloc[-1])
-
 
         # EMA 20
         result["ema20"] = float(
@@ -98,7 +97,7 @@ class IntelligenceEngine:
         )
 
     # -------------------------------
-    # News Placeholder
+    # News Analysis
     # -------------------------------
     def news_analysis(self, symbol):
 
@@ -112,7 +111,7 @@ class IntelligenceEngine:
         }
 
     # -------------------------------
-    # Options Placeholder
+    # Options Analysis
     # -------------------------------
     def options_analysis(self, symbol):
 
@@ -120,29 +119,28 @@ class IntelligenceEngine:
             "signal": "HOLD"
         }
 
-# -------------------------------
-# AI Decision
-# -------------------------------
+    # -------------------------------
+    # AI Decision
+    # -------------------------------
+    def ai_decision(self, market, news):
 
-def ai_decision(self, market, news):
+        signal = "HOLD"
 
-    signal = "HOLD"
+        rsi = market.get("rsi", 50)
 
-    rsi = market.get("rsi", 50)
+        if rsi < 30:
+            signal = "BUY"
 
-    if rsi < 30:
-        signal = "BUY"
+        elif rsi > 70:
+            signal = "SELL"
 
-    elif rsi > 70:
-        signal = "SELL"
+        elif news.get("sentiment") in ("BULLISH", "VERY BULLISH"):
+            signal = "BUY"
 
-    elif news.get("sentiment") in ("BULLISH", "VERY BULLISH"):
-        signal = "BUY"
+        elif news.get("sentiment") in ("BEARISH", "VERY BEARISH"):
+            signal = "SELL"
 
-    elif news.get("sentiment") in ("BEARISH", "VERY BEARISH"):
-        signal = "SELL"
-
-    return signal
+        return signal
 
     # -------------------------------
     # Run Engine
@@ -163,19 +161,10 @@ def ai_decision(self, market, news):
         )
 
         return {
-
             "market": market,
-
             "news": news,
-
             "options": options,
-
             "signal": signal,
-
-            "volume_alert":
-                self.volume_surveillance(df),
-
-            "volatility":
-                self.volatility(df)
-
+            "volume_alert": self.volume_surveillance(df),
+            "volatility": self.volatility(df)
         }
