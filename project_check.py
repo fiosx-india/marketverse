@@ -64,9 +64,9 @@ class ProjectChecker:
 
         for path in self.root.rglob("*.py"):
 
-        relative = path.relative_to(self.root)
+            relative = path.relative_to(self.root)
 
-        top = relative.parts[0]
+            top = relative.parts[0]
 
         if (
             top not in ALLOWED_TOP_LEVEL
