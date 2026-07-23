@@ -837,3 +837,112 @@ def advanced_code_analysis(self):
         "Called Functions": len(called_functions)
 
     })
+# ---------------------------------------------------
+# Security Analyzer
+# Phase 2 - Part 8
+# ---------------------------------------------------
+
+def security_analysis(self):
+
+    print("Running Security Analysis...")
+
+    import re
+
+    dangerous_calls = {
+        "eval",
+        "exec",
+        "compile",
+        "os.system",
+        "subprocess.call",
+        "subprocess.Popen",
+        "pickle.loads"
+    }
+
+    secret_patterns = [
+        r"AKIA[0-9A-Z]{16}",              # AWS Key
+        r"AIza[0-9A-Za-z\-_]{35}",        # Google API
+        r"sk-[A-Za-z0-9]{20,}",           # OpenAI Style Key
+        r"ghp_[A-Za-z0-9]{20,}",          # GitHub Token
+    ]
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            # ----------------------------------
+            # Hardcoded Secrets
+            # ----------------------------------
+
+            for line_no, line in enumerate(
+                source.splitlines(),
+                start=1
+            ):
+
+                for pattern in secret_patterns:
+
+                    if re.search(pattern, line):
+
+                        self.report["errors"].append({
+
+                            "file": str(file),
+                            "line": line_no,
+                            "type": "Possible Secret",
+                            "text": line.strip()
+
+                        })
+
+                        self.report["health"] -= 5
+
+            # ----------------------------------
+            # Dangerous Functions
+            # ----------------------------------
+
+            for node in ast.walk(tree):
+
+                if isinstance(node, ast.Call):
+
+                    call_name = ""
+
+                    if isinstance(node.func, ast.Name):
+                        call_name = node.func.id
+
+                    elif isinstance(node.func, ast.Attribute):
+
+                        if isinstance(node.func.value, ast.Name):
+
+                            call_name = (
+                                node.func.value.id
+                                + "."
+                                + node.func.attr
+                            )
+
+                    if call_name in dangerous_calls:
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": node.lineno,
+                            "type": "Dangerous Call",
+                            "function": call_name
+
+                        })
+
+                        self.report["health"] -= 2
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Security Scan Error",
+                "message": str(e)
+
+            })
+
