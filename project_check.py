@@ -1282,3 +1282,543 @@ def integration_advisor(self):
         suggestions.append(advice)
 
     self.report["integration_advisor"] = suggestions
+# ---------------------------------------------------
+# Dependency Graph Builder
+# Phase 3 - Part 13
+# ---------------------------------------------------
+
+def build_dependency_graph(self):
+
+    print("Building Dependency Graph...")
+
+    graph = {}
+
+    for file in self.report["python_files"]:
+
+        module = file.stem
+        graph[module] = []
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                if isinstance(node, ast.Import):
+
+                    for alias in node.names:
+
+                        graph[module].append(alias.name)
+
+                elif isinstance(node, ast.ImportFrom):
+
+                    if node.module:
+
+                        graph[module].append(node.module)
+
+        except Exception:
+
+            continue
+
+    self.report["dependency_graph"] = graph
+
+# ---------------------------------------------------
+# Duplicate Logic Detector
+# Phase 4 - Part 14
+# ---------------------------------------------------
+
+def duplicate_logic_analysis(self):
+
+    print("Running Duplicate Logic Analysis...")
+
+    import hashlib
+
+    fingerprints = {}
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+
+                    try:
+
+                        code = ast.unparse(node)
+
+                    except Exception:
+
+                        continue
+
+                    code = "\n".join(
+                        line.strip()
+                        for line in code.splitlines()
+                        if line.strip()
+                    )
+
+                    digest = hashlib.sha256(
+                        code.encode("utf-8")
+                    ).hexdigest()
+
+                    fingerprints.setdefault(digest, []).append({
+                        "file": str(file),
+                        "function": node.name,
+                        "line": node.lineno
+                    })
+
+        except Exception:
+            continue
+
+    duplicates = []
+
+    for items in fingerprints.values():
+
+        if len(items) > 1:
+
+            duplicates.append(items)
+
+            self.report["warnings"].append({
+
+                "type": "Duplicate Logic",
+                "occurrences": items
+
+            })
+
+            self.report["health"] -= 2
+
+    self.report["duplicate_logic"] = duplicates
+
+# ---------------------------------------------------
+# Project Health Inspector
+# Phase 4 - Part 15
+# ---------------------------------------------------
+
+def health_inspector(self):
+
+    print("Running Project Health Inspector...")
+
+    file_scores = {}
+
+    for file in self.report["python_files"]:
+
+        score = 100
+
+        for err in self.report["errors"]:
+            if err.get("file") == str(file):
+                score -= 15
+
+        for warn in self.report["warnings"]:
+            if warn.get("file") == str(file):
+                score -= 5
+
+        if score < 0:
+            score = 0
+
+        if score >= 90:
+            status = "Excellent"
+        elif score >= 75:
+            status = "Good"
+        elif score >= 60:
+            status = "Needs Review"
+        else:
+            status = "Critical"
+
+        file_scores[str(file)] = {
+            "score": score,
+            "status": status
+        }
+
+    self.report["file_health"] = file_scores
+
+# ---------------------------------------------------
+# Priority Report
+# ---------------------------------------------------
+
+def priority_report(self):
+
+    print("\nHIGH PRIORITY FILES")
+    print("=" * 60)
+
+    health = self.report.get("file_health", {})
+
+    critical = []
+
+    for file, info in health.items():
+
+        if info["score"] < 60:
+            critical.append((file, info))
+
+    if not critical:
+        print("No critical files found.")
+        return
+
+    critical.sort(key=lambda x: x[1]["score"])
+
+    for file, info in critical:
+
+        print(f"{file}")
+        print(f"   Score  : {info['score']}")
+        print(f"   Status : {info['status']}")
+        print()
+
+# ---------------------------------------------------
+# Performance Analyzer
+# Phase 5 - Part 16
+# ---------------------------------------------------
+
+def performance_analysis(self):
+
+    print("Running Performance Analysis...")
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            imports = 0
+            nested_loops = 0
+
+            for node in ast.walk(tree):
+
+                # Count imports
+                if isinstance(node, (ast.Import, ast.ImportFrom)):
+                    imports += 1
+
+                # Detect nested loops
+                if isinstance(node, (ast.For, ast.While)):
+
+                    for child in ast.walk(node):
+
+                        if child is node:
+                            continue
+
+                        if isinstance(child, (ast.For, ast.While)):
+                            nested_loops += 1
+
+            if imports > 30:
+
+                self.report["warnings"].append({
+
+                    "file": str(file),
+                    "type": "Too Many Imports",
+                    "count": imports
+
+                })
+
+            if nested_loops > 3:
+
+                self.report["warnings"].append({
+
+                    "file": str(file),
+                    "type": "Heavy Nested Loops",
+                    "count": nested_loops
+
+                })
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Performance Analysis Error",
+                "message": str(e)
+
+            })
+
+# ---------------------------------------------------
+# Configuration Checker
+# Phase 5 - Part 17
+# ---------------------------------------------------
+
+def configuration_check(self):
+
+    print("Checking Project Configuration...")
+
+    required_files = [
+        "app.py",
+        "requirements.txt",
+        ".gitignore",
+        "README.md"
+    ]
+
+    optional_files = [
+        ".env",
+        "LICENSE",
+        "pyproject.toml",
+        "setup.py"
+    ]
+
+    for filename in required_files:
+
+        path = self.root / filename
+
+        if not path.exists():
+
+            self.report["errors"].append({
+
+                "type": "Missing Required File",
+                "file": filename
+
+            })
+
+            self.report["health"] -= 5
+
+    for filename in optional_files:
+
+        path = self.root / filename
+
+        if not path.exists():
+
+            self.report["warnings"].append({
+
+                "type": "Optional File Missing",
+                "file": filename
+
+            })
+
+# ---------------------------------------------------
+# Python Version Check
+# ---------------------------------------------------
+
+def python_environment(self):
+
+    import platform
+    import sys
+
+    self.report["info"].append({
+
+        "Python Version": platform.python_version(),
+        "Platform": platform.platform(),
+        "Executable": sys.executable
+
+    })
+
+# ---------------------------------------------------
+# Folder Structure
+# ---------------------------------------------------
+
+def folder_structure(self):
+
+    folders = []
+
+    for item in self.root.iterdir():
+
+        if item.is_dir():
+
+            folders.append(item.name)
+
+    self.report["info"].append({
+
+        "Folders": folders
+
+    })
+
+# ---------------------------------------------------
+# Naming Convention Checker
+# Phase 6 - Part 18
+# ---------------------------------------------------
+
+import re
+
+def naming_convention_check(self):
+
+    print("Checking Naming Conventions...")
+
+    snake_case = re.compile(r'^[a-z][a-z0-9_]*$')
+    pascal_case = re.compile(r'^[A-Z][A-Za-z0-9]*$')
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                # Class Names
+                if isinstance(node, ast.ClassDef):
+
+                    if not pascal_case.match(node.name):
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": node.lineno,
+                            "type": "Class Naming",
+                            "name": node.name
+
+                        })
+
+                # Function Names
+                elif isinstance(node, ast.FunctionDef):
+
+                    if not snake_case.match(node.name):
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": node.lineno,
+                            "type": "Function Naming",
+                            "name": node.name
+
+                        })
+
+        except Exception:
+            continue
+
+# ---------------------------------------------------
+# File Size Analyzer
+# ---------------------------------------------------
+
+def file_size_analysis(self):
+
+    print("Checking File Sizes...")
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            size_kb = file.stat().st_size / 1024
+
+            if size_kb > 200:
+
+                self.report["warnings"].append({
+
+                    "file": str(file),
+                    "type": "Large Source File",
+                    "size_kb": round(size_kb,2)
+
+                })
+
+        except:
+            pass
+
+# ---------------------------------------------------
+# Code Smell Detector
+# Phase 6 - Part 19
+# ---------------------------------------------------
+
+def code_smell_analysis(self):
+
+    print("Running Code Smell Analysis...")
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                # Function with too many arguments
+                if isinstance(node, ast.FunctionDef):
+
+                    arg_count = len(node.args.args)
+
+                    if arg_count > 6:
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": node.lineno,
+                            "type": "Too Many Parameters",
+                            "function": node.name,
+                            "count": arg_count
+
+                        })
+
+                # Deep nesting
+                if isinstance(node, (ast.If, ast.For, ast.While)):
+
+                    depth = len(list(ast.walk(node)))
+
+                    if depth > 120:
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": getattr(node, "lineno", 0),
+                            "type": "Complex Block"
+
+                        })
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Code Smell Error",
+                "message": str(e)
+
+            })
+
+# ---------------------------------------------------
+# Comment Density
+# ---------------------------------------------------
+
+def comment_analysis(self):
+
+    print("Checking Comments...")
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            lines = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            ).splitlines()
+
+            if not lines:
+                continue
+
+            comments = sum(
+                1 for line in lines
+                if line.strip().startswith("#")
+            )
+
+            ratio = comments / len(lines)
+
+            if ratio < 0.02:
+
+                self.report["warnings"].append({
+
+                    "file": str(file),
+                    "type": "Low Comment Density",
+                    "ratio": round(ratio, 2)
+
+                })
+
+        except:
+            pass
+
+
