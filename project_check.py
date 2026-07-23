@@ -946,3 +946,111 @@ def security_analysis(self):
 
             })
 
+# ---------------------------------------------------
+# Architecture Analyzer
+# Phase 2 - Part 9
+# ---------------------------------------------------
+
+def architecture_analysis(self):
+
+    print("Running Architecture Analysis...")
+
+    import_map = {}
+    orphan_files = []
+
+    # Build import map
+    for file in self.report["python_files"]:
+
+        try:
+
+            module = file.stem
+            imports = []
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                if isinstance(node, ast.Import):
+
+                    for alias in node.names:
+                        imports.append(alias.name.split(".")[0])
+
+                elif isinstance(node, ast.ImportFrom):
+
+                    if node.module:
+                        imports.append(node.module.split(".")[0])
+
+            import_map[module] = imports
+
+        except:
+            pass
+
+    # -----------------------------------
+    # Orphan Files
+    # -----------------------------------
+
+    all_imports = set()
+
+    for items in import_map.values():
+        all_imports.update(items)
+
+    for module in import_map:
+
+        if module not in all_imports:
+
+            orphan_files.append(module)
+
+            self.report["warnings"].append({
+
+                "type": "Orphan Module",
+                "module": module
+
+            })
+
+    # -----------------------------------
+    # Integration Suggestions
+    # -----------------------------------
+
+    suggestions = []
+
+    for module in orphan_files:
+
+        name = module.lower()
+
+        if "news" in name:
+
+            suggestions.append(
+                f"{module} → Consider integrating with app.py and intelligence_engine.py"
+            )
+
+        elif "risk" in name:
+
+            suggestions.append(
+                f"{module} → Consider integrating with prediction.py"
+            )
+
+        elif "ai" in name:
+
+            suggestions.append(
+                f"{module} → Review integration with intelligence_engine.py"
+            )
+
+        elif "guardian" in name:
+
+            suggestions.append(
+                f"{module} → Review integration with guardian controller"
+            )
+
+    self.report["info"].append({
+
+        "Architecture": import_map
+
+    })
+
+    self.report["integration_suggestions"] = suggestions
+
