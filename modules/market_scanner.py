@@ -62,7 +62,10 @@ def scan_market(stocks):
                 "signal": signal
             })
 
-        except Exception:
+        except Exception as e:
+            print(f"Scanner Error - {symbol}: {e}")
+            import traceback
+            traceback.print_exc()
             continue
 
     results.sort(
