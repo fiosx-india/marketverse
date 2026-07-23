@@ -52,31 +52,23 @@ st.set_page_config(
 # ==========================================
 from guardian.controller import GuardianController
 
+guardian = GuardianController()
+guardian_result = guardian.run()
 engine = IntelligenceEngine()
 
-# Guardian runs only once per session
-if "guardian_result" not in st.session_state:
-    guardian = GuardianController()
-    st.session_state["guardian_result"] = guardian.run()
+if guardian_result["report"].errors > 0:
+    st.error("Guardian detected project errors.")
 
-guardian_result = st.session_state["guardian_result"]
+    with st.expander("Guardian Report"):
+        st.write(guardian_result["report"])
 
-try:
-    if guardian_result["report"].errors > 0:
-        st.error("Guardian detected project errors.")
+        st.write("### Advice")
+        for item in guardian_result["advice"]:
+            st.write("•", item)
 
-        with st.expander("Guardian Report"):
-            st.write(guardian_result["report"])
-
-            st.write("### Advice")
-            for item in guardian_result["advice"]:
-                st.write("•", item)
-
-            st.write("### Validation Errors")
-            st.json(guardian_result["validation_errors"])
-except Exception:
-    pass
-
+        st.write("### Validation Errors")
+        st.json(guardian_result["validation_errors"])
+        
 # ==========================================
 # Auto Refresh
 # ==========================================
