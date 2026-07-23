@@ -120,11 +120,11 @@ class IntelligenceEngine:
             "signal": "HOLD"
         }
 
-    # -------------------------------
-    # AI Decision
-    # -------------------------------
-    
-    def ai_decision(self, market, news):
+# -------------------------------
+# AI Decision
+# -------------------------------
+
+def ai_decision(self, market, news):
 
     signal = "HOLD"
 
