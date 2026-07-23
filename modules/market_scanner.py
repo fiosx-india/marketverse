@@ -87,16 +87,6 @@ def top_sell(results, limit=5):
         if stock["signal"] == "SELL"
     ][:limit]
 
-
-def top_volume(results, limit=5):
-
-    return sorted(
-        results,
-        key=lambda x: x["volume"],
-        reverse=True
-    )[:limit]
-
-
 def top_volume(results, limit=5):
 
     return sorted(
