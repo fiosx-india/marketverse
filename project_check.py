@@ -37,12 +37,21 @@ class ProjectChecker:
         print(" MARKETVERSE PROJECT CHECKER ")
         print("=" * 60)
 
+        IGNORE_FOLDERS = {
+            "__pycache__",
+            ".git",
+            "venv",
+            ".venv",
+            "build",
+            "dist",
+            ".idea",
+            ".vscode",
+        }
+
         for path in self.root.rglob("*.py"):
 
-            if "__pycache__" in str(path):
-                continue
-
-            if ".git" in str(path):
+            # Ignore unwanted folders
+            if any(folder in path.parts for folder in IGNORE_FOLDERS):
                 continue
 
             self.report["python_files"].append(path)
