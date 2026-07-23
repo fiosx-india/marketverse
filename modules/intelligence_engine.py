@@ -123,7 +123,15 @@ class IntelligenceEngine:
 
         signal = "HOLD"
 
-        if news["sentiment"] == "Positive":
+        rsi = market.get("rsi", 50)
+
+        if rsi < 30:
+            signal = "BUY"
+
+        elif rsi > 70:
+            signal = "SELL"
+
+        elif news["sentiment"] == "Positive":
             signal = "BUY"
 
         elif news["sentiment"] == "Negative":
