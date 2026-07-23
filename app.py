@@ -70,14 +70,6 @@ if guardian_result["report"].errors > 0:
         st.json(guardian_result["validation_errors"])
         
 # ==========================================
-# Auto Refresh
-# ==========================================
-st_autorefresh(
-    interval=60000,
-    key="data_refresh"
-)
-
-# ==========================================
 # Initialize Modules
 # ==========================================
 tracker = PerformanceTracker()
