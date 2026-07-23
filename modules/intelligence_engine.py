@@ -5,7 +5,7 @@ Version: 1.0
 
 import yfinance as yf
 import pandas as pd
-
+from modules.news_analysis import analyze_news, get_dummy_news
 
 class IntelligenceEngine:
 
@@ -102,9 +102,13 @@ class IntelligenceEngine:
     # -------------------------------
     def news_analysis(self, symbol):
 
+        headlines = get_dummy_news(symbol)
+
+        result = analyze_news(symbol, headlines)
+
         return {
-            "sentiment": "Neutral",
-            "confidence": 50
+            "sentiment": result["overall_sentiment"],
+            "confidence": result["confidence"]
         }
 
     # -------------------------------
