@@ -6,6 +6,9 @@ Scans market data and identifies trading opportunities.
 =========================================================
 """
 
+from data.fno_stocks import FNO_STOCKS
+from modules.intelligence_engine import IntelligenceEngine
+
 
 def scan_market(stocks):
 
@@ -80,6 +83,15 @@ def top_volume(results, limit=5):
     )[:limit]
 
 
+def top_volume(results, limit=5):
+
+    return sorted(
+        results,
+        key=lambda x: x["volume"],
+        reverse=True
+    )[:limit]
+
+
 if __name__ == "__main__":
 
     demo = [
@@ -120,3 +132,4 @@ if __name__ == "__main__":
 
     print("Top Volume")
     print(top_volume(scanned))
+
