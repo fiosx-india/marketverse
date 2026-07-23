@@ -16,8 +16,6 @@ from modules.system_controller import SystemController
 from modules.portfolio import Portfolio
 from modules.intelligence_engine import IntelligenceEngine
 
-from project_check import ProjectChecker
-
 import yfinance as yf
 import pandas as pd
 import ta
@@ -30,6 +28,14 @@ from modules.market_scanner import (
 )
 
 from data.fno_stocks import FNO_STOCKS
+
+try:
+    from project_check import ProjectChecker
+    print("✅ ProjectChecker imported successfully")
+except Exception as e:
+    print("❌ Import Error:", e)
+    import traceback
+    traceback.print_exc()
 
 
 # ==========================================
