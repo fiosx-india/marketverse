@@ -149,14 +149,21 @@ try:
 
     try:
         engine_result = engine.run(symbol)
-        
-        market_results = scan_market(FNO_STOCKS)
 
-        buy_list = top_buy(market_results)
+        # Default values
+        market_results = []
+        buy_list = []
+        sell_list = []
+        volume_list = []
 
-        sell_list = top_sell(market_results)
+        # Scan only when requested
+        if st.sidebar.button("🔍 Scan F&O Market"):
+            with st.spinner("Scanning F&O Stocks..."):
+                market_results = scan_market(FNO_STOCKS)
 
-        volume_list = top_volume(market_results)
+                buy_list = top_buy(market_results)
+                sell_list = top_sell(market_results)
+                volume_list = top_volume(market_results)
         
     except Exception as e:
         st.warning(f"Intelligence Engine: {e}")
