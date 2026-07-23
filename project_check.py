@@ -715,3 +715,125 @@ def advanced_import_analysis(self):
 
     })
 
+# ---------------------------------------------------
+# Advanced Code Analyzer
+# Phase 2 - Part 7
+# ---------------------------------------------------
+
+def advanced_code_analysis(self):
+
+    print("Running Advanced Code Analysis...")
+
+    functions = {}
+    classes = {}
+    called_functions = set()
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                # Function definitions
+                if isinstance(node, ast.FunctionDef):
+
+                    functions.setdefault(node.name, []).append({
+                        "file": str(file),
+                        "line": node.lineno,
+                        "lines": (
+                            getattr(node, "end_lineno", node.lineno)
+                            - node.lineno + 1
+                        )
+                    })
+
+                    # Very long function
+                    if getattr(node, "end_lineno", node.lineno) - node.lineno > 80:
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": node.lineno,
+                            "type": "Long Function",
+                            "name": node.name
+
+                        })
+
+                # Class definitions
+                elif isinstance(node, ast.ClassDef):
+
+                    classes.setdefault(node.name, []).append({
+                        "file": str(file),
+                        "line": node.lineno
+                    })
+
+                # Function calls
+                elif isinstance(node, ast.Call):
+
+                    if isinstance(node.func, ast.Name):
+                        called_functions.add(node.func.id)
+
+                    elif isinstance(node.func, ast.Attribute):
+                        called_functions.add(node.func.attr)
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Advanced Analysis Error",
+                "message": str(e)
+
+            })
+
+    # -----------------------------------------
+    # Duplicate Classes
+    # -----------------------------------------
+
+    for cls, locations in classes.items():
+
+        if len(locations) > 1:
+
+            self.report["warnings"].append({
+
+                "type": "Duplicate Class",
+                "class": cls,
+                "locations": locations
+
+            })
+
+            self.report["health"] -= 1
+
+    # -----------------------------------------
+    # Unused Functions
+    # -----------------------------------------
+
+    for func, locations in functions.items():
+
+        if func.startswith("__"):
+            continue
+
+        if func not in called_functions:
+
+            self.report["warnings"].append({
+
+                "type": "Unused Function",
+                "function": func,
+                "locations": locations
+
+            })
+
+    # Save statistics
+    self.report["info"].append({
+
+        "Functions": len(functions),
+        "Classes": len(classes),
+        "Called Functions": len(called_functions)
+
+    })
