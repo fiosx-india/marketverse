@@ -22,6 +22,7 @@ class IntelligenceEngine:
         df = stock.history(
             period="6mo",
             interval="1d"
+            
         )
 
         return df
@@ -40,6 +41,30 @@ class IntelligenceEngine:
         result["high"] = float(df["High"].max())
         result["low"] = float(df["Low"].min())
         result["volume"] = int(df["Volume"].iloc[-1])
+
+
+        # EMA 20
+        result["ema20"] = float(
+            df["Close"].ewm(span=20).mean().iloc[-1]
+        )
+
+        # EMA 50
+        result["ema50"] = float(
+            df["Close"].ewm(span=50).mean().iloc[-1]
+        )
+
+        # RSI 14
+        delta = df["Close"].diff()
+
+        gain = delta.where(delta > 0, 0).rolling(14).mean()
+
+        loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
+
+        rs = gain / loss
+
+        result["rsi"] = float(
+            (100 - (100 / (1 + rs))).iloc[-1]
+        )
 
         return result
 
