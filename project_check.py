@@ -1132,3 +1132,153 @@ def final_ai_review(self):
 
     self.report["auto_fixes"] = fixes
 
+# ---------------------------------------------------
+# Project Change Tracker
+# Phase 3 - Part 11
+# ---------------------------------------------------
+
+import hashlib
+
+def project_snapshot(self):
+
+    print("Creating Project Snapshot...")
+
+    snapshot = {}
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            data = file.read_bytes()
+
+            snapshot[str(file)] = {
+                "hash": hashlib.md5(data).hexdigest(),
+                "size": file.stat().st_size
+            }
+
+        except Exception:
+            continue
+
+    self.report["snapshot"] = snapshot
+
+
+def compare_snapshot(self):
+
+    import json
+
+    report_dir = self.root / "reports"
+    report_dir.mkdir(exist_ok=True)
+
+    snapshot_file = report_dir / "snapshot.json"
+
+    if not snapshot_file.exists():
+
+        with open(snapshot_file, "w", encoding="utf-8") as f:
+            json.dump(self.report["snapshot"], f, indent=4)
+
+        print("First snapshot created.")
+        return
+
+    with open(snapshot_file, "r", encoding="utf-8") as f:
+        old_snapshot = json.load(f)
+
+    changed = []
+    new_files = []
+
+    for file, info in self.report["snapshot"].items():
+
+        if file not in old_snapshot:
+            new_files.append(file)
+
+        elif old_snapshot[file]["hash"] != info["hash"]:
+            changed.append(file)
+
+    self.report["info"].append({
+        "Changed Files": changed,
+        "New Files": new_files
+    })
+
+    with open(snapshot_file, "w", encoding="utf-8") as f:
+        json.dump(self.report["snapshot"], f, indent=4)
+
+# ---------------------------------------------------
+# AI Integration Advisor
+# Phase 3 - Part 12
+# ---------------------------------------------------
+
+def integration_advisor(self):
+
+    print("Running AI Integration Advisor...")
+
+    suggestions = []
+
+    known_files = {
+        "app.py",
+        "intelligence_engine.py",
+        "prediction.py",
+        "market_scanner.py",
+        "news.py",
+        "news_analysis.py",
+        "risk_manager.py",
+        "system_manager.py"
+    }
+
+    for file in self.report["python_files"]:
+
+        name = file.name
+
+        if name in known_files:
+            continue
+
+        module = file.stem.lower()
+
+        advice = {
+            "module": name,
+            "import_in": [],
+            "update_files": [],
+            "reason": ""
+        }
+
+        if "ai" in module:
+            advice["import_in"] = [
+                "app.py",
+                "intelligence_engine.py"
+            ]
+            advice["reason"] = "AI related module"
+
+        elif "news" in module:
+            advice["import_in"] = [
+                "app.py",
+                "news_analysis.py"
+            ]
+            advice["reason"] = "News processing module"
+
+        elif "risk" in module:
+            advice["import_in"] = [
+                "prediction.py",
+                "system_manager.py"
+            ]
+            advice["reason"] = "Risk management module"
+
+        elif "scanner" in module:
+            advice["import_in"] = [
+                "app.py",
+                "market_scanner.py"
+            ]
+            advice["reason"] = "Market scanner module"
+
+        elif "manager" in module:
+            advice["import_in"] = [
+                "system_manager.py"
+            ]
+            advice["reason"] = "Manager component"
+
+        else:
+            advice["import_in"] = [
+                "Review manually"
+            ]
+            advice["reason"] = "Unknown module type"
+
+        suggestions.append(advice)
+
+    self.report["integration_advisor"] = suggestions
