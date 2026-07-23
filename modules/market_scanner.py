@@ -28,11 +28,8 @@ def scan_market(stocks):
             market = result["market"]
 
             price = market.get("price", 0)
-
             volume = market.get("volume", 0)
-
             confidence = result["news"].get("confidence", 50)
-
             change = result["volatility"]
 
         except Exception:
@@ -42,7 +39,6 @@ def scan_market(stocks):
 
         if change > 2 and confidence >= 70:
             signal = "BUY"
-
         elif change < -2 and confidence >= 70:
             signal = "SELL"
 
@@ -92,15 +88,9 @@ def top_volume(results, limit=5):
 if __name__ == "__main__":
 
     demo = [
-        {
-            "symbol": "RELIANCE.NS"
-        },
-        {
-            "symbol": "TCS.NS"
-        },
-        {
-            "symbol": "INFY.NS"
-        }
+        {"symbol": "RELIANCE.NS"},
+        {"symbol": "TCS.NS"},
+        {"symbol": "INFY.NS"},
     ]
 
     scanned = scan_market(demo)
