@@ -1821,4 +1821,73 @@ def comment_analysis(self):
         except:
             pass
 
+# ---------------------------------------------------
+# Project Risk Analyzer
+# Phase 7 - Part 20
+# ---------------------------------------------------
+
+def project_risk_analysis(self):
+
+    print("Running Project Risk Analysis...")
+
+    risk_report = []
+
+    for file in self.report["python_files"]:
+
+        risk = 0
+
+        # Error count
+        for err in self.report["errors"]:
+            if err.get("file") == str(file):
+                risk += 10
+
+        # Warning count
+        for warn in self.report["warnings"]:
+            if warn.get("file") == str(file):
+                risk += 3
+
+        # File size
+        try:
+            if file.stat().st_size > 300 * 1024:
+                risk += 5
+        except:
+            pass
+
+        # Risk Level
+        if risk >= 25:
+            level = "HIGH"
+        elif risk >= 10:
+            level = "MEDIUM"
+        else:
+            level = "LOW"
+
+        risk_report.append({
+            "file": str(file),
+            "risk": risk,
+            "level": level
+        })
+
+    risk_report.sort(
+        key=lambda x: x["risk"],
+        reverse=True
+    )
+
+    self.report["risk_report"] = risk_report
+
+# ---------------------------------------------------
+# Show Risk Report
+# ---------------------------------------------------
+
+def show_risk_report(self):
+
+    print("\nPROJECT RISK REPORT")
+    print("=" * 60)
+
+    for item in self.report.get("risk_report", [])[:10]:
+
+        print(
+            f"{item['level']:6} | "
+            f"{item['risk']:3} | "
+            f"{item['file']}"
+        )
 
