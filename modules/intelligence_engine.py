@@ -155,7 +155,7 @@ class IntelligenceEngine:
 
         options = self.options_analysis(symbol)
         
-        signal = "TEST BUY"
+        signal = self.ai_decision(market, news)
         
         print("Market:", market)
         print("News:", news)
