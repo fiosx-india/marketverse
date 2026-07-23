@@ -159,6 +159,10 @@ class IntelligenceEngine:
             market,
             news
         )
+        
+        print("Market:", market)
+        print("News:", news)
+        print("Signal:", signal)
 
         return {
             "market": market,
