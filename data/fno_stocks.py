@@ -70,21 +70,6 @@ FNO_STOCKS = [
 # Helper Functions
 # ==========================================
 
-def get_stock(symbol):
-    ...
-
-def search_stock(keyword):
-    ...
-
-def get_sector_stocks(sector):
-    ...
-
-def get_index_stocks(index_name):
-    ...
-
-def get_all_sectors():
-    ...
-
 def get_symbols():
     return [stock["symbol"] for stock in FNO_STOCKS]
 
@@ -94,14 +79,48 @@ def get_names():
 
 
 def get_stock(symbol):
-
     for stock in FNO_STOCKS:
         if stock["symbol"] == symbol:
             return stock
-
     return None
 
-# data/fno_stocks.py
+
+def search_stock(keyword):
+    keyword = keyword.lower()
+
+    return [
+        stock
+        for stock in FNO_STOCKS
+        if keyword in stock["name"].lower()
+        or keyword in stock["symbol"].lower()
+    ]
+
+
+def get_sector_stocks(sector):
+    return [
+        stock
+        for stock in FNO_STOCKS
+        if stock["sector"].lower() == sector.lower()
+    ]
+
+
+def get_index_stocks(index_name):
+    return [
+        stock
+        for stock in FNO_STOCKS
+        if index_name in stock.get("index", [])
+    ]
+
+
+def get_all_sectors():
+    return sorted(
+        list(
+            {
+                stock["sector"]
+                for stock in FNO_STOCKS
+            }
+        )
+    )
 
 FNO_STOCKS = [
     {"name": "Reliance Industries Ltd", "symbol": "RELIANCE.NS", "sector": "Energy"},
