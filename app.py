@@ -142,6 +142,14 @@ try:
 
     try:
         engine_result = engine.run(symbol)
+        
+        market_results = scan_market(FNO_STOCKS)
+
+        buy_list = top_buy(market_results)
+
+        sell_list = top_sell(market_results)
+
+         volume_list = top_volume(market_results)
     except Exception as e:
         st.warning(f"Intelligence Engine: {e}")
         engine_result = {
