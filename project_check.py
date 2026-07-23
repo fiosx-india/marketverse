@@ -30,7 +30,6 @@ class ProjectChecker:
     # ---------------------------------------------------
     # Scan Project
     # ---------------------------------------------------
-
     def scan(self):
 
         print("=" * 60)
@@ -47,7 +46,7 @@ class ProjectChecker:
             ".idea",
             ".vscode",
         }
-        
+
         ALLOWED_TOP_LEVEL = {
             "modules",
             "guardian",
@@ -60,19 +59,17 @@ class ProjectChecker:
             "app.py",
             "project_check.py"
         }
-        
 
         for path in self.root.rglob("*.py"):
 
             relative = path.relative_to(self.root)
-
             top = relative.parts[0]
 
-        if (
-            top not in ALLOWED_TOP_LEVEL
-            and path.name not in ALLOWED_FILES
-        ):
-            continue
+            if (
+                top not in ALLOWED_TOP_LEVEL
+                and path.name not in ALLOWED_FILES
+            ):
+                continue
 
             # Ignore unwanted folders
             if any(folder in path.parts for folder in IGNORE_FOLDERS):
@@ -86,7 +83,6 @@ class ProjectChecker:
 
         print(f"Python Files : {self.report['total_files']}")
         print()
-
     # ---------------------------------------------------
     # Empty File
     # ---------------------------------------------------
