@@ -20,6 +20,16 @@ import yfinance as yf
 import pandas as pd
 import ta
 
+from modules.market_scanner import (
+    scan_market,
+    top_buy,
+    top_sell,
+    top_volume
+)
+
+from data.fno_stocks import FNO_STOCKS
+
+
 # ==========================================
 # Page Settings
 # ==========================================
