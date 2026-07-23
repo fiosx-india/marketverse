@@ -161,6 +161,7 @@ if __name__ == "__main__":
 
     checker.show()
 
+
 # ---------------------------------------------------
 # Import Checker
 # ---------------------------------------------------
@@ -503,6 +504,7 @@ def save_reports(self):
 
     print("Reports saved in reports/")
 
+
 # ---------------------------------------------------
 # Dependency Checker
 # ---------------------------------------------------
@@ -714,7 +716,6 @@ def advanced_import_analysis(self):
         "Import Map": import_map
 
     })
-
 # ---------------------------------------------------
 # Advanced Code Analyzer
 # Phase 2 - Part 7
@@ -837,6 +838,7 @@ def advanced_code_analysis(self):
         "Called Functions": len(called_functions)
 
     })
+
 # ---------------------------------------------------
 # Security Analyzer
 # Phase 2 - Part 8
@@ -1053,7 +1055,6 @@ def architecture_analysis(self):
     })
 
     self.report["integration_suggestions"] = suggestions
-
 # ---------------------------------------------------
 # Final AI Review
 # Phase 2 - Part 10
@@ -1282,6 +1283,8 @@ def integration_advisor(self):
         suggestions.append(advice)
 
     self.report["integration_advisor"] = suggestions
+
+
 # ---------------------------------------------------
 # Dependency Graph Builder
 # Phase 3 - Part 13
@@ -1327,6 +1330,56 @@ def build_dependency_graph(self):
 
     self.report["dependency_graph"] = graph
 
+# ---------------------------------------------------
+# Dependency Report
+# ---------------------------------------------------
+
+def show_dependency_graph(self):
+
+    print("\nDEPENDENCY GRAPH")
+    print("=" * 60)
+
+    graph = self.report.get("dependency_graph", {})
+
+    for module, deps in graph.items():
+
+        print(f"\n{module}")
+
+        if deps:
+
+            for dep in sorted(set(deps)):
+                print(f"   └── {dep}")
+
+        else:
+
+            print("   └── No Dependencies")
+
+# ---------------------------------------------------
+# Project Complexity
+# ---------------------------------------------------
+
+def calculate_complexity(self):
+
+    graph = self.report.get("dependency_graph", {})
+
+    total = 0
+
+    for deps in graph.values():
+
+        total += len(deps)
+
+    average = 0
+
+    if graph:
+
+        average = total / len(graph)
+
+    self.report["complexity"] = {
+
+        "total_dependencies": total,
+        "average_dependencies": round(average,2)
+
+                        }
 # ---------------------------------------------------
 # Duplicate Logic Detector
 # Phase 4 - Part 14
@@ -1400,6 +1453,7 @@ def duplicate_logic_analysis(self):
             self.report["health"] -= 2
 
     self.report["duplicate_logic"] = duplicates
+
 
 # ---------------------------------------------------
 # Project Health Inspector
@@ -1544,6 +1598,7 @@ def performance_analysis(self):
 
             })
 
+
 # ---------------------------------------------------
 # Configuration Checker
 # Phase 5 - Part 17
@@ -1595,6 +1650,7 @@ def configuration_check(self):
 
             })
 
+
 # ---------------------------------------------------
 # Python Version Check
 # ---------------------------------------------------
@@ -1611,6 +1667,7 @@ def python_environment(self):
         "Executable": sys.executable
 
     })
+
 
 # ---------------------------------------------------
 # Folder Structure
@@ -1631,6 +1688,7 @@ def folder_structure(self):
         "Folders": folders
 
     })
+
 
 # ---------------------------------------------------
 # Naming Convention Checker
@@ -1690,6 +1748,7 @@ def naming_convention_check(self):
         except Exception:
             continue
 
+
 # ---------------------------------------------------
 # File Size Analyzer
 # ---------------------------------------------------
@@ -1716,6 +1775,37 @@ def file_size_analysis(self):
 
         except:
             pass
+
+
+# ---------------------------------------------------
+# Documentation Checker
+# ---------------------------------------------------
+
+def documentation_check(self):
+
+    print("Checking Documentation...")
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            if '"""' not in source:
+
+                self.report["warnings"].append({
+
+                    "file": str(file),
+                    "type": "Missing Module Docstring"
+
+                })
+
+        except:
+            pass
+
 
 # ---------------------------------------------------
 # Code Smell Detector
@@ -1873,6 +1963,7 @@ def project_risk_analysis(self):
     )
 
     self.report["risk_report"] = risk_report
+
 
 # ---------------------------------------------------
 # Show Risk Report
