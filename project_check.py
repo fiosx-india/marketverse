@@ -36,7 +36,7 @@ class ProjectChecker:
         import time
 
         start_time = time.time()
-        TIME_LIMIT = 15
+        TIME_LIMIT = 15  # seconds
 
         print("=" * 60)
         print(" MARKETVERSE PROJECT CHECKER ")
@@ -68,11 +68,12 @@ class ProjectChecker:
 
         for path in self.root.rglob("*.py"):
 
-            # Stop scan after TIME_LIMIT seconds
-            if time.time() - start_time > TIME_LIMIT:
+            # Stop scan after 15 seconds
+            if time.time() - start_time >= TIME_LIMIT:
                 self.report["warnings"].append(
-                    f"Project scan stopped after {TIME_LIMIT} seconds."
+                    "Project scan stopped after 15 seconds."
                 )
+                print("\nTime limit reached (15s). Scan stopped.")
                 break
 
             relative = path.relative_to(self.root)
@@ -94,7 +95,10 @@ class ProjectChecker:
             self.check_empty(path)
             self.check_syntax(path)
 
+        elapsed = round(time.time() - start_time, 2)
+
         print(f"Python Files : {self.report['total_files']}")
+        print(f"Scan Time    : {elapsed} sec")
         print()
         
     # ---------------------------------------------------
