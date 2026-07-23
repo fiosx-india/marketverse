@@ -231,6 +231,24 @@ with tab1:
 
     st.write(f"Volatility : {engine_result['volatility']:.2f}")
 
+    st.markdown("---")
+
+    st.subheader("📈 Market Scanner")
+
+    col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.write("### 🟢 Top Buy")
+    st.dataframe(buy_list)
+
+with col2:
+    st.write("### 🔴 Top Sell")
+    st.dataframe(sell_list)
+
+with col3:
+    st.write("### 🔵 Top Volume")
+    st.dataframe(volume_list)
+    
     # ==========================================
     # Dashboard Summary
     # ==========================================
