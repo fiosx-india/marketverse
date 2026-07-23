@@ -39,11 +39,19 @@ def scan_market(stocks):
 
             signal = "HOLD"
 
-            if confidence >= 70:
-                if volatility >= 1.5:
-                    signal = "BUY"
-                elif volatility <= 0.7:
-                    signal = "SELL"
+        rsi = market.get("rsi", 50)
+
+        if rsi < 30:
+            signal = "BUY"
+
+        elif rsi > 70:
+            signal = "SELL"
+
+        elif confidence >= 70 and volatility >= 1.5:
+            signal = "BUY"
+
+        elif confidence >= 70 and volatility <= 0.7:
+            signal = "SELL"
 
             results.append({
                 "symbol": symbol,
