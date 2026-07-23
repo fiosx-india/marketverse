@@ -160,6 +160,8 @@ class IntelligenceEngine:
             news
         )
         
+        signal = "TEST BUY"
+        
         print("Market:", market)
         print("News:", news)
         print("Signal:", signal)
