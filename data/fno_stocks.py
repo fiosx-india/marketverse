@@ -70,6 +70,21 @@ FNO_STOCKS = [
 # Helper Functions
 # ==========================================
 
+def get_stock(symbol):
+    ...
+
+def search_stock(keyword):
+    ...
+
+def get_sector_stocks(sector):
+    ...
+
+def get_index_stocks(index_name):
+    ...
+
+def get_all_sectors():
+    ...
+
 def get_symbols():
     return [stock["symbol"] for stock in FNO_STOCKS]
 
