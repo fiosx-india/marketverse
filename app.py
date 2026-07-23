@@ -15,6 +15,7 @@ from modules.central_brain import CentralBrain
 from modules.system_controller import SystemController
 from modules.portfolio import Portfolio
 from modules.intelligence_engine import IntelligenceEngine
+from project_check import ProjectChecker
 
 import yfinance as yf
 import pandas as pd
@@ -133,6 +134,12 @@ st.sidebar.success("✅ AI Prediction")
 st.sidebar.success("✅ Technical Analysis")
 st.sidebar.success("✅ Auto Refresh : 60 Seconds")
 
+if st.button("🔍 Run Project Check"):
+    checker = ProjectChecker(".")
+    checker.scan()
+
+    st.session_state["project_report"] = checker.report
+
 # ==========================================
 # Download Data
 # ==========================================
@@ -209,6 +216,21 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "💼 Portfolio",
     "⚙️ Settings"
 ])
+
+if "project_report" in st.session_state:
+
+    report = st.session_state["project_report"]
+
+    st.subheader("📋 Project Report")
+
+    st.metric("Health Score", f"{report['health']}%")
+    st.metric("Files", report["total_files"])
+
+    if report["errors"]:
+        st.error(report["errors"])
+
+    if report["warnings"]:
+        st.warning(report["warnings"])
 
 # ==========================================
 # Dashboard
