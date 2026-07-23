@@ -503,7 +503,6 @@ def save_reports(self):
 
     print("Reports saved in reports/")
 
-
 # ---------------------------------------------------
 # Dependency Checker
 # ---------------------------------------------------
