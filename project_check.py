@@ -502,3 +502,98 @@ def save_reports(self):
             f.write("- " + item + "\n")
 
     print("Reports saved in reports/")
+
+
+# ---------------------------------------------------
+# Dependency Checker
+# ---------------------------------------------------
+
+def dependency_summary(self):
+
+    dependency_count = {}
+
+    for file in self.report["python_files"]:
+
+        try:
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            for node in ast.walk(tree):
+
+                if isinstance(node, ast.Import):
+
+                    for alias in node.names:
+
+                        name = alias.name.split(".")[0]
+
+                        dependency_count[name] = (
+                            dependency_count.get(name, 0) + 1
+                        )
+
+                elif isinstance(node, ast.ImportFrom):
+
+                    if node.module:
+
+                        name = node.module.split(".")[0]
+
+                        dependency_count[name] = (
+                            dependency_count.get(name, 0) + 1
+                        )
+
+        except Exception:
+            pass
+
+    self.report["info"].append({
+        "Dependencies": dependency_count
+    })
+
+
+# ---------------------------------------------------
+# Project Readiness
+# ---------------------------------------------------
+
+def project_status(self):
+
+    health = self.report["health"]
+    errors = len(self.report["errors"])
+
+    if errors > 0:
+        status = "NEEDS FIXES"
+
+    elif health >= 95:
+        status = "PRODUCTION READY"
+
+    elif health >= 85:
+        status = "GOOD"
+
+    elif health >= 70:
+        status = "FAIR"
+
+    else:
+        status = "NEEDS IMPROVEMENT"
+
+    self.report["status"] = status
+
+
+# ---------------------------------------------------
+# Final Summary
+# ---------------------------------------------------
+
+def final_summary(self):
+
+    print("=" * 60)
+    print("FINAL SUMMARY")
+    print("=" * 60)
+
+    print(f"Project       : {self.report['project']}")
+    print(f"Health Score  : {self.report['health']}%")
+    print(f"Status        : {self.report['status']}")
+    print(f"Files Scanned : {self.report['total_files']}")
+    print(f"Errors        : {len(self.report['errors'])}")
+    print(f"Warnings      : {len(self.report['warnings'])}")
+
+    print("=" * 60)
