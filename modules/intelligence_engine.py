@@ -123,23 +123,26 @@ class IntelligenceEngine:
     # -------------------------------
     # AI Decision
     # -------------------------------
+    
     def ai_decision(self, market, news):
 
-        signal = "HOLD"
+    signal = "HOLD"
 
-        rsi = market.get("rsi", 50)
+    rsi = market.get("rsi", 50)
 
-        if rsi < 30:
-            signal = "BUY"
+    if rsi < 30:
+        signal = "BUY"
 
-        elif rsi > 70:
-            signal = "SELL"
-            
-        elif news["sentiment"] in ("BULLISH", "VERY BULLISH"):
-                signal = "BUY"
+    elif rsi > 70:
+        signal = "SELL"
 
-        elif news["sentiment"] in ("BEARISH", "VERY BEARISH"):
-                signal = "SELL"
+    elif news.get("sentiment") in ("BULLISH", "VERY BULLISH"):
+        signal = "BUY"
+
+    elif news.get("sentiment") in ("BEARISH", "VERY BEARISH"):
+        signal = "SELL"
+
+    return signal
 
     # -------------------------------
     # Run Engine
