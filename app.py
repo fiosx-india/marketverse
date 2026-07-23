@@ -142,10 +142,10 @@ st.sidebar.success("✅ Technical Analysis")
 st.sidebar.success("✅ Auto Refresh : 60 Seconds")
 
 if st.button("🔍 Run Project Check"):
-    checker = ProjectChecker(".")
-    checker.scan()
+   checker = ProjectChecker(".")
+   checker.scan()
 
-    st.session_state["project_report"] = checker.report
+   st.session_state["project_report"] = checker.report
 
 # ==========================================
 # Download Data
