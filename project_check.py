@@ -1054,3 +1054,81 @@ def architecture_analysis(self):
 
     self.report["integration_suggestions"] = suggestions
 
+# ---------------------------------------------------
+# Final AI Review
+# Phase 2 - Part 10
+# ---------------------------------------------------
+
+def final_ai_review(self):
+
+    print("Running Final AI Review...")
+
+    score = self.report["health"]
+
+    errors = len(self.report["errors"])
+    warnings = len(self.report["warnings"])
+
+    review = []
+
+    if errors == 0:
+        review.append("✓ No syntax errors detected.")
+    else:
+        review.append(f"✗ {errors} error(s) require immediate attention.")
+
+    if warnings == 0:
+        review.append("✓ No warnings detected.")
+    else:
+        review.append(f"⚠ {warnings} warning(s) detected.")
+
+    if score >= 95:
+        grade = "A+"
+    elif score >= 90:
+        grade = "A"
+    elif score >= 80:
+        grade = "B"
+    elif score >= 70:
+        grade = "C"
+    else:
+        grade = "D"
+
+    self.report["grade"] = grade
+    self.report["review"] = review
+
+    # Auto Fix Suggestions
+    fixes = []
+
+    for error in self.report["errors"]:
+
+        etype = error.get("type", "")
+
+        if etype == "Syntax Error":
+            fixes.append(
+                f"Fix syntax in {error['file']} (line {error.get('line','?')})"
+            )
+
+        elif etype == "Missing Module":
+            fixes.append(
+                f"Install or verify module: {error.get('module','')}"
+            )
+
+    for warning in self.report["warnings"]:
+
+        wtype = warning.get("type", "")
+
+        if wtype == "Large File":
+            fixes.append(
+                f"Split {warning['file']} into smaller modules."
+            )
+
+        elif wtype == "Long Function":
+            fixes.append(
+                f"Refactor function {warning['name']}."
+            )
+
+        elif wtype == "Duplicate Import":
+            fixes.append(
+                f"Remove duplicate imports from {warning['file']}."
+            )
+
+    self.report["auto_fixes"] = fixes
+
