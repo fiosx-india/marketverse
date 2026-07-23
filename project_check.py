@@ -47,8 +47,32 @@ class ProjectChecker:
             ".idea",
             ".vscode",
         }
+        
+        ALLOWED_TOP_LEVEL = {
+            "modules",
+            "guardian",
+            "core",
+            "data",
+            "tests"
+        }
+
+        ALLOWED_FILES = {
+            "app.py",
+            "project_check.py"
+        }
+        
 
         for path in self.root.rglob("*.py"):
+
+        relative = path.relative_to(self.root)
+
+        top = relative.parts[0]
+
+        if (
+            top not in ALLOWED_TOP_LEVEL
+            and path.name not in ALLOWED_FILES
+        ):
+            continue
 
             # Ignore unwanted folders
             if any(folder in path.parts for folder in IGNORE_FOLDERS):
