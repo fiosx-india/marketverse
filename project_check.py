@@ -596,3 +596,122 @@ def final_summary(self):
     print(f"Warnings      : {len(self.report['warnings'])}")
 
     print("=" * 60)
+
+# ---------------------------------------------------
+# Advanced Import Analysis
+# Phase 2 - Part 6
+# ---------------------------------------------------
+
+def advanced_import_analysis(self):
+
+    print("Running Advanced Import Analysis...")
+
+    import_map = {}
+
+    for file in self.report["python_files"]:
+
+        try:
+
+            source = file.read_text(
+                encoding="utf-8",
+                errors="ignore"
+            )
+
+            tree = ast.parse(source)
+
+            current = file.stem
+
+            import_map[current] = []
+
+            for node in ast.walk(tree):
+
+                # import x
+                if isinstance(node, ast.Import):
+
+                    for alias in node.names:
+
+                        name = alias.name.split(".")[0]
+
+                        import_map[current].append(name)
+
+                # from x import y
+                elif isinstance(node, ast.ImportFrom):
+
+                    # Wildcard import
+                    if any(a.name == "*" for a in node.names):
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": node.lineno,
+                            "type": "Wildcard Import",
+                            "module": node.module
+
+                        })
+
+                        self.report["health"] -= 1
+
+                    # Relative import
+                    if node.level > 0:
+
+                        self.report["warnings"].append({
+
+                            "file": str(file),
+                            "line": node.lineno,
+                            "type": "Relative Import",
+                            "module": node.module
+
+                        })
+
+                    if node.module:
+
+                        import_map[current].append(
+                            node.module.split(".")[0]
+                        )
+
+        except Exception as e:
+
+            self.report["errors"].append({
+
+                "file": str(file),
+                "type": "Import Analysis Error",
+                "message": str(e)
+
+            })
+
+    # -------------------------------
+    # Circular Import Detection
+    # -------------------------------
+
+    checked = set()
+
+    for module, deps in import_map.items():
+
+        for dep in deps:
+
+            if dep in import_map:
+
+                if module in import_map.get(dep, []):
+
+                    key = tuple(sorted([module, dep]))
+
+                    if key not in checked:
+
+                        checked.add(key)
+
+                        self.report["warnings"].append({
+
+                            "type": "Circular Import",
+                            "module1": module,
+                            "module2": dep
+
+                        })
+
+                        self.report["health"] -= 3
+
+    self.report["info"].append({
+
+        "Import Map": import_map
+
+    })
+
