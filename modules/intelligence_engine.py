@@ -134,12 +134,12 @@ class IntelligenceEngine:
 
         elif rsi > 70:
             signal = "SELL"
+            
+        elif news["sentiment"] in ("BULLISH", "VERY BULLISH"):
+                signal = "BUY"
 
-    elif news["sentiment"] in ("BULLISH", "VERY BULLISH"):
-        signal = "BUY"
-
-    elif news["sentiment"] in ("BEARISH", "VERY BEARISH"):
-        signal = "SELL"
+        elif news["sentiment"] in ("BEARISH", "VERY BEARISH"):
+                signal = "SELL"
 
     # -------------------------------
     # Run Engine
