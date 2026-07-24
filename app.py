@@ -305,6 +305,10 @@ with tab1:
 
     st.header("📊 Live Market Dashboard")
     
+    st.subheader("🪙 MCX Commodity Dashboard")
+    
+    st.info(f"Selected Commodity : {commodity}")
+    
     st.subheader("🧠 Market Intelligence Engine")
 
     st.subheader(f"📈 {selected_stock}")
