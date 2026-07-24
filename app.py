@@ -1134,77 +1134,58 @@ if st.session_state.generated_output:
 
 
 import streamlit as st
+import os
 
 st.markdown("---")
-st.subheader("🔍 Boundary-Aware Smart Section & Logic Analyzer")
+st.subheader("🔍 Active Stream & Dependent Files/Sections Analyzer")
 
-# தற்போதைய கோப்பின் மூலக் குறியீட்டைப் படித்தல்
+# தற்போதைய கோப்பு மற்றும் இயங்கும் சூழலைப் படித்தல்
 try:
     with open(__file__, "r", encoding="utf-8") as f:
         code_content = f.read()
 except Exception as e:
     code_content = f"Error reading file: {e}"
 
-def boundary_aware_analyze(content):
-    report = "=== BOUNDARY-AWARE DIAGNOSTIC REPORT ===\n\n"
+def analyze_active_dependencies(content):
+    report = "=== ACTIVE DEPENDENCY & SECTION REPORT ===\n\n"
     lines = content.split('\n')
     
-    # 1. முதலில் அனைத்து ஹெட்டிங்குகள் மற்றும் செக்ஷன்களின் வரி எண்களைக் கண்டறிதல்
-    section_indices = []
-    for idx, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith('def ') or 'st.subheader' in stripped or 'st.markdown' in stripped:
-            # செப்பரேட்டர்களைத் தவிர்த்தல்
-            if 'st.markdown("---")' in stripped or "st.markdown('---')" in stripped:
-                continue
-            # அனலைசரின் சொந்தக் குறியீடுகளைத் தவிர்த்தல்
-            if 'boundary_aware_analyze' in stripped or 'fully_updated_analyze' in stripped:
-                continue
-            section_indices.append((idx, stripped))
-            
-    valid_elements = [
-        'st.info', 'st.metric', 'st.success', 'st.warning', 'st.error', 
-        'st.dataframe', 'st.plotly_chart', 'st.columns', 'st.text_input', 
-        'st.number_input', 'st.selectbox', 'st.button', 'st.write', 
-        'st.code', 'st.text_area', 'for ', 'if ', 'render_', 'return', 'st.tabs',
-        'forecast', 'dict', '='
+    detected_items = 0
+    
+    # இணைக்கப்பட்டுள்ள பைல்கள் அல்லது முக்கிய செக்ஷன்களைக் கண்டறியும் கீவேர்டுகள்
+    target_keywords = [
+        'import ', 'from ', 'st.subheader', 'st.markdown', 
+        'st.selectbox', 'st.button', 'st.dataframe', 'def '
     ]
     
-    real_issues = 0
-    
-    # 2. ஒவ்வொரு செக்ஷனுக்கும் இடைப்பட்ட முழுமையான பிளாக்கை ஆய்வு செய்தல்
-    for i in range(len(section_indices)):
-        start_idx, sec_name = section_indices[i]
-        # அடுத்த செக்ஷன் தொடங்கும் வரை அல்லது கோப்பின் முடிவு வரை எல்லை
-        end_idx = section_indices[i+1][0] if i + 1 < len(section_indices) else len(lines)
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
         
-        # அந்த முழுப் பகுதிக்கும் உள்ள குறியீட்டை எடுத்தல்
-        block_content = "\n".join(lines[start_idx:end_idx])
-        
-        # அந்த எல்லைக்குள் தகுந்த லாஜிக் உள்ளதா எனப் பார்த்தல்
-        has_logic = any(keyword in block_content for keyword in valid_elements)
-        
-        report += f"Check [{i+1}] -> {sec_name}\n"
-        
-        if has_logic:
-            report += f"  ✅ நிலை: இந்த முழுப் பகுதிக்குள் (Block) தேவையான UI/Logic சரியாக உள்ளது.\n"
-        else:
-            real_issues += 1
-            report += f"  ❌ உண்மையான குறைபாடு: இந்தச் செக்ஷனுக்கு உட்பட்ட எந்தப் பகுதியிலும் லாஜிக் இல்லை!\n"
+        # தேவையற்ற அனலைசர் வரிகளைத் தவிர்த்தல்
+        if any(skip in line for skip in ['analyze_active_dependencies', 'st.text_area', 'st.button']):
+            i += 1
+            continue
             
-        report += "-" * 50 + "\n"
+        # பைல் இணைப்புகள் அல்லது செக்ஷன்களைச் சரிபார்த்தல்
+        if any(keyword in line for keyword in target_keywords):
+            if line:
+                detected_items += 1
+                report += f"[{detected_items}] இணைக்கப்பட்ட பகுதி/வரிகள்:\n"
+                report += f"   ➡️ {line}\n"
+                report += "-" * 40 + "\n"
+        i += 1
         
-    report += f"\n[இறுதி முடிவு]: எல்லை அடிப்படையிலான பகுப்பாய்வின்படி உண்மையான குறைபாடுகள்: {real_issues}\n"
+    report += f"\n[முடிவு]: மொத்தம் கண்டறியப்பட்ட இணைப்புகள்/செக்ஷன்கள்: {detected_items}\n"
     return report
 
 # பகுப்பாய்வு ரிப்போர்ட்டை உருவாக்குதல்
-boundary_report = boundary_aware_analyze(code_content)
+final_report = analyze_active_dependencies(code_content)
 
 # திரையில் காட்டுவது
-st.text_area("Boundary-Aware Report:", boundary_report, height=250)
+st.text_area("Active Dependency Report:", final_report, height=250)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Boundary Report"):
-    st.code(boundary_report, language="text")
-    st.success("Boundary report copied successfully for your session only!")
-
+if st.button("Copy Active Report"):
+    st.code(final_report, language="text")
+    st.success("Active report copied successfully for your session only!")
