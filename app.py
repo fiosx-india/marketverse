@@ -1132,58 +1132,63 @@ if st.session_state.generated_output:
         st.session_state.generated_output = ""
         st.rerun()
 
-
-import os
 import streamlit as st
+import re
 
 st.markdown("---")
-st.subheader("🔍 Project File & Button Link Diagnostic Tool")
+st.subheader("🔍 Section & Missing Link Diagnostic Tool")
 
-# 1. புராஜெக்ட்டில் உள்ள அனைத்து ஃபைல்களையும் ஸ்கேன் செய்தல்
-def scan_project_files():
-    files_info = {}
-    root_dir = "."  # மெயின் டைரக்டரி
-    for root, dirs, files in os.walk(root_dir):
-        # விடுபட வேண்டிய சிஸ்டம் ஃபோல்டர்களைத் தவிர்த்தல்
-        if '.git' in root or '__pycache__' in root or '.streamlit' in root:
-            continue
-        for file in files:
-            if file.endswith('.py') or file.endswith('.md') or file.endswith('.txt'):
-                file_path = os.path.join(root, file)
-                try:
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                        files_info[file] = {
-                            "path": file_path,
-                            "size": len(content),
-                            "has_buttons": "st.button" in content or "button" in content,
-                            "content": content
-                        }
-                except Exception as e:
-                    files_info[file] = {"path": file_path, "error": str(e)}
-    return files_info
+# தற்போதைய கோப்பின் மூலக் குறியீட்டைப் படித்தல்
+try:
+    with open(__file__, "r", encoding="utf-8") as f:
+        code_content = f.read()
+except Exception as e:
+    code_content = f"Error reading file: {e}"
 
-# 2. பிழைகளைக் கண்டறிந்து ரிப்போர்ட் தயாரித்தல்
-project_data = scan_project_files()
-
-missing_links = []
-active_files = list(project_data.keys())
-
-st.write(f"**மொத்தம் ஸ்கேன் செய்யப்பட்ட கோப்புகள்:** {len(active_files)}")
-
-# இம்போர்ட் மற்றும் பட்டன் இணைப்புகளைச் சோதித்தல்
-diagnostic_report = "--- PROJECT DIAGNOSTIC REPORT ---\n"
-for fname, data in project_data.items():
-    if "error" in data:
-        diagnostic_report += f"[ERROR] File {fname} could not be read: {data['error']}\n"
+# செக்ஷன்கள் மற்றும் பட்டன் இணைப்புகளைச் சோதிக்கும் லாஜிக்
+def analyze_sections(content):
+    report = "=== SECTION & LINK ANALYSIS REPORT ===\n\n"
+    
+    # கோப்பில் உள்ள செக்ஷன்களைத் தேடுதல் (எ.கா: section, def, with போன்ற அமைப்புகள்)
+    # உங்கள் தேவையின் அடிப்படையில் கீவேர்டுகளை மாற்றிக் கொள்ளலாம்
+    sections = re.split(r'(def\s+\w+|st\.subheader|st\.markdown)', content)
+    
+    section_count = 0
+    missing_points = []
+    
+    for i in range(1, len(sections), 2):
+        section_count += 1
+        sec_title = sections[i]
+        sec_body = sections[i+1] if (i+1) < len(sections) else ""
+        
+        # சோதிக்கும் விதிமுறைகள்: பட்டன் அல்லது லாஜிக் விடுபட்டுள்ளதா எனப் பார்த்தல்
+        has_button = "st.button" in sec_body or "button" in sec_body
+        has_logic = "if " in sec_body or "for " in sec_body
+        
+        report += f"Section {section_count} ({sec_title.strip()}):\n"
+        
+        if not has_button and not has_logic:
+            issue_msg = f"  ❌ எச்சரிக்கை: இந்த செக்ஷனில் பட்டனோ அல்லது முறையான லாஜிக்கோ சேர்க்கப்படவில்லை! இதனால் இது வேலை செய்யாமல் போக வாய்ப்புள்ளது."
+            report += f"{issue_msg}\n"
+            missing_points.append(f"Section {section_count} ({sec_title.strip()}) - Missing Button/Logic")
+        else:
+            report += f"  ✅ நிலை: சரியாக இணைக்கப்பட்டுள்ளது.\n"
+        report += "-" * 40 + "\n"
+        
+    if missing_points:
+        report += f"\n[முடிவு]: மொத்தம் {len(missing_points)} இடங்களில் குறைபாடுகள் கண்டறியվելள்ளன. மேலே குறிப்பிட்ட செக்ஷன்களில் வரிகளைச் சேர்த்தால் கோடு சரியாக வேலை செய்யும்.\n"
     else:
-        diagnostic_report += f"[OK] File: {fname} | Buttons Found: {data['has_buttons']}\n"
+        report += "\n[முடிவு]: அனைத்து செக்ஷன்களும் சரியாக இணைக்கப்பட்டுள்ளன!\n"
+        
+    return report
 
-# டிஸ்ப்ளே பாக்ஸ் மற்றும் காப்பி வசதி
-st.text_area("Automatic Link & Error Diagnostic Report:", diagnostic_report, height=200)
+# ரிப்போர்ட்டை உருவாக்குதல்
+diagnostic_result = analyze_sections(code_content)
 
-# ஒரே கிளிக்கில் ரிப்போர்ட்டை காப்பி செய்ய
-if st.button("Copy Diagnostic Report"):
-    st.code(diagnostic_report, language="text")
-    st.success("Report generated safely for your session only!")
+# டிஸ்ப்ளே பாக்ஸ் மூலம் காட்டுவது
+st.text_area("Detailed Missing Link Report:", diagnostic_result, height=220)
 
+# காப்பி செய்யும் வசதி
+if st.button("Copy Missing Link Report"):
+    st.code(diagnostic_result, language="text")
+    st.success("Report copied successfully for your session only!")
