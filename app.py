@@ -1133,6 +1133,7 @@ if st.session_state.generated_output:
         st.rerun()
 
 
+
 import streamlit as st
 import os
 
@@ -1189,3 +1190,5 @@ st.text_area("Active Dependency Report:", final_report, height=250)
 if st.button("Copy Active Report"):
     st.code(final_report, language="text")
     st.success("Active report copied successfully for your session only!")
+
+
