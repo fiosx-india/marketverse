@@ -165,6 +165,19 @@ if selected_company:
 else:
     symbol = "RELIANCE.NS"
     selected_stock = "Reliance Industries Ltd"
+    
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 🪙 MCX Commodities")
+
+commodity_map = {
+    item["name"]: item["symbol"]
+    for item in MCX_COMMODITIES
+}
+
+commodity = st.sidebar.selectbox(
+    "Select Commodity",
+    list(commodity_map.keys())
+)
 
 # ==========================================
 # Status
