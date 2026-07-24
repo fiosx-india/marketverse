@@ -1137,14 +1137,14 @@ import os
 import ast
 
 st.markdown("---")
-st.subheader("🛡️ Guardian Precision Static Code & Dependency Analyzer v4")
+st.subheader("🛠️ Guardian Dead Code & Unused Function Fixer Analyzer")
 
-def get_guardian_precision_report():
-    report = "=== GUARDIAN PRECISION STATIC ANALYSIS REPORT ===\n\n"
+def get_dead_code_fixer_report():
+    report = "=== UNUSED & IDLE CODE IDENTIFICATION & FIX REPORT ===\n\n"
     
     current_file = os.path.basename(__file__)
-    report += f"🗂️ Main File (Entry Point): {current_file}\n"
-    report += f"📍 Branch: Main Branch\n"
+    report += f"🗂️ Main File: {current_file}\n"
+    report += f"📍 Status: Scanning for Idle / Unused Functions & Imports\n"
     report += "-" * 65 + "\n"
     
     try:
@@ -1153,110 +1153,75 @@ def get_guardian_precision_report():
             
         tree = ast.parse(code_content)
         
-        modules = []
-        classes_imported = set()
-        functions_imported = set()
-        constants_accessed = set()
+        defined_functions = []
+        imported_modules = []
+        idle_items_count = 0
         
-        explicit_class_instantiations = 0
-        custom_functions_called = 0
-        modules_referenced_count = 0
-        
-        # AST மூலம் துல்லியமாகப் பிரித்தெடுத்தல்
+        # 1. கோடில் உள்ள பங்க்சன்கள் மற்றும் இம்போர்ட்டுகளைச் சேகரித்தல்
         for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
+            if isinstance(node, ast.FunctionDef):
+                defined_functions.append(node.name)
+            elif isinstance(node, ast.Import):
                 for alias in node.names:
-                    modules.append(alias.name)
+                    imported_modules.append(alias.name)
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
                     for alias in node.names:
-                        name = alias.name
-                        full_name = f"{node.module}.{name}"
-                        # Constants (அனைத்தும் uppercase-ல் இருந்தால்)
-                        if name.isupper():
-                            constants_accessed.add(full_name)
-                        # Classes (முதல் எழுத்து uppercase-ல் இருந்தால்)
-                        elif name[0].isupper():
-                            classes_imported.add(full_name)
-                        # Functions / Others
-                        else:
-                            functions_imported.add(full_name)
-                            
-            elif isinstance(node, ast.Call):
-                # பயனர் உருவாக்கிய / இறக்குமதி செய்யப்பட்ட பங்க்சன்கள் மற்றும் கிளாஸ் இன்ஸ்டன்சியேஷன் மட்டும் கணக்கிடுதல் (Built-ins தவிர்த்து)
-                if isinstance(node.func, ast.Name):
-                    name = node.func.id
-                    if name[0].isupper():
-                        explicit_class_instantiations += 1
-                    elif not name.startswith("st.") and name not in ['print', 'len', 'str', 'int', 'open', 'range', 'set', 'dict', 'list']:
-                        custom_functions_called += 1
-                elif isinstance(node.func, ast.Attribute):
-                    attr = node.func.attr
-                    if attr[0].isupper():
-                        explicit_class_instantiations += 1
-
-        # 1. Modules
-        report += "\n📦 [1] Modules (e.g., pandas, streamlit):\n"
-        for mod in set(modules):
-            is_ref = code_content.count(mod.split('.')[-1]) > 1
-            if is_ref: modules_referenced_count += 1
-            report += f"   • {mod} ➔ Status: {'Referenced ✅' if is_ref else 'Imported Only ⚠️'}\n"
+                        imported_modules.append(alias.name)
+                        
+        report += "⚠️ **வேலையின்றி சும்மா கிடக்கும் (Idle / Unused) பகுதிகள்:**\n\n"
+        
+        # பங்க்சன்கள் வேலை செய்கிறதா அல்லது சும்மா இருக்கிறதா எனச் சோதித்தல்
+        for func in defined_functions:
+            # அனலைசர் சொந்தப் பங்க்சன்களைத் தவிர்த்தல்
+            if "analyzer" in func or "report" in func:
+                continue
+                
+            # கோடில் இந்தப் பங்க்சன் வரையறுக்கப்பட்ட இடத்தைத் தாண்டி எத்தனை முறை அழைக்கப்பட்டுள்ளது எனப் பார்த்தல்
+            # வரையறை (def func_name) தவிர்த்து மற்ற இடங்களில் கால் செய்யப்பட்டுள்ளதா?
+            call_count = code_content.count(func + "(")
             
-        # 2. Classes
-        report += "\n🏛️ [2] Classes Imported & Instantiated:\n"
-        if classes_imported:
-            for cls in classes_imported:
-                report += f"   • {cls} ➔ Status: Instantiated / Active ✅\n"
-        else:
-            report += "   • (No explicit class imports detected)\n"
+            if call_count <= 1: # ஒருமுறை கூட கால் செய்யப்படவில்லை அல்லது வரையறை மட்டுமே உள்ளது
+                idle_items_count += 1
+                report += f"❌ [சும்மா கிடக்கும் பங்க்சன்]: {func}()\n"
+                report += f"   • காரணம்: இது கோடில் சேர்க்கப்பட்டுள்ளது, ஆனால் மெயின் லாஜிக்குடன் இணைக்கப்படவில்லை.\n"
+                report += f"   • தீர்வு (Fix): இதை இயக்க, மெயின் கோடில் கீழ்கண்டவாறு லிங்க்/கால் செய்ய வேண்டும்:\n"
+                report += f"     👉 `result = {func}()`\n"
+                report += "-" * 50 + "\n"
+                
+        # இம்போர்ட் செய்யப்பட்ட மாட்யூல்கள் சும்மா இருக்கிறதா எனச் சோதித்தல்
+        for imp in imported_modules:
+            base_name = imp.split('.')[-1]
+            if code_content.count(base_name) <= 1:
+                idle_items_count += 1
+                report += f"❌ [சும்மா கிடக்கும் மாட்யூல்/ஃபைல்]: {imp}\n"
+                report += f"   • காரணம்: இம்போர்ட் செய்யப்பட்டுள்ளது, ஆனால் பயன்படுத்தப்படவில்லை (Unused Import).\n"
+                report += f"   • தீர்வு (Fix): இதைச் செயல்படுத்த இந்தக் குறியீட்டைப் பயன்படுத்த வேண்டும்:\n"
+                report += f"     👉 `active_data = {base_name}.run_module()` (அல்லது உரிய மெத்தடை இணைக்கவும்)\n"
+                report += "-" * 50 + "\n"
+                
+        if idle_items_count == 0:
+            report += "✔ அனைத்து ஃபைல்களும் பங்க்சன்களும் சரியாக இணைக்கப்பட்டு வேலை செய்கின்றன!\n"
             
-        # 3. Functions
-        report += "\n⚙️ [3] Functions Called:\n"
-        if functions_imported:
-            for fn in functions_imported:
-                report += f"   • {fn} ➔ Status: Called / Invoked ✅\n"
-        else:
-            report += "   • (Standard function imports checked)\n"
-
-        # 4. Constants / Data Collections
-        report += "\n📊 [4] Constants / Data Collections (e.g., FNO_STOCKS, MCX):\n"
-        if constants_accessed:
-            for con in constants_accessed:
-                report += f"   • {con} ➔ Status: Data Referenced / Accessed ✅\n"
-        else:
-            report += "   • (No external constants accessed)\n"
-
         report += "\n" + "="*65 + "\n"
-        report += "=== GUARDIAN STATIC ANALYSIS SUMMARY ==\n"
-        report += f"Classes Imported      : {len(classes_imported)}\n"
-        report += f"Classes Instantiated  : {explicit_class_instantiations} (Matched via explicit object calls)\n\n"
-        report += f"Functions Imported    : {len(functions_imported)}\n"
-        report += f"Functions Called      : {custom_functions_called} (Custom/Imported user functions only)\n\n"
-        report += f"Constants Accessed    : {len(constants_accessed)}\n"
-        report += f"Modules Referenced    : {modules_referenced_count}\n\n"
-        report += f"Duplicate Imports     : 0\n"
-        report += f"Broken Imports        : 0\n"
-        report += f"Circular Imports      : 0\n"
-        report += "-"*65 + "\n"
-        report += "Health Criteria Evaluated:\n"
-        report += "  ✔ No broken or unresolved imports found.\n"
-        report += "  ✔ No circular dependency loops detected.\n"
-        report += "  ✔ All core modules are successfully referenced.\n"
-        report += f"Overall Status        : HEALTHY & OPTIMIZED\n"
+        report += "=== FIXER SUMMARY REPORT ===\n"
+        report += f"Total Idle / Unused Items Found : {idle_items_count}\n"
+        report += f"Action Required                 : Link the suggested calls to make them work.\n"
+        report += f"Overall Code Health             : {'NEEDS ATTENTION ⚠️' if idle_items_count > 0 else 'OPTIMIZED ✅'}\n"
         report += "="*65 + "\n"
         
     except Exception as e:
-        report += f"Error during static analysis: {e}\n"
+        report += f"Error during analysis: {e}\n"
         
     return report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-final_precision_report = get_guardian_precision_report()
+final_fixer_report = get_dead_code_fixer_report()
 
 # திரையில் காட்டுவது
-st.text_area("Precision Static Analysis Report:", final_precision_report, height=380)
+st.text_area("Idle Code & Fixer Report:", final_fixer_report, height=380)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Precision Static Report"):
-    st.code(final_precision_report, language="text")
-    st.success("Precision report copied successfully for your session only!")
+if st.button("Copy Fixer Report"):
+    st.code(final_fixer_report, language="text")
+    st.success("Fixer report copied successfully for your session only!")
