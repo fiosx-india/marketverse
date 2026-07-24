@@ -41,20 +41,6 @@ except Exception as e:
     traceback.print_exc()
 
 
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("🛡️ Project Checker")
-
-    if st.sidebar.button("🔍 Check Project"):
-        checker = ProjectChecker(".")
-        checker.scan()
-        checker.show()
-
-        if checker.report["errors"]:
-            st.error(f"❌ {len(checker.report['errors'])} Error(s) Found")
-        else:
-            st.success("✅ Project Healthy")
-
-
 # ==========================================
 # Page Settings
 # ==========================================
