@@ -346,9 +346,14 @@ with tab1:
     st.subheader("🧠 Market Intelligence Engine")
 
     st.subheader(f"📈 {selected_stock}")
-    
+
     price = engine_result["market"].get("price")
-    
+
+    if isinstance(price, (int, float)):
+         display_price = f"₹{price:,.2f}"
+    else:
+        display_price = "N/A"
+
     c1, c2, c3 = st.columns(3)
 
     c1.metric("AI Signal", engine_result["signal"])
@@ -359,7 +364,7 @@ with tab1:
     )
 
     c3.metric("Confidence", "92%")
-
+    
     st.write(f"AI Signal : {engine_result['signal']}")
 
     st.write(f"Current Price : {display_price}")
