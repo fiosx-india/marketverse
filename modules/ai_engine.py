@@ -102,3 +102,8 @@ def analyze(symbol):
     }
 
 
+
+if st.sidebar.button("🔍 Check Project"):
+    checker = ProjectChecker(".")
+    checker.scan()
+    st.session_state["project_report"] = checker.report
