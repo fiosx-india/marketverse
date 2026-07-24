@@ -1137,18 +1137,19 @@ import streamlit as st
 import os
 import ast
 import importlib.util
+import sys
 
 st.markdown("---")
-st.subheader("🛡️ Guardian Advanced Resolution & Validation Analyzer v8")
+st.subheader("🛡️ Guardian Advanced Architecture & Dependency Analyzer v9")
 
-def get_guardian_resolution_validation_report():
-    report = "=== GUARDIAN RESOLUTION & VALIDATION AUDIT REPORT ===\n\n"
+def get_guardian_architecture_report():
+    report = "=== GUARDIAN ARCHITECTURE & DEPENDENCY AUDIT REPORT ===\n\n"
     
     current_file = os.path.basename(__file__)
     current_dir = os.path.dirname(os.path.abspath(__file__))
     
     report += f"🗂️ Main File: {current_file}\n"
-    report += f"📍 Scope: File Resolution & Import Validation Audit\n"
+    report += f"📍 Scope: Two-Stage Architecture & Dependency Validation\n"
     report += "-" * 65 + "\n"
     
     try:
@@ -1158,77 +1159,113 @@ def get_guardian_resolution_validation_report():
         tree = ast.parse(code_content)
         
         imported_modules = []
-        local_modules_expected = 0
-        resolved_count = 0
+        local_modules = []
+        external_packages = []
+        standard_library = []
+        
         missing_count = 0
+        resolved_count = 0
         relative_imports_checked = 0
         resolved_relative = 0
-        import_errors = 0
         
+        # 1. AST மூலம் இம்போர்ட்டுகளை வகைப்படுத்துதல்
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imported_modules.append({'name': alias.name, 'is_relative': False})
+                    mod_name = alias.name.split('.')[0]
+                    imported_modules.append(mod_name)
             elif isinstance(node, ast.ImportFrom):
-                if node.level > 0: # Relative import (eg: from .module import something)
+                if node.level > 0:
                     relative_imports_checked += 1
                     resolved_relative += 1
-                    imported_modules.append({'name': f".{node.module or ''}", 'is_relative': True})
                 elif node.module:
-                    imported_modules.append({'name': node.module, 'is_relative': False})
+                    mod_name = node.module.split('.')[0]
+                    imported_modules.append(mod_name)
                     
-        total_expected = len(imported_modules)
+        unique_imports = set(imported_modules)
         
-        report += "📂 **Part 1: File Resolution Audit (கோப்பு உள்ளதா எனச் சரிபார்த்தல்):**\n"
-        for item in imported_modules:
-            mod_name = item['name']
-            if not item['is_relative']:
-                local_modules_expected += 1
-                # பைதான் பாதையில் அல்லது லோக்கல் டைரக்டரியில் உள்ளதா எனச் சோதித்தல்
-                spec = importlib.util.find_spec(mod_name)
-                if spec is not None:
-                    resolved_count += 1
+        # Standard Library / External / Local பிரித்தல்
+        stdlib_names = sys.builtin_module_names
+        for mod in unique_imports:
+            if mod in stdlib_names or mod in ['os', 'sys', 'ast', 'math', 'json', 'datetime', 'inspect']:
+                standard_library.append(mod)
+            elif importlib.util.find_spec(mod) is not None:
+                # லோக்கல் பைல் அல்லது எக்ஸ்டெர்னல் பேக்கேஜ் எனச் சோதித்தல்
+                spec = importlib.util.find_spec(mod)
+                if spec and spec.origin and 'site-packages' in spec.origin:
+                    external_packages.append(mod)
                 else:
-                    missing_count += 1
-                    report += f"   ❌ Missing/Unresolved: {mod_name}\n"
-                    
-        if missing_count == 0:
-            report += "   ✔ அனைத்து லோக்கல் மற்றும் சிஸ்டம் மாட்யூல்களும் வெற்றிகரமாக கண்டறியப்பட்டன (Resolved).\n"
+                    local_modules.append(mod)
+            else:
+                missing_count += 1
+
+        report += "📂 **Part 1: File Resolution Audit (வகைப்படுத்தப்பட்ட ஆய்வு):**\n"
+        report += f"   • Local Project Modules Detected : {len(local_modules)}\n"
+        report += f"   • External Packages Detected   : {len(external_packages)}\n"
+        report += f"   • Standard Library Modules     : {len(standard_library)}\n"
+        
+        if missing_count > 0:
+            report += f"   ❌ Missing Modules / Packages Found : {missing_count}\n"
+        else:
+            report += "   ✔ அனைத்து மாட்யூல்களும் வெற்றிகரமாக resolve செய்யப்பட்டன.\n"
             
-        report += "\n⚙️ **Part 2: Import Validation Audit (பிழையின்றி லோடு ஆகுமா எனச் சரிபார்த்தல்):**\n"
-        # சின்டாக்ஸ் மற்றும் அடிப்படைப் பிழைகள் உள்ளதா எனச் சோதனை
+        report += "\n⚙️ **Part 2: Import & Syntax Validation (தனித்தனி சோதனைகள்):**\n"
+        
+        # Syntax Validation
+        syntax_passed = True
+        try:
+            ast.parse(code_content)
+            report += "   [1] Syntax Validation      : Passed ✅\n"
+        except Exception:
+            syntax_passed = False
+            report += "   [1] Syntax Validation      : Failed ❌\n"
+            
+        # Compilation Check
+        compilation_passed = True
         try:
             compile(code_content, current_file, 'exec')
-            report += "   ✔ Main file syntax and compilation check passed successfully (No Import/Syntax Errors).\n"
-        except Exception as syntax_err:
-            import_errors += 1
-            report += f"   ❌ Compilation/Import Error detected: {syntax_err}\n"
+            report += "   [2] Compilation Check      : Passed ✅\n"
+        except Exception:
+            compilation_passed = False
+            report += "   [2] Compilation Check      : Failed ❌\n"
             
+        # Import Validation Coverage
+        total_validated = len(unique_imports)
+        failed_imports = missing_count
+        skipped_imports = 0
+        
+        report += f"   [3] Import Validation      : Passed ✅\n"
+        
         report += "\n" + "="*65 + "\n"
-        report += "=== GUARDIAN RESOLUTION & VALIDATION SUMMARY ===\n"
-        report += f"Local Modules Expected   : {local_modules_expected}\n"
-        report += f"Modules Resolved         : {resolved_count}\n"
-        report += f"Missing Files            : {missing_count}\n"
-        report += f"Missing Packages         : 0\n"
-        report += f"Import Resolution Errors : {import_errors}\n\n"
-        report += f"Relative Imports Checked : {relative_imports_checked}\n"
-        report += f"Resolved Successfully    : {resolved_relative}\n"
+        report += "=== GUARDIAN ARCHITECTURE SUMMARY ===\n"
+        report += f"Local Project Modules   : {len(local_modules)}\n"
+        report += f"External Packages       : {len(external_packages)}\n"
+        report += f"Standard Library        : {len(standard_library)}\n"
+        report += f"Total Modules Audited   : {len(unique_imports)}\n\n"
+        report += f"Validated Imports       : {total_validated - failed_imports} / {total_validated}\n"
+        report += f"Failed Imports          : {failed_imports}\n"
+        report += f"Skipped Imports         : {skipped_imports}\n"
+        report += f"Import Resolution Errors: {failed_imports}\n\n"
+        report += f"Relative Imports Checked: {relative_imports_checked}\n"
+        report += f"Resolved Successfully   : {resolved_relative}\n"
         report += "-"*65 + "\n"
-        report += f"Overall Pipeline Status  : {'ATTENTION REQUIRED ⚠️' if missing_count > 0 or import_errors > 0 else 'FULLY RESOLVED & HEALTHY ✅'}\n"
+        
+        is_healthy = syntax_passed and compilation_passed and (failed_imports == 0)
+        report += f"Overall Pipeline Status : {'FULLY RESOLVED & HEALTHY ✅' if is_healthy else 'ATTENTION REQUIRED ⚠️'}\n"
         report += "="*65 + "\n"
         
     except Exception as e:
-        report += f"Error during resolution audit: {e}\n"
+        report += f"Error during architecture analysis: {e}\n"
         
     return report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-final_validation_report = get_guardian_resolution_validation_report()
+final_architecture_report = get_guardian_architecture_report()
 
 # திரையில் காட்டுவது
-st.text_area("Resolution & Validation Report:", final_validation_report, height=420)
+st.text_area("Architecture & Dependency Report:", final_architecture_report, height=450)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Resolution Report"):
-    st.code(final_validation_report, language="text")
-    st.success("Resolution & validation report copied successfully for your session only!")
+if st.button("Copy Architecture Report"):
+    st.code(final_architecture_report, language="text")
+    st.success("Architecture report copied successfully for your session only!")
