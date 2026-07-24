@@ -32,7 +32,6 @@ class CentralBrain:
         self.executor = TradeExecutor()
         self.tracker = PerformanceTracker()
         self.decision = DecisionCore()
-        self.context = MarketContext
 
     def think(self, symbol):
 
