@@ -6,7 +6,7 @@ Version: 1.0
 import yfinance as yf
 import pandas as pd
 from modules.news_analysis import analyze_news, get_dummy_news
-
+import ta
 
 class IntelligenceEngine:
 
@@ -51,6 +51,7 @@ class IntelligenceEngine:
         result["ema50"] = float(
             df["Close"].ewm(span=50).mean().iloc[-1]
         )
+
 
         # RSI 14
         delta = df["Close"].diff()
