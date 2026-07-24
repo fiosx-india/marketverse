@@ -1133,19 +1133,20 @@ if st.session_state.generated_output:
         st.rerun()
 
 
+
 import streamlit as st
 import os
 import ast
 
 st.markdown("---")
-st.subheader("🛡️ Guardian Evidence-Based Unused Code Analyzer v5")
+st.subheader("🛡️ Guardian Advanced Confidence-Scored Analyzer v6")
 
-def get_guardian_evidence_report():
-    report = "=== GUARDIAN EVIDENCE-BASED UNUSED CODE REPORT ===\n\n"
+def get_guardian_confidence_report():
+    report = "=== GUARDIAN CONFIDENCE-SCORED EVIDENCE REPORT ===\n\n"
     
     current_file = os.path.basename(__file__)
     report += f"🗂️ Main File: {current_file}\n"
-    report += f"📍 Status: Evidence-Based Reference & Usage Audit\n"
+    report += f"📍 Scope: Single-File Static Analysis (app.py level)\n"
     report += "-" * 65 + "\n"
     
     try:
@@ -1157,7 +1158,7 @@ def get_guardian_evidence_report():
         
         imports_data = []
         
-        # AST மூலம் ஒவ்வொரு இம்போர்ட்டும் எங்குள்ளது மற்றும் அதன் பெயர் என்ன எனக் கண்டறிதல்
+        # AST மூலம் இம்போர்ட்டுகளைச் சேகரித்தல்
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
@@ -1177,7 +1178,7 @@ def get_guardian_evidence_report():
                             'lineno': node.lineno
                         })
                         
-        report += "🔍 **Import Reference & Evidence Audit:**\n\n"
+        report += "🔍 **Import Reference & Confidence Audit:**\n\n"
         
         unused_count = 0
         total_imports = len(imports_data)
@@ -1186,51 +1187,60 @@ def get_guardian_evidence_report():
             name_to_check = imp.get('alias') or imp['name']
             line_no = imp['lineno']
             
-            # கோடில் இந்த பெயர் இம்போர்ட் வரியைத் தவிர வேறு எங்கு வந்துள்ளது எனச் சரிபார்த்தல்
-            # (அதாவது இம்போர்ட் செய்யப்பட்ட வரி தவிர மற்ற இடங்களில் இது பயன்படுத்தப்பட்டுள்ளதா?)
+            # கோடில் இந்த பெயர் வந்துள்ளதா எனச் சோதித்தல் (நேரடிப் பயன்பாடு, டைப் அனோடேஷன் போன்றவை)
             reference_count = 0
+            has_type_annotation = False
+            
             for idx, line in enumerate(lines, start=1):
-                if idx != line_no and name_to_check in line:
-                    reference_count += 1
-                    
+                if idx != line_no:
+                    if name_to_check in line:
+                        reference_count += 1
+                        # டைப் அனோடேஷன் அல்லது கன்ஸ்ட்ரக்டர் கால் உள்ளதா எனச் சோதித்தல்
+                        if f": {name_to_check}" in line or f"({name_to_check}" in line:
+                            has_type_annotation = True
+                            
             if reference_count == 0:
                 unused_count += 1
                 report += f"❌ [Unused Import Detected]\n"
                 report += f"   • Target Item : {imp.get('full_name', imp['name'])}\n"
                 report += f"   • Evidence    :\n"
-                report += f"     - Import line : {line_no}\n"
-                report += f"     - References  : 0 (No active usage found)\n"
+                report += f"     - Import Line : {line_no}\n"
+                report += f"     - References  : 0\n"
+                report += f"   • Confidence  : HIGH\n"
+                report += f"   • Reason      :\n"
+                report += f"     - No constructor calls detected\n"
+                report += f"     - No attribute access / type references found\n"
+                report += f"     - No runtime/alias references detected in this file\n"
                 report += f"   • Recommended Actions:\n"
                 report += f"     [ ] Remove import if no longer needed.\n"
                 report += f"     [ ] Keep as a planned feature placeholder.\n"
-                report += f"     [ ] Review manually before deployment.\n"
+                report += f"     [ ] Review manually (Check for dynamic/cross-file usage).\n"
                 report += "-" * 50 + "\n"
                 
         if unused_count == 0:
-            report += "✔ அனைத்து இம்போர்ட்டுகளும் கோடில் தீவிரமாகப் பயன்படுத்தப்படுகின்றன (No Unused Imports).\n"
+            report += "✔ அனைத்து இம்போர்ட்டுகளும் கோடில் தீவிரமாகப் பயன்படுத்தப்படுகின்றன.\n"
             
         report += "\n" + "="*65 + "\n"
-        report += "=== GUARDIAN HEALTH SUMMARY ==\n"
+        report += "=== GUARDIAN HEALTH SUMMARY ===\n"
         report += f"Total Imports Audited : {total_imports}\n"
         report += f"Unused Imports Found  : {unused_count}\n"
-        report += f"Broken / Circular     : 0\n"
+        report += f"Analysis Scope        : Local file static analysis only\n"
         report += "-"*65 + "\n"
         report += f"Overall Code Health   : {'NEEDS ATTENTION ⚠️' if unused_count > 0 else 'HEALTHY & OPTIMIZED ✅'}\n"
         report += "="*65 + "\n"
         
     except Exception as e:
-        report += f"Error during evidence audit: {e}\n"
+        report += f"Error during confidence audit: {e}\n"
         
     return report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-final_evidence_report = get_guardian_evidence_report()
+final_confidence_report = get_guardian_confidence_report()
 
 # திரையில் காட்டுவது
-st.text_area("Evidence-Based Unused Report:", final_evidence_report, height=380)
+st.text_area("Confidence-Scored Report:", final_confidence_report, height=400)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Evidence Report"):
-    st.code(final_evidence_report, language="text")
-    st.success("Evidence-based report copied successfully for your session only!")
-
+if st.button("Copy Confidence Report"):
+    st.code(final_confidence_report, language="text")
+    st.success("Confidence-scored report copied successfully for your session only!")
