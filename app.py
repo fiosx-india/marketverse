@@ -2,6 +2,7 @@ import streamlit as st
 from modules.news import get_market_news
 from modules.news_analysis import analyze_news
 import plotly.graph_objects as go
+from streamlit_autorefresh import st_autorefresh
 
 
 from modules.ai_engine import analyze
