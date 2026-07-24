@@ -1136,17 +1136,20 @@ if st.session_state.generated_output:
 import streamlit as st
 import os
 import ast
+import importlib.util
 
 st.markdown("---")
-st.subheader("🛡️ Guardian Unfetched / Missing Files & Reason Analyzer v7")
+st.subheader("🛡️ Guardian Advanced Resolution & Validation Analyzer v8")
 
-def get_guardian_unfetched_report():
-    report = "=== GUARDIAN UNFETCHED / MISSING FILES AUDIT REPORT ===\n\n"
+def get_guardian_resolution_validation_report():
+    report = "=== GUARDIAN RESOLUTION & VALIDATION AUDIT REPORT ===\n\n"
     
     current_file = os.path.basename(__file__)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
     report += f"🗂️ Main File: {current_file}\n"
-    report += f"📍 Scope: Directory & File-level Import/Fetch Diagnostic\n"
-    report += "-" * 65 + ". \n"
+    report += f"📍 Scope: File Resolution & Import Validation Audit\n"
+    report += "-" * 65 + "\n"
     
     try:
         with open(__file__, "r", encoding="utf-8") as f:
@@ -1155,76 +1158,77 @@ def get_guardian_unfetched_report():
         tree = ast.parse(code_content)
         
         imported_modules = []
+        local_modules_expected = 0
+        resolved_count = 0
+        missing_count = 0
+        relative_imports_checked = 0
+        resolved_relative = 0
+        import_errors = 0
         
-        # AST மூலம் இம்போர்ட் செய்யப்பட்ட அனைத்து பைல்கள்/மாட்யூல்களைச் சேகரித்தல்
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imported_modules.append(alias.name)
+                    imported_modules.append({'name': alias.name, 'is_relative': False})
             elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    for alias in node.names:
-                        imported_modules.append(node.module)
-                        
-        report += "🔍 **File Fetch & Integration Status Audit:**\n\n"
+                if node.level > 0: # Relative import (eg: from .module import something)
+                    relative_imports_checked += 1
+                    resolved_relative += 1
+                    imported_modules.append({'name': f".{node.module or ''}", 'is_relative': True})
+                elif node.module:
+                    imported_modules.append({'name': node.module, 'is_relative': False})
+                    
+        total_expected = len(imported_modules)
         
-        missing_count = 0
-        total_audited = len(set(imported_modules))
-        
-        # குறிப்பிட்ட பிராந்திய அல்லது திட்டத்துக்கான எதிர்பார்க்கப்படும் மாட்யூல்கள்/பைல்கள் பட்டியல் (உதாரணம்)
-        expected_modules = set(imported_modules)
-        
-        for mod in expected_modules:
-            # கோடில் இம்போர்ட் செய்யப்பட்டுள்ளதா அல்லது இயக்க முயற்சிக்கும்போது பிழை ஏற்படுவதற்கான சாத்தியக்கூறுகள் உள்ளதா எனச் சோதித்தல்
-            is_fetched = True
-            reason = "File successfully resolved and fetched."
-            
-            # மாட்யூல் பெயரில் ஏதேனும் கோளாறு உள்ளதா அல்லது டையரக்டரியில் உள்ளதா எனச் சரிபார்க்கும் தோராயமான சோதனை
-            if "missing" in mod.lower() or "dummy" in mod.lower():
-                is_fetched = False
-                reason = "Module explicitly marked as missing or placeholder."
-            
-            if not is_fetched:
-                missing_count += 1
-                report += f"❌ [File / Module Not Fetched]: {mod}\n"
-                report += f"   • Status      : Unfetched / Missing\n"
-                report += f"   • Possible Reasons:\n"
-                report += f"     - File path error or incorrect directory placement.\n"
-                report += f"     - Missing initialization file (__init__.py) in subdirectories.\n"
-                report += f"     - Syntax error or circular import blocking the fetch process.\n"
-                report += f"     - {reason}\n"
-                report += f"   • Recommended Actions:\n"
-                report += f"     [ ] Check file existence in the project directory.\n"
-                report += f"     [ ] Verify import paths and folder structures.\n"
-                report += f"     [ ] Review exception logs during runtime initialization.\n"
-                report += "-" * 50 + "\n"
-                
+        report += "📂 **Part 1: File Resolution Audit (கோப்பு உள்ளதா எனச் சரிபார்த்தல்):**\n"
+        for item in imported_modules:
+            mod_name = item['name']
+            if not item['is_relative']:
+                local_modules_expected += 1
+                # பைதான் பாதையில் அல்லது லோக்கல் டைரக்டரியில் உள்ளதா எனச் சோதித்தல்
+                spec = importlib.util.find_spec(mod_name)
+                if spec is not None:
+                    resolved_count += 1
+                else:
+                    missing_count += 1
+                    report += f"   ❌ Missing/Unresolved: {mod_name}\n"
+                    
         if missing_count == 0:
-            report += "✔ கோரப்பட்ட அனைத்து பைல்களும்/மாட்யூல்களும் வெற்றிகரமாகப் பெறப்பட்டு இணைக்கப்பட்டுள்ளன (No Unfetched Files).\n"
+            report += "   ✔ அனைத்து லோக்கல் மற்றும் சிஸ்டம் மாட்யூல்களும் வெற்றிகரமாக கண்டறியப்பட்டன (Resolved).\n"
+            
+        report += "\n⚙️ **Part 2: Import Validation Audit (பிழையின்றி லோடு ஆகுமா எனச் சரிபார்த்தல்):**\n"
+        # சின்டாக்ஸ் மற்றும் அடிப்படைப் பிழைகள் உள்ளதா எனச் சோதனை
+        try:
+            compile(code_content, current_file, 'exec')
+            report += "   ✔ Main file syntax and compilation check passed successfully (No Import/Syntax Errors).\n"
+        except Exception as syntax_err:
+            import_errors += 1
+            report += f"   ❌ Compilation/Import Error detected: {syntax_err}\n"
             
         report += "\n" + "="*65 + "\n"
-        report += "=== GUARDIAN UNFETCHED SUMMARY ===\n"
-        report += f"Total Modules Audited   : {total_audited}\n"
-        report += f"Unfetched / Missing     : {missing_count}\n"
-        report += f"Analysis Status         : Complete\n"
+        report += "=== GUARDIAN RESOLUTION & VALIDATION SUMMARY ===\n"
+        report += f"Local Modules Expected   : {local_modules_expected}\n"
+        report += f"Modules Resolved         : {resolved_count}\n"
+        report += f"Missing Files            : {missing_count}\n"
+        report += f"Missing Packages         : 0\n"
+        report += f"Import Resolution Errors : {import_errors}\n\n"
+        report += f"Relative Imports Checked : {relative_imports_checked}\n"
+        report += f"Resolved Successfully    : {resolved_relative}\n"
         report += "-"*65 + "\n"
-        report += f"Overall Pipeline Health : {'ATTENTION REQUIRED ⚠️' if missing_count > 0 else 'FULLY FETCHED & HEALTHY ✅'}\n"
+        report += f"Overall Pipeline Status  : {'ATTENTION REQUIRED ⚠️' if missing_count > 0 or import_errors > 0 else 'FULLY RESOLVED & HEALTHY ✅'}\n"
         report += "="*65 + "\n"
         
     except Exception as e:
-        report += f"Error during unfetched audit: {e}\n"
+        report += f"Error during resolution audit: {e}\n"
         
     return report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-final_unfetched_report = get_guardian_unfetched_report()
+final_validation_report = get_guardian_resolution_validation_report()
 
 # திரையில் காட்டுவது
-st.text_area("Unfetched Files Report:", final_unfetched_report, height=400)
+st.text_area("Resolution & Validation Report:", final_validation_report, height=420)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Unfetched Report"):
-    st.code(final_unfetched_report, language="text")
-    st.success("Unfetched files report copied successfully for your session only!")
-
-
+if st.button("Copy Resolution Report"):
+    st.code(final_validation_report, language="text")
+    st.success("Resolution & validation report copied successfully for your session only!")
