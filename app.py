@@ -1130,4 +1130,10 @@ if st.session_state.generated_output:
     ):
         st.session_state.generated_output = ""
         st.rerun()
+        
+🛡️ Project Checker
+────────────────────────
+Health Score : 95%
+Status       : GOOD
 
+[ 🔍 Check Project ]
