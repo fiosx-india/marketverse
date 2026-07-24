@@ -22,6 +22,7 @@ from modules.risk_manager import RiskManager
 from modules.trade_executor import TradeExecutor
 from modules.performance_tracker import PerformanceTracker
 from modules.market_context import MarketContext
+from modules.market_scanner import scan_mcx
 
 
 class CentralBrain:
@@ -39,8 +40,11 @@ class CentralBrain:
 
         context = MarketContext(symbol)
         # Market Scan
-        result["scanner"] = scan_market(symbol)
-
+        result["scanner"] = {
+            "stocks": scan_market([{"symbol": symbol}]),
+            "mcx": scan_mcx()
+        }
+        
         # AI Analysis
         result["ai"] = analyze(symbol)
 
