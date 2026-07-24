@@ -902,6 +902,13 @@ with tab5:
 
     st.success("MarketVerse AI v3.0 RC")
 
+🛡️ Project Checker
+────────────────────────
+Health Score : 95%
+Status       : GOOD
+
+[ 🔍 Check Project ]
+
 
 # ==========================================
 # MarketVerse - Secure Categorized File Exporter & Pass Multiplier
@@ -1130,12 +1137,3 @@ if st.session_state.generated_output:
     ):
         st.session_state.generated_output = ""
         st.rerun()
-
-
-🛡️ Project Checker
-────────────────────────
-Health Score : 95%
-Status       : GOOD
-
-[ 🔍 Check Project ]
-
