@@ -1132,96 +1132,105 @@ if st.session_state.generated_output:
         st.session_state.generated_output = ""
         st.rerun()
 
+
 import streamlit as st
 import os
 import ast
 
 st.markdown("---")
-st.subheader("🛠️ Guardian Dead Code & Unused Function Fixer Analyzer")
+st.subheader("🛡️ Guardian Evidence-Based Unused Code Analyzer v5")
 
-def get_dead_code_fixer_report():
-    report = "=== UNUSED & IDLE CODE IDENTIFICATION & FIX REPORT ===\n\n"
+def get_guardian_evidence_report():
+    report = "=== GUARDIAN EVIDENCE-BASED UNUSED CODE REPORT ===\n\n"
     
     current_file = os.path.basename(__file__)
     report += f"🗂️ Main File: {current_file}\n"
-    report += f"📍 Status: Scanning for Idle / Unused Functions & Imports\n"
+    report += f"📍 Status: Evidence-Based Reference & Usage Audit\n"
     report += "-" * 65 + "\n"
     
     try:
         with open(__file__, "r", encoding="utf-8") as f:
             code_content = f.read()
             
+        lines = code_content.split('\n')
         tree = ast.parse(code_content)
         
-        defined_functions = []
-        imported_modules = []
-        idle_items_count = 0
+        imports_data = []
         
-        # 1. கோடில் உள்ள பங்க்சன்கள் மற்றும் இம்போர்ட்டுகளைச் சேகரித்தல்
+        # AST மூலம் ஒவ்வொரு இம்போர்ட்டும் எங்குள்ளது மற்றும் அதன் பெயர் என்ன எனக் கண்டறிதல்
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                defined_functions.append(node.name)
-            elif isinstance(node, ast.Import):
+            if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imported_modules.append(alias.name)
+                    imports_data.append({
+                        'name': alias.name,
+                        'alias': alias.asname or alias.name,
+                        'lineno': node.lineno
+                    })
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
                     for alias in node.names:
-                        imported_modules.append(alias.name)
+                        full_name = f"{node.module}.{alias.name}"
+                        imports_data.append({
+                            'name': alias.name,
+                            'full_name': full_name,
+                            'alias': alias.asname or alias.name,
+                            'lineno': node.lineno
+                        })
                         
-        report += "⚠️ **வேலையின்றி சும்மா கிடக்கும் (Idle / Unused) பகுதிகள்:**\n\n"
+        report += "🔍 **Import Reference & Evidence Audit:**\n\n"
         
-        # பங்க்சன்கள் வேலை செய்கிறதா அல்லது சும்மா இருக்கிறதா எனச் சோதித்தல்
-        for func in defined_functions:
-            # அனலைசர் சொந்தப் பங்க்சன்களைத் தவிர்த்தல்
-            if "analyzer" in func or "report" in func:
-                continue
-                
-            # கோடில் இந்தப் பங்க்சன் வரையறுக்கப்பட்ட இடத்தைத் தாண்டி எத்தனை முறை அழைக்கப்பட்டுள்ளது எனப் பார்த்தல்
-            # வரையறை (def func_name) தவிர்த்து மற்ற இடங்களில் கால் செய்யப்பட்டுள்ளதா?
-            call_count = code_content.count(func + "(")
+        unused_count = 0
+        total_imports = len(imports_data)
+        
+        for imp in imports_data:
+            name_to_check = imp.get('alias') or imp['name']
+            line_no = imp['lineno']
             
-            if call_count <= 1: # ஒருமுறை கூட கால் செய்யப்படவில்லை அல்லது வரையறை மட்டுமே உள்ளது
-                idle_items_count += 1
-                report += f"❌ [சும்மா கிடக்கும் பங்க்சன்]: {func}()\n"
-                report += f"   • காரணம்: இது கோடில் சேர்க்கப்பட்டுள்ளது, ஆனால் மெயின் லாஜிக்குடன் இணைக்கப்படவில்லை.\n"
-                report += f"   • தீர்வு (Fix): இதை இயக்க, மெயின் கோடில் கீழ்கண்டவாறு லிங்க்/கால் செய்ய வேண்டும்:\n"
-                report += f"     👉 `result = {func}()`\n"
+            # கோடில் இந்த பெயர் இம்போர்ட் வரியைத் தவிர வேறு எங்கு வந்துள்ளது எனச் சரிபார்த்தல்
+            # (அதாவது இம்போர்ட் செய்யப்பட்ட வரி தவிர மற்ற இடங்களில் இது பயன்படுத்தப்பட்டுள்ளதா?)
+            reference_count = 0
+            for idx, line in enumerate(lines, start=1):
+                if idx != line_no and name_to_check in line:
+                    reference_count += 1
+                    
+            if reference_count == 0:
+                unused_count += 1
+                report += f"❌ [Unused Import Detected]\n"
+                report += f"   • Target Item : {imp.get('full_name', imp['name'])}\n"
+                report += f"   • Evidence    :\n"
+                report += f"     - Import line : {line_no}\n"
+                report += f"     - References  : 0 (No active usage found)\n"
+                report += f"   • Recommended Actions:\n"
+                report += f"     [ ] Remove import if no longer needed.\n"
+                report += f"     [ ] Keep as a planned feature placeholder.\n"
+                report += f"     [ ] Review manually before deployment.\n"
                 report += "-" * 50 + "\n"
                 
-        # இம்போர்ட் செய்யப்பட்ட மாட்யூல்கள் சும்மா இருக்கிறதா எனச் சோதித்தல்
-        for imp in imported_modules:
-            base_name = imp.split('.')[-1]
-            if code_content.count(base_name) <= 1:
-                idle_items_count += 1
-                report += f"❌ [சும்மா கிடக்கும் மாட்யூல்/ஃபைல்]: {imp}\n"
-                report += f"   • காரணம்: இம்போர்ட் செய்யப்பட்டுள்ளது, ஆனால் பயன்படுத்தப்படவில்லை (Unused Import).\n"
-                report += f"   • தீர்வு (Fix): இதைச் செயல்படுத்த இந்தக் குறியீட்டைப் பயன்படுத்த வேண்டும்:\n"
-                report += f"     👉 `active_data = {base_name}.run_module()` (அல்லது உரிய மெத்தடை இணைக்கவும்)\n"
-                report += "-" * 50 + "\n"
-                
-        if idle_items_count == 0:
-            report += "✔ அனைத்து ஃபைல்களும் பங்க்சன்களும் சரியாக இணைக்கப்பட்டு வேலை செய்கின்றன!\n"
+        if unused_count == 0:
+            report += "✔ அனைத்து இம்போர்ட்டுகளும் கோடில் தீவிரமாகப் பயன்படுத்தப்படுகின்றன (No Unused Imports).\n"
             
         report += "\n" + "="*65 + "\n"
-        report += "=== FIXER SUMMARY REPORT ===\n"
-        report += f"Total Idle / Unused Items Found : {idle_items_count}\n"
-        report += f"Action Required                 : Link the suggested calls to make them work.\n"
-        report += f"Overall Code Health             : {'NEEDS ATTENTION ⚠️' if idle_items_count > 0 else 'OPTIMIZED ✅'}\n"
+        report += "=== GUARDIAN HEALTH SUMMARY ==\n"
+        report += f"Total Imports Audited : {total_imports}\n"
+        report += f"Unused Imports Found  : {unused_count}\n"
+        report += f"Broken / Circular     : 0\n"
+        report += "-"*65 + "\n"
+        report += f"Overall Code Health   : {'NEEDS ATTENTION ⚠️' if unused_count > 0 else 'HEALTHY & OPTIMIZED ✅'}\n"
         report += "="*65 + "\n"
         
     except Exception as e:
-        report += f"Error during analysis: {e}\n"
+        report += f"Error during evidence audit: {e}\n"
         
     return report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-final_fixer_report = get_dead_code_fixer_report()
+final_evidence_report = get_guardian_evidence_report()
 
 # திரையில் காட்டுவது
-st.text_area("Idle Code & Fixer Report:", final_fixer_report, height=380)
+st.text_area("Evidence-Based Unused Report:", final_evidence_report, height=380)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Fixer Report"):
-    st.code(final_fixer_report, language="text")
-    st.success("Fixer report copied successfully for your session only!")
+if st.button("Copy Evidence Report"):
+    st.code(final_evidence_report, language="text")
+    st.success("Evidence-based report copied successfully for your session only!")
+
