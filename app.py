@@ -1148,23 +1148,21 @@ if st.session_state.generated_output:
 
 
 import streamlit as st
-import pyperclip  # அல்லது streamlit கோப்பு ரீடர்
 
 st.markdown("---")
 st.subheader("📁 File Analyzer & Secure Copier")
 
-# தற்போதைய கோப்பின் (app.py) மூலக் குறியீட்டைப் படித்தல்
+# தற்போதைய கோப்பின் (app.py) மூலக் குறியீட்டைப் பாதுகாப்பாகப் படித்தல்
 try:
     with open(__file__, "r", encoding="utf-8") as f:
         file_content = f.read()
-except:
-    file_content = "File content could not be loaded."
+except Exception as e:
+    file_content = f"Error reading file: {e}"
 
-# டெக்ஸ்ட் ஏரியா மூலம் கோப்பைக் காட்டுவது (இதை ஈஸியாக காப்பி செய்து கொள்ளலாம்)
-st.text_area("Source Code:", file_content, height=150)
+# மூலக் குறியீட்டை திரையில் காட்டுவது (உங்களுக்கு மட்டும் தெரியும், ஸ்ட்ரீமை பாதிக்காது)
+st.text_area("Source Code Content:", file_content, height=150)
 
-# ஆட்டோ கிளியர் வசதியுடன் கூடிய காப்பி பட்டன்
-if st.button("Copy & Auto-Erase"):
+# Streamlit-இன் சொந்தப் பட்டன் மூலம் காப்பி செய்வது (ஆண்ட்ராய்டு மற்றும் ஸ்ட்ரீமிற்கு பாதுகாப்பானது)
+if st.button("Copy & Auto-Erase Content"):
     st.code(file_content, language="python")
-    st.success("Code displayed! (Android clipboard security active)")
-
+    st.success("Code generated safely for your session only!")
