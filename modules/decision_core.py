@@ -11,6 +11,11 @@ class DecisionCore:
 
     def decide(self, analysis):
 
+
+        # Support both legacy dictionaries and MarketContext
+        if hasattr(analysis, "get"):
+            analysis = analysis.get()
+
         score = 0
 
         # -----------------------------
