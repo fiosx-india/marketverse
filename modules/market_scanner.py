@@ -7,8 +7,9 @@ Scans market data and identifies trading opportunities.
 """
 
 from modules.intelligence_engine import IntelligenceEngine
+import streamlit as st
 
-
+@st.cache_data(ttl=60)
 def scan_market(stocks):
 
     if not stocks:
