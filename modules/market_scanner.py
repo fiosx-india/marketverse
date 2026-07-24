@@ -8,6 +8,7 @@ Scans market data and identifies trading opportunities.
 
 from modules.intelligence_engine import IntelligenceEngine
 import streamlit as st
+from data.mcx_commodities import MCX_COMMODITIES
 
 @st.cache_data(ttl=60)
 def scan_market(stocks):
@@ -91,7 +92,12 @@ def top_volume(results, limit=5):
         key=lambda x: x["volume"],
         reverse=True
     )[:limit]
-
+    
+def scan_mcx():
+    """
+    Scan all MCX commodities.
+    """
+    return scan_market(MCX_COMMODITIES)
 
 if __name__ == "__main__":
 
@@ -113,3 +119,6 @@ if __name__ == "__main__":
 
     print("\nTop Volume")
     print(top_volume(scanned))
+
+    print("\nMCX Scan")
+    print(scan_mcx())
