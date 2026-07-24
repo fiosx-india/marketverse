@@ -1147,27 +1147,24 @@ if st.session_state.generated_output:
         st.rerun()
 
 
+import streamlit.components.v1 as components
+
+# உங்கள் விட்ஜெட் குறியீட்டை இங்கே ஒட்டவும்
+widget_code = """
 <!-- File Analyzer and Secure Copy Tool -->
 <div id="file-analyzer-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: Arial, sans-serif;">
-    <!-- Button -->
     <button id="fa-toggle-btn" onclick="toggleAnalyzer()" style="background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         📁 View File Info
     </button>
-
-    <!-- Display Box -->
     <div id="fa-display-box" style="display: none; width: 400px; max-height: 500px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 10px 15px rgba(0,0,0,0.1); overflow-y: auto; margin-top: 10px; padding: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 10px;">
             <h3 style="margin: 0; font-size: 16px; color: #1e293b;">File Analyzer</h3>
             <button onclick="toggleAnalyzer()" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #64748b;">✕</button>
         </div>
-
         <div style="margin-bottom: 12px;">
             <strong style="font-size: 13px; color: #475569;">Dependencies:</strong>
-            <ul id="fa-dependencies-list" style="margin: 5px 0 0 20px; padding: 0; font-size: 13px; color: #334155;">
-                <!-- Connected files will appear here -->
-            </ul>
+            <ul id="fa-dependencies-list" style="margin: 5px 0 0 20px; padding: 0; font-size: 13px; color: #334155;"></ul>
         </div>
-
         <div style="margin-bottom: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <strong style="font-size: 13px; color: #475569;">Source Code:</strong>
@@ -1189,53 +1186,40 @@ function toggleAnalyzer() {
         box.style.display = 'none';
     }
 }
-
 function analyzeCurrentFile() {
-    // 1. Get current page source code
     const fullHtml = document.documentElement.outerHTML;
     document.getElementById('fa-source-textarea').value = fullHtml;
-
-    // 2. Find connected files (Script, CSS, Links)
     const listContainer = document.getElementById('fa-dependencies-list');
     listContainer.innerHTML = '';
-
     const scripts = document.querySelectorAll('script[src]');
     const stylesheets = document.querySelectorAll('link[rel="stylesheet"]');
     const images = document.querySelectorAll('img[src]');
-
     let foundItems = [];
     scripts.forEach(s => foundItems.push({type: 'JavaScript', src: s.src}));
     stylesheets.forEach(l => foundItems.push({type: 'Stylesheet', src: l.href}));
     images.forEach(i => foundItems.push({type: 'Image', src: i.src}));
-
     if (foundItems.length === 0) {
         listContainer.innerHTML = '<li>No other files connected.</li>';
     } else {
         foundItems.forEach(item => {
             const li = document.createElement('li');
             li.style.marginBottom = '4px';
-            li.innerHTML = `<span style="color: #2563eb; font-weight: bold;">[${item.type}]</span> <span style="word-break: break-all;">${item.src}</span>`;
+            li.innerHTML = '<span style="color: #2563eb; font-weight: bold;">[' + item.type + ']</span> <span style="word-break: break-all;">' + item.src + '</span>';
             listContainer.appendChild(li);
         });
     }
 }
-
 function copyAndClearCode() {
     const textarea = document.getElementById('fa-source-textarea');
     const statusMsg = document.getElementById('fa-status-msg');
-    
     textarea.select();
     textarea.setSelectionRange(0, 99999);
-    
     navigator.clipboard.writeText(textarea.value).then(() => {
         statusMsg.innerText = 'Code copied! Clipboard will be cleared in a few seconds...';
-        
-        // Clear clipboard after 3 seconds
         setTimeout(() => {
             navigator.clipboard.writeText('').then(() => {
                 statusMsg.innerText = 'Clipboard data securely erased!';
             }).catch(() => {
-                // Fallback method
                 const dummy = document.createElement("textarea");
                 document.body.appendChild(dummy);
                 dummy.value = "";
@@ -1245,9 +1229,13 @@ function copyAndClearCode() {
                 statusMsg.innerText = 'Clipboard data erased!';
             });
         }, 3000);
-
     }).catch(err => {
         statusMsg.innerText = 'Error copying code.';
     });
 }
 </script>
+"""
+
+# Streamlit-ல் இதை இயக்கவும் (height கொடுத்துக் கொள்ளவும்)
+components.html(widget_code, height=0)
+
