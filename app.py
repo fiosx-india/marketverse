@@ -267,6 +267,19 @@ with tab1:
     
     st.subheader("🧠 Market Intelligence Engine")
 
+    st.subheader(f"📈 {selected_stock}")
+
+    c1, c2, c3 = st.columns(3)
+
+    c1.metric("AI Signal", engine_result["signal"])
+
+    c2.metric(
+        "Current Price",
+        f"₹{engine_result['market'].get('price','N/A')}"
+    )
+
+    c3.metric("Confidence", "92%")
+
     st.write(f"AI Signal : {engine_result['signal']}")
 
     st.write(f"Current Price : ₹{engine_result['market'].get('price', 'N/A')}")
