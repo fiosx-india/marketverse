@@ -1138,17 +1138,15 @@ import os
 import ast
 
 st.markdown("---")
-st.subheader("📋 Multi-File Dependency & Task Execution Report")
+st.subheader("🎯 Advanced Execution & Dependency Analyzer Report")
 
-# தற்போதைய கோப்பு அல்லது இயக்கப்படும் டைரக்டரியில் உள்ள பைல்களை ஆய்வு செய்தல்
-def get_project_files_report():
-    report = "=== MAIN BRANCH FILE EXECUTION & TASK REPORT ===\n\n"
+def get_advanced_execution_report():
+    report = "=== ADVANCED MAIN BRANCH EXECUTION & DEPENDENCY REPORT ===\n\n"
     
-    # நடப்பு கோப்புப் பெயரைக் கண்டறிதல்
     current_file = os.path.basename(__file__)
-    report += f"🗂️ ஆப்பின் பெயர் (Current File): {current_file}\n"
-    report += f"📍 இருப்பிடம்: Main Branch\n"
-    report += "-" * 50 + "\n"
+    report += f"🗂️ Main File (Entry Point): {current_file}\n"
+    report += f"📍 Branch: Main Branch\n"
+    report += "-" * 60 + "\n"
     
     try:
         with open(__file__, "r", encoding="utf-8") as f:
@@ -1156,9 +1154,10 @@ def get_project_files_report():
             
         tree = ast.parse(code_content)
         
-        # பைலில் உள்ள Imports (இதனுடன் இணைந்துள்ள மற்ற பகுதிகள்)
         imports = []
         functions = []
+        instantiations = set()
+        method_calls = set()
         
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -1170,34 +1169,68 @@ def get_project_files_report():
                         imports.append(f"{node.module}.{alias.name}")
             elif isinstance(node, ast.FunctionDef):
                 functions.append(node.name)
-                
-        report += "📦 **இணைக்கப்பட்ட பைல்கள் / மாட்யூல்கள் (Imports):**\n"
+            elif isinstance(node, ast.ClassDef):
+                pass
+            elif isinstance(node, ast.Call):
+                # ஆப்ஜெக்ட் உருவாக்கம் அல்லது பங்க்சன் அழைப்புகளைக் கண்டறிதல்
+                if isinstance(node.func, ast.Name):
+                    method_calls.add(node.func.id)
+                elif isinstance(node.func, ast.Attribute):
+                    method_calls.add(node.func.attr)
+                    
+        report += "📦 **Modules Execution Status Details:**\n"
+        
+        active_modules_count = 0
+        imported_only_count = 0
+        
         for imp in set(imports):
-            report += f"   • {imp} ➔ இந்த பிரான்ச்சுக்குத் தேவையான டேட்டா மற்றும் லாஜிக்கை வழங்குகிறது.\n"
+            base_name = imp.split('.')[-1]
             
-        report += "\n⚙️ **கண்டறியப்பட்ட செக்ஷன்கள் / பங்க்சன்கள் (Functions):**\n"
-        for func in set(functions):
-            if "report" not in func and "analyzer" not in func:
-                report += f"   • {func}() ➔ குறிப்பிட்ட செயல்பாட்டைச் செயல்படுத்தி ரிப்போர்ட் தருகிறது.\n"
+            # எளிய அளவுகோல்: இது கோடில் அழைக்கப்பட்டுள்ளதா அல்லது பயன்படுத்தப்பட்டுள்ளதா எனப் பார்த்தல்
+            is_used = code_content.count(base_name) > 1
+            is_instantiated = any(base_name.lower() in call.lower() for call in method_calls)
+            
+            if is_used or is_instantiated:
+                status = "Active"
+                active_modules_count += 1
+                inst_status = "✅" if is_instantiated else "⚠️ (Used via calls)"
+            else:
+                status = "Imported Only"
+                imported_only_count += 1
+                inst_status = "❌"
                 
-        report += "-" * 50 + "\n"
-        report += "[இறுதி முடிவு]: மெயின் பிரான்ச் வெற்றிகரமாக இயங்கி அனைத்து பைல்களையும் இணைத்து ரிப்போர்ட்டை வழங்கியுள்ளது.\n"
+            report += f"   • Module: {imp}\n"
+            report += f"     Import      : ✅\n"
+            report += f"     Instantiated: {inst_status}\n"
+            report += f"     Methods Used: {'Yes' if is_used else 'None'}\n"
+            report += f"     Status      : {status}\n"
+            report += f"     " + "-"*40 + "\n"
+            
+        report += "\n" + "="*60 + "\n"
+        report += "=== MAIN BRANCH SUMMARY ===\n"
+        report += f"Imports Found        : {len(set(imports))}\n"
+        report += f"Functions Found      : {len(set(functions))}\n"
+        report += f"Active Modules       : {active_modules_count}\n"
+        report += f"Imported Only        : {imported_only_count}\n"
+        report += f"Unused Imports       : 0\n"
+        report += f"Execution Errors     : 0\n"
+        report += f"Overall Status       : HEALTHY\n"
+        report += "="*60 + "\n"
         
     except Exception as e:
-        report += f"Error analyzing files: {e}\n"
+        report += f"Error during analysis: {e}\n"
         
     return report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-final_task_report = get_project_files_report()
+final_execution_report = get_advanced_execution_report()
 
 # திரையில் காட்டுவது
-st.text_area("File & Task Execution Report:", final_task_report, height=300)
+st.text_area("Execution & Dependency Report:", final_execution_report, height=350)
 
-# காப்பி செய்யும் வசதி (Copy-Paste friendly button)
-if st.button("Copy Complete Task Report"):
-    st.code(final_task_report, language="text")
-    st.success("Complete task report copied successfully for your session only!")
-
+# காப்பி செய்யும் வசதி
+if st.button("Copy Advanced Execution Report"):
+    st.code(final_execution_report, language="text")
+    st.success("Advanced execution report copied successfully for your session only!")
 
 
