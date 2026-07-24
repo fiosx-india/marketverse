@@ -318,7 +318,7 @@ with tab1:
 
     st.header("📊 Live Market Dashboard")
     
-    st.subheader("🪙 MCX Commodity Dashboard")
+    st.subheader("🪙 Selected Commodity")
     
     st.info(f"Selected Commodity : {commodity}")
     
