@@ -182,6 +182,21 @@ commodity = st.sidebar.selectbox(
 commodity_symbol = commodity_map[commodity]
 
 # ==========================================
+# Active Market Selection
+# ==========================================
+
+market_type = st.sidebar.radio(
+    "Market",
+    ["F&O", "MCX"],
+    index=0,
+    horizontal=True
+)
+
+if market_type == "MCX":
+    symbol = commodity_symbol
+    selected_stock = commodity
+
+# ==========================================
 # Status
 # ==========================================
 
