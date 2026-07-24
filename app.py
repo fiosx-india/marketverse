@@ -179,6 +179,8 @@ commodity = st.sidebar.selectbox(
     list(commodity_map.keys())
 )
 
+commodity_symbol = commodity_map[commodity]
+
 # ==========================================
 # Status
 # ==========================================
@@ -324,7 +326,7 @@ with tab1:
     
     st.subheader("🧠 Market Intelligence Engine")
 
-    st.subheader(f"📈 {selected_stock}")
+    st.subheader(f"📈 {active_name}")
 
     c1, c2, c3 = st.columns(3)
 
