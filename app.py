@@ -1132,63 +1132,73 @@ if st.session_state.generated_output:
         st.session_state.generated_output = ""
         st.rerun()
 
+
 import streamlit as st
 import re
 
 st.markdown("---")
-st.subheader("🔍 Section & Missing Link Diagnostic Tool")
+st.subheader("🔍 Advanced Smart Section & Logic Analyzer")
 
 # தற்போதைய கோப்பின் மூலக் குறியீட்டைப் படித்தல்
 try:
     with open(__file__, "r", encoding="utf-8") as f:
         code_content = f.read()
 except Exception as e:
-    code_content = f"Error reading file: {e}"
+        code_content = f"Error reading file: {e}"
 
-# செக்ஷன்கள் மற்றும் பட்டன் இணைப்புகளைச் சோதிக்கும் லாஜிக்
-def analyze_sections(content):
-    report = "=== SECTION & LINK ANALYSIS REPORT ===\n\n"
+def smart_analyze_sections(content):
+    report = "=== ADVANCED SMART DIAGNOSTIC REPORT ===\n\n"
     
-    # கோப்பில் உள்ள செக்ஷன்களைத் தேடுதல் (எ.கா: section, def, with போன்ற அமைப்புகள்)
-    # உங்கள் தேவையின் அடிப்படையில் கீவேர்டுகளை மாற்றிக் கொள்ளலாம்
-    sections = re.split(r'(def\s+\w+|st\.subheader|st\.markdown)', content)
+    # வரிகளாகப் பிரித்தல்
+    lines = content.split('\n')
     
-    section_count = 0
-    missing_points = []
+    sections_found = 0
+    real_issues = 0
     
-    for i in range(1, len(sections), 2):
-        section_count += 1
-        sec_title = sections[i]
-        sec_body = sections[i+1] if (i+1) < len(sections) else ""
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
         
-        # சோதிக்கும் விதிமுறைகள்: பட்டன் அல்லது லாஜிக் விடுபட்டுள்ளதா எனப் பார்த்தல்
-        has_button = "st.button" in sec_body or "button" in sec_body
-        has_logic = "if " in sec_body or "for " in sec_body
+        # செக்ஷன் அல்லது ஹெட்டிங் அல்லது ஃபங்ஷனைக் கண்டறிதல்
+        if line.startswith('def ') or 'st.subheader' in line or 'st.markdown' in line:
+            sections_found += 1
+            sec_name = line
+            
+            # அடுத்த 5 வரிகளைச் சோதித்துப் பார்த்தல் (Nearby Logic/Elements Check)
+            next_lines_chunk = "\n".join(lines[i:min(i+6, len(lines))])
+            
+            # அனுமதிக்கப்பட்ட செயல்பாடுகள் (UI elements or logic)
+            has_active_elements = any(keyword in next_lines_chunk for keyword in [
+                'st.metric', 'st.dataframe', 'st.plotly_chart', 'st.button', 
+                'st.write', 'st.code', 'st.text_area', 'if ', 'for ', 'return'
+            ])
+            
+            # st.markdown("---") போன்ற வெறும் செப்பரேட்டர்களைத் தவிர்த்தல்
+            is_pure_separator = 'st.markdown("---")' in line or "st.markdown('---')" in line
+            
+            report += f"Check [{sections_found}] -> {sec_name}\n"
+            
+            if is_pure_separator:
+                report += f"  ℹ️ நிலை: இது வெறும் டிசைன் செப்பரேட்டர் (Separator). எச்சரிக்கை தேவையில்லை.\n"
+            elif has_active_elements:
+                report += f"  ✅ நிலை: சரியாக இணைக்கப்பட்டுள்ளது (அருகில் லாஜிக்/UI கூறுகள் உள்ளன).\n"
+            else:
+                real_issues += 1
+                report += f"  ❌ உண்மையான குறைபாடு: இந்தத் தலைப்புக்கு அருகில் எந்தச் செயல்பாடும் (Logic/UI) இல்லை!\n"
+            
+            report += "-" * 50 + "\n"
+        i += 1
         
-        report += f"Section {section_count} ({sec_title.strip()}):\n"
-        
-        if not has_button and not has_logic:
-            issue_msg = f"  ❌ எச்சரிக்கை: இந்த செக்ஷனில் பட்டனோ அல்லது முறையான லாஜிக்கோ சேர்க்கப்படவில்லை! இதனால் இது வேலை செய்யாமல் போக வாய்ப்புள்ளது."
-            report += f"{issue_msg}\n"
-            missing_points.append(f"Section {section_count} ({sec_title.strip()}) - Missing Button/Logic")
-        else:
-            report += f"  ✅ நிலை: சரியாக இணைக்கப்பட்டுள்ளது.\n"
-        report += "-" * 40 + "\n"
-        
-    if missing_points:
-        report += f"\n[முடிவு]: மொத்தம் {len(missing_points)} இடங்களில் குறைபாடுகள் கண்டறியվելள்ளன. மேலே குறிப்பிட்ட செக்ஷன்களில் வரிகளைச் சேர்த்தால் கோடு சரியாக வேலை செய்யும்.\n"
-    else:
-        report += "\n[முடிவு]: அனைத்து செக்ஷன்களும் சரியாக இணைக்கப்பட்டுள்ளன!\n"
-        
+    report += f"\n[இறுதி முடிவு]: ஸ்கேன் செய்யப்பட்ட மொத்தப் பகுதிகளில், உண்மையான குறைபாடுகள் உள்ள இடங்கள்: {real_issues}\n"
     return report
 
-# ரிப்போர்ட்டை உருவாக்குதல்
-diagnostic_result = analyze_sections(code_content)
+# பகுப்பாய்வு ரிப்போர்ட்டை உருவாக்குதல்
+smart_report = smart_analyze_sections(code_content)
 
-# டிஸ்ப்ளே பாக்ஸ் மூலம் காட்டுவது
-st.text_area("Detailed Missing Link Report:", diagnostic_result, height=220)
+# திரையில் காட்டுவது
+st.text_area("Smart Diagnostic Report:", smart_report, height=250)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Missing Link Report"):
-    st.code(diagnostic_result, language="text")
-    st.success("Report copied successfully for your session only!")
+if st.button("Copy Smart Report"):
+    st.code(smart_report, language="text")
+    st.success("Smart report copied successfully for your session only!")
