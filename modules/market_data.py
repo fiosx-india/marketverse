@@ -31,10 +31,18 @@ def get_dashboard_data():
     return {
         "NIFTY50": get_market_data("^NSEI"),
         "SENSEX": get_market_data("^BSESN"),
+
         "BTC": get_market_data("BTC-USD"),
+
         "RELIANCE": get_market_data("RELIANCE.NS"),
         "TCS": get_market_data("TCS.NS"),
         "INFY": get_market_data("INFY.NS"),
+
+        # Commodities
         "GOLD": get_market_data("GC=F"),
-        "SILVER": get_market_data("SI=F")
+        "SILVER": get_market_data("SI=F"),
+        "CRUDE_OIL": get_market_data("CL=F"),
+        "NATURAL_GAS": get_market_data("NG=F"),
+        "COPPER": get_market_data("HG=F"),
+        "PLATINUM": get_market_data("PL=F"),
     }
