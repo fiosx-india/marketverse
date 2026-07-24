@@ -210,11 +210,7 @@ try:
         buy_list = []
         sell_list = []
         volume_list = []
-
-        st_autorefresh(
-            interval=60000,
-            key="market_refresh"
-        )
+        
 
         with st.spinner("Scanning F&O Stocks..."):
             market_results = scan_market(FNO_STOCKS)
