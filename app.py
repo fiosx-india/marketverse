@@ -121,25 +121,43 @@ def get_data(symbol):
 
 st.sidebar.title("🎯 MarketVerse Control")
 
-symbol = st.sidebar.text_input(
-    "Enter NSE/BSE/Crypto Symbol",
-    value="RELIANCE.NS"
+# Search
+search_symbol = st.sidebar.text_input(
+    "🔍 Search Company",
+    value=""
 )
 
-st.sidebar.markdown("---")
+# F&O List
+company_list = sorted(FNO_STOCKS)
+
+if search_symbol:
+    company_list = [
+        s for s in company_list
+        if search_symbol.upper() in s.upper()
+    ]
+
+st.sidebar.markdown("### 📈 F&O Companies")
+
+selected_symbol = st.sidebar.radio(
+    "Select Stock",
+    company_list,
+    index=0 if company_list else None
+)
+
+if selected_symbol:
+    symbol = selected_symbol
 
 st.sidebar.success("✅ Live Market")
 st.sidebar.success("✅ AI Prediction")
 st.sidebar.success("✅ Technical Analysis")
-st.sidebar.success("✅ Auto Refresh : 60 Seconds")
+st.sidebar.success("✅ Auto Refresh")
 
-if st.button("🔍 Run Project Check"):
-    checker = ProjectChecker(".")
-    checker.scan()
+st.sidebar.markdown("---")
 
-    st.session_state["project_report"] = checker.report
-    st.stop()
-
+if st.sidebar.button("📊 Open Stock"):
+    st.session_state["selected_stock"] = symbol
+    st.rerun()
+    
 # ==========================================
 # Download Data
 # ==========================================
