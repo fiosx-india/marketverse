@@ -21,6 +21,7 @@ from modules.risk_manager import RiskManager
 
 from modules.trade_executor import TradeExecutor
 from modules.performance_tracker import PerformanceTracker
+from modules.market_context import MarketContext
 
 
 class CentralBrain:
@@ -31,12 +32,13 @@ class CentralBrain:
         self.executor = TradeExecutor()
         self.tracker = PerformanceTracker()
         self.decision = DecisionCore()
+        self.context = MarketContext
 
     def think(self, symbol):
 
         result = {}
 
-
+        context = MarketContext(symbol)
         # Market Scan
         result["scanner"] = scan_market(symbol)
 
@@ -83,5 +85,19 @@ class CentralBrain:
 
         # Final Decision
         result["decision"] = self.decision.decide(result)
-
+        
+        context.update("scanner", result["scanner"])
+        context.update("ai", result["ai"])
+        context.update("news", result["news"])
+        context.update("news_analysis", result["news_analysis"])
+        context.update("events", result["events"])
+        context.update("technical", result["technical"])
+        context.update("pattern", result["pattern"])
+        context.update("volume", result["volume"])
+        context.update("sentiment", result["sentiment"])
+        context.update("prediction", result["prediction"])
+        context.update("strategy", result["strategy"])
+        context.update("risk", result["risk"])
+        context.update("decision", result["decision"])
+        
         return result
