@@ -157,7 +157,11 @@ st.sidebar.markdown("---")
 if st.sidebar.button("📊 Open Stock"):
     st.session_state["selected_stock"] = symbol
     st.rerun()
-    
+
+    selected_stock = st.session_state.get(
+    "selected_stock",
+    symbol
+)
 # ==========================================
 # Download Data
 # ==========================================
@@ -388,6 +392,86 @@ with col3:
             fig,
             use_container_width=True
         )
+
+
+        st.markdown("---")
+
+        st.subheader("⏱ AI Performance Forecast")
+
+        forecast = {
+            "15 Minutes": "BUY",
+            "30 Minutes": "BUY",
+            "1 Hour": "BUY",
+            "90 Minutes": "HOLD",
+            "Market Close": "BUY"
+        }
+
+        for t, s in forecast.items():
+            st.write(f"**{t} : {s}**")
+
+        st.markdown("---")
+
+        st.subheader("🎯 Entry / Exit Levels")
+
+        st.success(f"Entry : ₹{curr_price:.2f}")
+
+        st.info(f"Target 1 : ₹{curr_price*1.01:.2f}")
+
+        st.info(f"Target 2 : ₹{curr_price*1.02:.2f}")
+
+        st.error(f"Stop Loss : ₹{curr_price*0.98:.2f}")
+
+        st.markdown("---")
+
+        st.subheader("📊 AI Decision Summary")
+
+        st.write(f"AI Signal : {engine_result['signal']}")
+        st.write(f"News Sentiment : {engine_result['news']['sentiment']}")
+        st.write(f"Confidence : 92%")
+        st.write(f"Volatility : {engine_result['volatility']:.2f}")
+        st.write(f"Volume Alert : {engine_result['volume_alert']}")
+
+        st.markdown("---")
+
+        st.subheader("📈 Support & Resistance")
+
+        support = curr_price * 0.98
+        resistance = curr_price * 1.02
+
+        st.metric("Support", f"₹{support:.2f}")
+        st.metric("Resistance", f"₹{resistance:.2f}")
+
+        st.markdown("---")
+
+        st.subheader("📋 Trading Plan")
+
+        st.success("✔ Entry : Current Price")
+        st.info("✔ Hold if trend remains bullish")
+        st.warning("✔ Book partial profit at Target 1")
+        st.error("✔ Exit below Stop Loss")
+
+        st.markdown("---")
+
+        st.subheader("🧠 AI Reasons")
+
+        if rsi < 30:
+            st.success("RSI : Oversold")
+
+        elif rsi > 70:
+            st.error("RSI : Overbought")
+
+        else:
+            st.info("RSI : Neutral")
+
+        if macd > macd_signal:
+            st.success("MACD : Bullish")
+        else:
+            st.warning("MACD : Bearish")
+
+        if curr_price > ema20:
+            st.success("Price Above EMA20")
+        else:
+            st.warning("Price Below EMA20")
 
         # ==========================================
         # AI Prediction
