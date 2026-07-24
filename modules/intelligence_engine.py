@@ -33,7 +33,9 @@ class IntelligenceEngine:
     # -------------------------------
     def fetch_market_data(self, symbol):
 
-        stock = yf.Ticker(symbol)
+        live_symbol = self.get_live_symbol(symbol)
+
+        stock = yf.Ticker(live_symbol)
 
         df = stock.history(
             period="6mo",
