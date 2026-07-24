@@ -902,12 +902,6 @@ with tab5:
 
     st.success("MarketVerse AI v3.0 RC")
 
-    🛡️ Project Checker
-    ────────────────────────
-    Health Score : 95%
-    Status       : GOOD
-
-    [ 🔍 Check Project ]
 
 
 # ==========================================
