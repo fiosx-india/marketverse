@@ -326,7 +326,7 @@ with tab1:
     
     st.subheader("🧠 Market Intelligence Engine")
 
-    st.subheader(f"📈 {active_name}")
+    st.subheader(f"📈 {selected_stock}")
 
     c1, c2, c3 = st.columns(3)
 
