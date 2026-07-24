@@ -29,6 +29,7 @@ from modules.market_scanner import (
 )
 
 from data.fno_stocks import FNO_STOCKS
+from data.mcx_commodities import MCX_COMMODITIES
 
 try:
     from project_check import ProjectChecker
