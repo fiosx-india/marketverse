@@ -23,6 +23,7 @@ import ta
 
 from modules.market_scanner import (
     scan_market,
+    scan_mcx,
     top_buy,
     top_sell,
     top_volume
