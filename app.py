@@ -206,14 +206,20 @@ try:
         sell_list = []
         volume_list = []
 
-        # Scan only when requested
-        if st.sidebar.button("🔍 Scan F&O Market"):
-            with st.spinner("Scanning F&O Stocks..."):
-                market_results = scan_market(FNO_STOCKS)
+        st_autorefresh(
+            interval=60000,
+            key="market_refresh"
+        )
 
-                buy_list = top_buy(market_results)
-                sell_list = top_sell(market_results)
-                volume_list = top_volume(market_results)
+        with st.spinner("Scanning F&O Stocks..."):
+            market_results = scan_market(FNO_STOCKS)
+
+        buy_list = top_buy(market_results)
+        sell_list = top_sell(market_results)
+        volume_list = top_volume(market_results)
+
+        if st.sidebar.button("🔄 Refresh Market"):
+            st.rerun()
         
     except Exception as e:
         st.warning(f"Intelligence Engine: {e}")
