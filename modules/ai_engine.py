@@ -102,3 +102,8 @@ def analyze(symbol):
     }
 
 
+Analysis Limitations
+
+• Dynamic imports are not fully verified.
+• Reflection-based references may require runtime validation.
+• Cross-process execution is not included in this audit.
