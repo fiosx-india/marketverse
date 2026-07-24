@@ -127,25 +127,42 @@ search_symbol = st.sidebar.text_input(
     value=""
 )
 
-# F&O List
-company_list = sorted(FNO_STOCKS)
+# ==========================================
+# F&O Company List
+# ==========================================
+
+company_map = {
+    stock["name"]: stock["symbol"]
+    for stock in FNO_STOCKS
+}
+
+company_list = sorted(company_map.keys())
 
 if search_symbol:
     company_list = [
-        s for s in company_list
-        if search_symbol.upper() in s.upper()
+        name
+        for name in company_list
+        if search_symbol.lower() in name.lower()
     ]
 
 st.sidebar.markdown("### 📈 F&O Companies")
 
-selected_symbol = st.sidebar.radio(
-    "Select Stock",
+selected_company = st.sidebar.radio(
+    "Select Company",
     company_list,
     index=0 if company_list else None
 )
 
-if selected_symbol:
-    symbol = selected_symbol
+if selected_company:
+    symbol = company_map[selected_company]
+    selected_stock = selected_company
+else:
+    symbol = "RELIANCE.NS"
+    selected_stock = "Reliance Industries Ltd"
+
+# ==========================================
+# Status
+# ==========================================
 
 st.sidebar.success("✅ Live Market")
 st.sidebar.success("✅ AI Prediction")
@@ -154,14 +171,25 @@ st.sidebar.success("✅ Auto Refresh")
 
 st.sidebar.markdown("---")
 
+# ==========================================
+# Open Stock
+# ==========================================
+
 if st.sidebar.button("📊 Open Stock"):
-    st.session_state["selected_stock"] = symbol
+    st.session_state["selected_stock"] = selected_stock
+    st.session_state["selected_symbol"] = symbol
     st.rerun()
 
-    selected_stock = st.session_state.get(
+selected_stock = st.session_state.get(
     "selected_stock",
+    selected_stock
+)
+
+symbol = st.session_state.get(
+    "selected_symbol",
     symbol
 )
+
 # ==========================================
 # Download Data
 # ==========================================
