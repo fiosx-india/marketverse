@@ -167,6 +167,7 @@ class IntelligenceEngine:
             "news": news,
             "options": options,
             "signal": signal,
+            "confidence": news["confidence"],
             "volume_alert": self.volume_surveillance(df),
             "volatility": self.volatility(df)
         }
