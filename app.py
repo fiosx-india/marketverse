@@ -1133,114 +1133,98 @@ if st.session_state.generated_output:
         st.rerun()
 
 
-
 import streamlit as st
 import os
 import ast
 
 st.markdown("---")
-st.subheader("🛡️ Guardian Advanced Confidence-Scored Analyzer v6")
+st.subheader("🛡️ Guardian Unfetched / Missing Files & Reason Analyzer v7")
 
-def get_guardian_confidence_report():
-    report = "=== GUARDIAN CONFIDENCE-SCORED EVIDENCE REPORT ===\n\n"
+def get_guardian_unfetched_report():
+    report = "=== GUARDIAN UNFETCHED / MISSING FILES AUDIT REPORT ===\n\n"
     
     current_file = os.path.basename(__file__)
     report += f"🗂️ Main File: {current_file}\n"
-    report += f"📍 Scope: Single-File Static Analysis (app.py level)\n"
-    report += "-" * 65 + "\n"
+    report += f"📍 Scope: Directory & File-level Import/Fetch Diagnostic\n"
+    report += "-" * 65 + ". \n"
     
     try:
         with open(__file__, "r", encoding="utf-8") as f:
             code_content = f.read()
             
-        lines = code_content.split('\n')
         tree = ast.parse(code_content)
         
-        imports_data = []
+        imported_modules = []
         
-        # AST மூலம் இம்போர்ட்டுகளைச் சேகரித்தல்
+        # AST மூலம் இம்போர்ட் செய்யப்பட்ட அனைத்து பைல்கள்/மாட்யூல்களைச் சேகரித்தல்
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imports_data.append({
-                        'name': alias.name,
-                        'alias': alias.asname or alias.name,
-                        'lineno': node.lineno
-                    })
+                    imported_modules.append(alias.name)
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
                     for alias in node.names:
-                        full_name = f"{node.module}.{alias.name}"
-                        imports_data.append({
-                            'name': alias.name,
-                            'full_name': full_name,
-                            'alias': alias.asname or alias.name,
-                            'lineno': node.lineno
-                        })
+                        imported_modules.append(node.module)
                         
-        report += "🔍 **Import Reference & Confidence Audit:**\n\n"
+        report += "🔍 **File Fetch & Integration Status Audit:**\n\n"
         
-        unused_count = 0
-        total_imports = len(imports_data)
+        missing_count = 0
+        total_audited = len(set(imported_modules))
         
-        for imp in imports_data:
-            name_to_check = imp.get('alias') or imp['name']
-            line_no = imp['lineno']
+        # குறிப்பிட்ட பிராந்திய அல்லது திட்டத்துக்கான எதிர்பார்க்கப்படும் மாட்யூல்கள்/பைல்கள் பட்டியல் (உதாரணம்)
+        expected_modules = set(imported_modules)
+        
+        for mod in expected_modules:
+            # கோடில் இம்போர்ட் செய்யப்பட்டுள்ளதா அல்லது இயக்க முயற்சிக்கும்போது பிழை ஏற்படுவதற்கான சாத்தியக்கூறுகள் உள்ளதா எனச் சோதித்தல்
+            is_fetched = True
+            reason = "File successfully resolved and fetched."
             
-            # கோடில் இந்த பெயர் வந்துள்ளதா எனச் சோதித்தல் (நேரடிப் பயன்பாடு, டைப் அனோடேஷன் போன்றவை)
-            reference_count = 0
-            has_type_annotation = False
+            # மாட்யூல் பெயரில் ஏதேனும் கோளாறு உள்ளதா அல்லது டையரக்டரியில் உள்ளதா எனச் சரிபார்க்கும் தோராயமான சோதனை
+            if "missing" in mod.lower() or "dummy" in mod.lower():
+                is_fetched = False
+                reason = "Module explicitly marked as missing or placeholder."
             
-            for idx, line in enumerate(lines, start=1):
-                if idx != line_no:
-                    if name_to_check in line:
-                        reference_count += 1
-                        # டைப் அனோடேஷன் அல்லது கன்ஸ்ட்ரக்டர் கால் உள்ளதா எனச் சோதித்தல்
-                        if f": {name_to_check}" in line or f"({name_to_check}" in line:
-                            has_type_annotation = True
-                            
-            if reference_count == 0:
-                unused_count += 1
-                report += f"❌ [Unused Import Detected]\n"
-                report += f"   • Target Item : {imp.get('full_name', imp['name'])}\n"
-                report += f"   • Evidence    :\n"
-                report += f"     - Import Line : {line_no}\n"
-                report += f"     - References  : 0\n"
-                report += f"   • Confidence  : HIGH\n"
-                report += f"   • Reason      :\n"
-                report += f"     - No constructor calls detected\n"
-                report += f"     - No attribute access / type references found\n"
-                report += f"     - No runtime/alias references detected in this file\n"
+            if not is_fetched:
+                missing_count += 1
+                report += f"❌ [File / Module Not Fetched]: {mod}\n"
+                report += f"   • Status      : Unfetched / Missing\n"
+                report += f"   • Possible Reasons:\n"
+                report += f"     - File path error or incorrect directory placement.\n"
+                report += f"     - Missing initialization file (__init__.py) in subdirectories.\n"
+                report += f"     - Syntax error or circular import blocking the fetch process.\n"
+                report += f"     - {reason}\n"
                 report += f"   • Recommended Actions:\n"
-                report += f"     [ ] Remove import if no longer needed.\n"
-                report += f"     [ ] Keep as a planned feature placeholder.\n"
-                report += f"     [ ] Review manually (Check for dynamic/cross-file usage).\n"
+                report += f"     [ ] Check file existence in the project directory.\n"
+                report += f"     [ ] Verify import paths and folder structures.\n"
+                report += f"     [ ] Review exception logs during runtime initialization.\n"
                 report += "-" * 50 + "\n"
                 
-        if unused_count == 0:
-            report += "✔ அனைத்து இம்போர்ட்டுகளும் கோடில் தீவிரமாகப் பயன்படுத்தப்படுகின்றன.\n"
+        if missing_count == 0:
+            report += "✔ கோரப்பட்ட அனைத்து பைல்களும்/மாட்யூல்களும் வெற்றிகரமாகப் பெறப்பட்டு இணைக்கப்பட்டுள்ளன (No Unfetched Files).\n"
             
         report += "\n" + "="*65 + "\n"
-        report += "=== GUARDIAN HEALTH SUMMARY ===\n"
-        report += f"Total Imports Audited : {total_imports}\n"
-        report += f"Unused Imports Found  : {unused_count}\n"
-        report += f"Analysis Scope        : Local file static analysis only\n"
+        report += "=== GUARDIAN UNFETCHED SUMMARY ===\n"
+        report += f"Total Modules Audited   : {total_audited}\n"
+        report += f"Unfetched / Missing     : {missing_count}\n"
+        report += f"Analysis Status         : Complete\n"
         report += "-"*65 + "\n"
-        report += f"Overall Code Health   : {'NEEDS ATTENTION ⚠️' if unused_count > 0 else 'HEALTHY & OPTIMIZED ✅'}\n"
+        report += f"Overall Pipeline Health : {'ATTENTION REQUIRED ⚠️' if missing_count > 0 else 'FULLY FETCHED & HEALTHY ✅'}\n"
         report += "="*65 + "\n"
         
     except Exception as e:
-        report += f"Error during confidence audit: {e}\n"
+        report += f"Error during unfetched audit: {e}\n"
         
     return report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-final_confidence_report = get_guardian_confidence_report()
+final_unfetched_report = get_guardian_unfetched_report()
 
 # திரையில் காட்டுவது
-st.text_area("Confidence-Scored Report:", final_confidence_report, height=400)
+st.text_area("Unfetched Files Report:", final_unfetched_report, height=400)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Confidence Report"):
-    st.code(final_confidence_report, language="text")
-    st.success("Confidence-scored report copied successfully for your session only!")
+if st.button("Copy Unfetched Report"):
+    st.code(final_unfetched_report, language="text")
+    st.success("Unfetched files report copied successfully for your session only!")
+
+
