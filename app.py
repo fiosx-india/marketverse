@@ -241,10 +241,13 @@ try:
         buy_list = []
         sell_list = []
         volume_list = []
-        
 
-        with st.spinner("Scanning F&O Stocks..."):
-            market_results = scan_market(FNO_STOCKS)
+        with st.spinner("Scanning Market..."):
+
+            if market_type == "F&O":
+                market_results = scan_market(FNO_STOCKS)
+            else:
+                market_results = scan_mcx()
 
         buy_list = top_buy(market_results)
         sell_list = top_sell(market_results)
