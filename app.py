@@ -47,11 +47,6 @@ st.set_page_config(
     layout="wide"
 )
 
-st_autorefresh(
-    interval=5000,
-    key="market_refresh"
-)
-
 # ==========================================
 # Guardian
 # ==========================================
