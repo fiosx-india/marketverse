@@ -14,6 +14,21 @@ class IntelligenceEngine:
         self.results = {}
 
     # -------------------------------
+    # Symbol Mapping
+    # -------------------------------
+    def get_live_symbol(self, symbol):
+
+        mapping = {
+            "GOLD": "GC=F",
+            "SILVER": "SI=F",
+            "CRUDEOIL": "CL=F",
+            "NATURALGAS": "NG=F",
+            "COPPER": "HG=F"
+        }
+
+        return mapping.get(symbol, symbol)
+
+    # -------------------------------
     # Live Market Data
     # -------------------------------
     def fetch_market_data(self, symbol):
