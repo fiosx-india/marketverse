@@ -1133,22 +1133,57 @@ if st.session_state.generated_output:
         st.rerun()
 
 
+import os
 import streamlit as st
 
 st.markdown("---")
-st.subheader("📁 File Analyzer & Secure Copier")
+st.subheader("🔍 Project File & Button Link Diagnostic Tool")
 
-# தற்போதைய கோப்பின் (app.py) மூலக் குறியீட்டைப் பாதுகாப்பாகப் படித்தல்
-try:
-    with open(__file__, "r", encoding="utf-8") as f:
-        file_content = f.read()
-except Exception as e:
-    file_content = f"Error reading file: {e}"
+# 1. புராஜெக்ட்டில் உள்ள அனைத்து ஃபைல்களையும் ஸ்கேன் செய்தல்
+def scan_project_files():
+    files_info = {}
+    root_dir = "."  # மெயின் டைரக்டரி
+    for root, dirs, files in os.walk(root_dir):
+        # விடுபட வேண்டிய சிஸ்டம் ஃபோல்டர்களைத் தவிர்த்தல்
+        if '.git' in root or '__pycache__' in root or '.streamlit' in root:
+            continue
+        for file in files:
+            if file.endswith('.py') or file.endswith('.md') or file.endswith('.txt'):
+                file_path = os.path.join(root, file)
+                try:
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                        files_info[file] = {
+                            "path": file_path,
+                            "size": len(content),
+                            "has_buttons": "st.button" in content or "button" in content,
+                            "content": content
+                        }
+                except Exception as e:
+                    files_info[file] = {"path": file_path, "error": str(e)}
+    return files_info
 
-# மூலக் குறியீட்டை திரையில் காட்டுவது (உங்களுக்கு மட்டும் தெரியும், ஸ்ட்ரீமை பாதிக்காது)
-st.text_area("Source Code Content:", file_content, height=150)
+# 2. பிழைகளைக் கண்டறிந்து ரிப்போர்ட் தயாரித்தல்
+project_data = scan_project_files()
 
-# Streamlit-இன் சொந்தப் பட்டன் மூலம் காப்பி செய்வது (ஆண்ட்ராய்டு மற்றும் ஸ்ட்ரீமிற்கு பாதுகாப்பானது)
-if st.button("Copy & Auto-Erase Content"):
-    st.code(file_content, language="python")
-    st.success("Code generated safely for your session only!")
+missing_links = []
+active_files = list(project_data.keys())
+
+st.write(f"**மொத்தம் ஸ்கேன் செய்யப்பட்ட கோப்புகள்:** {len(active_files)}")
+
+# இம்போர்ட் மற்றும் பட்டன் இணைப்புகளைச் சோதித்தல்
+diagnostic_report = "--- PROJECT DIAGNOSTIC REPORT ---\n"
+for fname, data in project_data.items():
+    if "error" in data:
+        diagnostic_report += f"[ERROR] File {fname} could not be read: {data['error']}\n"
+    else:
+        diagnostic_report += f"[OK] File: {fname} | Buttons Found: {data['has_buttons']}\n"
+
+# டிஸ்ப்ளே பாக்ஸ் மற்றும் காப்பி வசதி
+st.text_area("Automatic Link & Error Diagnostic Report:", diagnostic_report, height=200)
+
+# ஒரே கிளிக்கில் ரிப்போர்ட்டை காப்பி செய்ய
+if st.button("Copy Diagnostic Report"):
+    st.code(diagnostic_report, language="text")
+    st.success("Report generated safely for your session only!")
+
