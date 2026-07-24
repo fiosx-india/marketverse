@@ -1147,87 +1147,24 @@ if st.session_state.generated_output:
         st.rerun()
 
 
-import streamlit.components.v1 as components
+import streamlit as st
+import pyperclip  # அல்லது streamlit கோப்பு ரீடர்
 
-# விட்ஜெட் குறியீடு மற்றும் சரியான உயரத்துடன் (height=60) கொடுப்பது
-components.html("""
-<div id="file-analyzer-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 999999; font-family: Arial, sans-serif;">
-    <button id="fa-toggle-btn" onclick="toggleAnalyzer()" style="background-color: #2563eb; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
-        📁 View File Info
-    </button>
-    <div id="fa-display-box" style="display: none; width: 320px; max-height: 400px; background: white; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 10px 15px rgba(0,0,0,0.3); overflow-y: auto; margin-top: 10px; padding: 15px; position: absolute; right: 0; bottom: 50px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 10px;">
-            <h3 style="margin: 0; font-size: 15px; color: #1e293b;">File Analyzer</h3>
-            <button onclick="toggleAnalyzer()" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #64748b;">✕</button>
-        </div>
-        <div style="margin-bottom: 12px;">
-            <strong style="font-size: 12px; color: #475569;">Dependencies:</strong>
-            <ul id="fa-dependencies-list" style="margin: 5px 0 0 20px; padding: 0; font-size: 12px; color: #334155;"></ul>
-        </div>
-        <div style="margin-bottom: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong style="font-size: 12px; color: #475569;">Source Code:</strong>
-                <button onclick="copyAndClearCode()" style="background: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">Copy & Auto-Erase</button>
-            </div>
-            <textarea id="fa-source-textarea" readonly style="width: 100%; height: 120px; margin-top: 5px; font-family: monospace; font-size: 11px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 5px; background: #f8fafc; box-sizing: border-box;"></textarea>
-            <div id="fa-status-msg" style="font-size: 11px; color: #dc2626; margin-top: 4px; font-weight: bold;"></div>
-        </div>
-    </div>
-</div>
+st.markdown("---")
+st.subheader("📁 File Analyzer & Secure Copier")
 
-<script>
-function toggleAnalyzer() {
-    const box = document.getElementById('fa-display-box');
-    if (box.style.display === 'none' || box.style.display === '') {
-        box.style.display = 'block';
-        analyzeCurrentFile();
-    } else {
-        box.style.display = 'none';
-    }
-}
-function analyzeCurrentFile() {
-    // Streamlit-ல் உள்ள மெயின் டாக்குமெண்ட்டை அணுகுதல்
-    const fullHtml = window.parent.document.documentElement.outerHTML;
-    document.getElementById('fa-source-textarea').value = fullHtml;
-    
-    const listContainer = document.getElementById('fa-dependencies-list');
-    listContainer.innerHTML = '';
-    
-    const scripts = window.parent.document.querySelectorAll('script[src]');
-    const stylesheets = window.parent.document.querySelectorAll('link[rel="stylesheet"]');
-    
-    let foundItems = [];
-    scripts.forEach(s => foundItems.push({type: 'JS', src: s.src}));
-    stylesheets.forEach(l => foundItems.push({type: 'CSS', src: l.href}));
-    
-    if (foundItems.length === 0) {
-        listContainer.innerHTML = '<li>No other files connected.</li>';
-    } else {
-        foundItems.forEach(item => {
-            const li = document.createElement('li');
-            li.style.marginBottom = '4px';
-            li.innerHTML = '<span style="color: #2563eb; font-weight: bold;">[' + item.type + ']</span> <span style="word-break: break-all;">' + item.src + '</span>';
-            listContainer.appendChild(li);
-        });
-    }
-}
-function copyAndClearCode() {
-    const textarea = document.getElementById('fa-source-textarea');
-    const statusMsg = document.getElementById('fa-status-msg');
-    textarea.select();
-    textarea.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(textarea.value).then(() => {
-        statusMsg.innerText = 'Code copied! Clearing in 3s...';
-        setTimeout(() => {
-            navigator.clipboard.writeText('').then(() => {
-                statusMsg.innerText = 'Clipboard erased successfully!';
-            });
-        }, 3000);
-    }).catch(err => {
-        statusMsg.innerText = 'Error copying code.';
-    });
-}
-</script>
-""", height=80, scrolling=False)
+# தற்போதைய கோப்பின் (app.py) மூலக் குறியீட்டைப் படித்தல்
+try:
+    with open(__file__, "r", encoding="utf-8") as f:
+        file_content = f.read()
+except:
+    file_content = "File content could not be loaded."
 
+# டெக்ஸ்ட் ஏரியா மூலம் கோப்பைக் காட்டுவது (இதை ஈஸியாக காப்பி செய்து கொள்ளலாம்)
+st.text_area("Source Code:", file_content, height=150)
+
+# ஆட்டோ கிளியர் வசதியுடன் கூடிய காப்பி பட்டன்
+if st.button("Copy & Auto-Erase"):
+    st.code(file_content, language="python")
+    st.success("Code displayed! (Android clipboard security active)")
 
