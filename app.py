@@ -17,6 +17,7 @@ from modules.system_controller import SystemController
 from modules.portfolio import Portfolio
 from modules.intelligence_engine import IntelligenceEngine
 from guardian.runtime_diagnostic import diagnostic
+from modules.nse_service import get_nse
 
 import yfinance as yf
 import pandas as pd
@@ -65,6 +66,12 @@ guardian_result = guardian.run()
 diagnostic.function(__file__, "app_start")
 engine = IntelligenceEngine()
 
+nse = get_nse()
+
+if nse.retry_connection():
+    st.sidebar.success("✅ NSE Connected")
+else:
+    st.sidebar.error("❌ NSE Connection Failed")
 
 st.info("🛡️ Guardian Runtime Diagnostic Test")
 st.write("Runtime Diagnostic Module Loaded Successfully.")
