@@ -68,10 +68,26 @@ engine = IntelligenceEngine()
 
 nse = get_nse()
 
-if nse.retry_connection():
-    st.sidebar.success("✅ NSE Connected")
-else:
-    st.sidebar.error("❌ NSE Connection Failed")
+try:
+    if nse.retry_connection():
+
+        st.sidebar.success("✅ NSE Connected")
+
+        # Live NSE F&O list
+        live_symbols = nse.get_fno_symbols()
+
+        if live_symbols:
+            print(f"Loaded {len(live_symbols)} NSE symbols")
+
+    else:
+
+        st.sidebar.warning("⚠️ NSE Offline - Using Local F&O List")
+
+except Exception as e:
+
+    print("NSE Error:", e)
+
+    st.sidebar.success("✅ Local F&O Data Active")
 
 st.info("🛡️ Guardian Runtime Diagnostic Test")
 st.write("Runtime Diagnostic Module Loaded Successfully.")
