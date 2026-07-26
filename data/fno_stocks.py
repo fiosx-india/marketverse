@@ -108,9 +108,7 @@ def get_all_sectors():
 
 
 
-
-
-# --- SUB-FILE DEEP LINE INSPECTOR (இதனை 50/60 சப்-பைல்களின் இறுதியில் வைக்கவும்) ---
+# --- SUB-FILE DEEP LINE INSPECTOR (இந்த கோடை 50/60 சப்-பைல்களின் இறுதியில் வைக்கவும்) ---
 import os
 import ast
 
@@ -135,7 +133,7 @@ def inspect_subfile_lines():
             # AST parsing to catch syntax/line errors precisely
             ast.parse(code_content)
             
-    .except SyntaxError as se:
+    except SyntaxError as se:
         analysis_result["error_detected"] = True
         analysis_result["error_details"] = f"Syntax Error at Line {se.lineno}: {se.text.strip() if se.text else str(se)}"
     except Exception as e:
@@ -143,3 +141,4 @@ def inspect_subfile_lines():
         analysis_result["error_details"] = f"Error in file: {str(e)}"
         
     return analysis_result
+
