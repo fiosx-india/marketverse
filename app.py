@@ -855,10 +855,10 @@ with tab4:
                 "Current Price": info.get("current_price", "-")
             })
 
-        st.dataframe(
+            st.dataframe(
             pd.DataFrame(table),
-            use_container_width=True
-        )
+            width="stretch"
+            )
 
         summary = portfolio.summary()
 
