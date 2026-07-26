@@ -71,7 +71,6 @@ class NSEService:
             ...
         ]
         """
-
         try:
 
             self._initialize()
@@ -82,10 +81,11 @@ class NSEService:
             )
 
             response.raise_for_status()
-            data = response.json()
-        if "data" not in data:
-            return []
 
+            data = response.json()
+
+            if "data" not in data:
+                return []
 
             symbols = []
 
@@ -128,7 +128,6 @@ class NSEService:
             time.sleep(2)
 
         return False
-
 
 # ============================================================
 # Lazy Singleton
