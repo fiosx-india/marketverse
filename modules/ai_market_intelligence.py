@@ -223,18 +223,7 @@ class AIMarketIntelligence:
             "WEEKLY": None,
             "MONTHLY": None,
         }
-    # ==========================================
-    # VOLUME ANALYSIS
-    # ==========================================
-    def volume_analysis(self):
-
-        return {
-            "VOLUME_SPIKE": False,
-            "RELATIVE_VOLUME": None,
-            "DELIVERY_PERCENT": None,
-        }
-
-
+        
     # ==========================================
     # TREND ANALYSIS
     # ==========================================
