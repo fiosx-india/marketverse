@@ -16,6 +16,7 @@ from modules.central_brain import CentralBrain
 from modules.system_controller import SystemController
 from modules.portfolio import Portfolio
 from modules.intelligence_engine import IntelligenceEngine
+from guardian.runtime_diagnostic import diagnostic
 
 import yfinance as yf
 import pandas as pd
@@ -61,6 +62,7 @@ from guardian.controller import GuardianController
 
 guardian = GuardianController()
 guardian_result = guardian.run()
+diagnostic.function(__file__, "app_start")
 engine = IntelligenceEngine()
 
 if guardian_result["report"].errors > 0:
