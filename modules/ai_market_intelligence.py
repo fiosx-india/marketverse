@@ -248,14 +248,66 @@ class AIMarketIntelligence:
 
 
     # ==========================================
-    # VOLATILITY ANALYSIS
+    # VOLUME ANALYSIS
     # ==========================================
-    def volatility_analysis(self):
+    def volume_analysis(self, df):
 
-        return {
-            "ATR": None,
-            "VOLATILITY": None,
-        }
+        if df is None or len(df) < 20:
+            return {
+                "VOLUME": None,
+                "AVG_VOLUME": None,
+                "RELATIVE_VOLUME": None,
+                "VOLUME_SPIKE": False,
+                "OBV": None,
+                "CMF": None,
+            }
+
+        try:
+            import pandas_ta as ta
+
+            volume = float(df["Volume"].iloc[-1])
+            avg_volume = float(df["Volume"].rolling(20).mean().iloc[-1])
+
+            relative_volume = (
+                volume / avg_volume if avg_volume > 0 else 0
+            )
+
+            volume_spike = relative_volume >= 2.0
+
+            # On Balance Volume
+            df["OBV"] = ta.obv(
+                df["Close"],
+                df["Volume"]
+            )
+
+            # Chaikin Money Flow
+            df["CMF"] = ta.cmf(
+                df["High"],
+                df["Low"],
+                df["Close"],
+                df["Volume"]
+            )
+
+            return {
+
+                "VOLUME": round(volume, 2),
+
+                "AVG_VOLUME": round(avg_volume, 2),
+
+                "RELATIVE_VOLUME": round(relative_volume, 2),
+
+                "VOLUME_SPIKE": volume_spike,
+
+                "OBV": round(df["OBV"].iloc[-1], 2),
+
+                "CMF": round(df["CMF"].iloc[-1], 4),
+            }
+
+        except Exception as e:
+
+            return {
+                "ERROR": str(e)
+            }
 
     # ==========================================
     # MOMENTUM ANALYSIS
