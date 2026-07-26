@@ -107,38 +107,35 @@ def get_all_sectors():
 
 
 
-
-# --- SUB-FILE DEEP LINE INSPECTOR (இந்த கோடை 50/60 சப்-பைல்களின் இறுதியில் வைக்கவும்) ---
-import os
-import ast
-
-def inspect_subfile_lines():
-    """Scans lines of this specific file to find errors, syntax issues, or incorrect lines."""
-    current_file = __file__ if '__file__' in locals() or '__file__' in globals() else "sub_module.py"
-    analysis_result = {
-        "filename": os.path.basename(current_file),
-        "total_lines": 0,
-        "error_detected": False,
-        "error_details": "No errors found. All lines clean ✅"
-    }
+Sub SendToMainFile()
+    Dim wsSub As Worksheet
+    Dim wbMain As Workbook
+    Dim MainFilePath As String
     
-    try:
-        if os.path.exists(current_file):
-            with open(current_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
-            
-            analysis_result["total_lines"] = len(lines)
-            code_content = "".join(lines)
-            
-            # AST parsing to catch syntax/line errors precisely
-            ast.parse(code_content)
-            
-    except SyntaxError as se:
-        analysis_result["error_detected"] = True
-        analysis_result["error_details"] = f"Syntax Error at Line {se.lineno}: {se.text.strip() if se.text else str(se)}"
-    except Exception as e:
-        analysis_result["error_detected"] = True
-        analysis_result["error_details"] = f"Error in file: {str(e)}"
-        
-    return analysis_result
-
+    ' தற்போதைய சப்-ஃபைல் ஷீட்
+    Set wsSub = ActiveSheet
+    
+    ' உங்கள் மெயின் ஃபைல் இருக்கும் சரியான பாத் (Path) மற்றும் பெயரை இங்கு கொடுக்கவும்
+    MainFilePath = "C:\MyFiles\MainFile.xlsx"
+    
+    On Error Resume Next
+    ' மெயின் ஃபைலை பின்னணியில் திறத்தல்
+    Set wbMain = Workbooks.Open(MainFilePath)
+    On Error GoTo 0
+    
+    If wbMain Is Nothing Then
+        MsgBox "மெயின் ஃபைலைக் கண்டுபிடிக்க முடியவில்லை! பாத்தை சரிபார்க்கவும்.", vbCritical
+        Exit Sub
+    End If
+    
+    ' சப்-ஃபைலில் உள்ள டேட்டாவை மெயின் ஃபைலுக்கு மாற்றுவதற்கான கோடு இங்கு செயல்படும்
+    
+    ' மெயின் ஃபைலை சேமித்து மூடுதல்
+    wbMain.Save
+    wbMain.Close False
+    
+    MsgBox "தகவல் வெற்றிகரமாக மெயின் ஃபைலுக்கு அனுப்பப்பட்டுவிட்டது!", vbInformation, "Sent Successfully"
+    
+    ' இன்டர்நெட் அல்லது மெமரி குப்பைகள் சேராதவாறு கிளியர் செய்தல்
+    Application.CutCopyMode = False
+End Sub
