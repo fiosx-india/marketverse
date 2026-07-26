@@ -385,15 +385,15 @@ with tab1:
 
 with col1:
     st.write("### 🟢 Top Buy")
-    st.dataframe(buy_list)
+    st.dataframe(buy_list, width="stretch")
 
 with col2:
     st.write("### 🔴 Top Sell")
-    st.dataframe(sell_list)
+    st.dataframe(sell_list, width="stretch")
 
 with col3:
     st.write("### 🔵 Top Volume")
-    st.dataframe(volume_list)
+    st.dataframe(volume_list, width="stretch")
 
     # ==========================================
     # Dashboard Summary
@@ -471,10 +471,9 @@ with col3:
 
         st.plotly_chart(
             fig,
-            use_container_width=True
+            width="stretch"
         )
-
-
+        
         st.markdown("---")
 
         st.subheader("⏱ AI Performance Forecast")
