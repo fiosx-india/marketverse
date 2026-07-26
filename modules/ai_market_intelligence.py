@@ -173,6 +173,154 @@ class AIMarketIntelligence:
             "ATR": None,
             "VOLATILITY": None,
         }
+
+    # ==========================================
+    # MOMENTUM ANALYSIS
+    # ==========================================
+    def momentum_analysis(self):
+
+        return {
+            "MOMENTUM_SCORE": None,
+            "ROC": None,
+            "CCI": None,
+            "STOCHASTIC": None,
+        }
+
+
+    # ==========================================
+    # SUPPORT / RESISTANCE
+    # ==========================================
+    def support_resistance(self):
+
+        return {
+            "SUPPORT_1": None,
+            "SUPPORT_2": None,
+            "RESISTANCE_1": None,
+            "RESISTANCE_2": None,
+            "PIVOT": None,
+        }
+
+
+    # ==========================================
+    # SECTOR ANALYSIS
+    # ==========================================
+    def sector_analysis(self):
+
+        return {
+            "SECTOR": None,
+            "SECTOR_STRENGTH": None,
+            "SECTOR_RANK": None,
+            "LEADER": None,
+        }
+
+
+    # ==========================================
+    # MARKET BREADTH
+    # ==========================================
+    def market_breadth(self):
+
+        return {
+            "ADVANCES": None,
+            "DECLINES": None,
+            "A_D_RATIO": None,
+            "NEW_HIGHS": None,
+            "NEW_LOWS": None,
+        }
+
+
+    # ==========================================
+    # INSTITUTIONAL ACTIVITY
+    # ==========================================
+    def institutional_activity(self):
+
+        return {
+            "FII": None,
+            "DII": None,
+            "NET_FLOW": None,
+        }
+
+
+    # ==========================================
+    # ECONOMIC EVENTS
+    # ==========================================
+    def economic_events(self):
+
+        return {
+            "RBI": [],
+            "SEBI": [],
+            "FED": [],
+            "CPI": [],
+            "GDP": [],
+        }
+
+
+    # ==========================================
+    # MARKET CORRELATION
+    # ==========================================
+    def market_correlation(self):
+
+        return {
+            "NIFTY": None,
+            "BANKNIFTY": None,
+            "USDINR": None,
+            "GOLD": None,
+            "CRUDE": None,
+        }
+
+
+    # ==========================================
+    # LIQUIDITY ANALYSIS
+    # ==========================================
+    def liquidity_analysis(self):
+
+        return {
+            "BID": None,
+            "ASK": None,
+            "SPREAD": None,
+            "LIQUIDITY_SCORE": None,
+        }
+
+
+    # ==========================================
+    # WATCHLIST
+    # ==========================================
+    def watchlist_monitor(self):
+
+        return {
+            "WATCHLIST": [],
+            "BREAKOUTS": [],
+            "ALERTS": [],
+        }
+
+
+    # ==========================================
+    # SMART ALERTS
+    # ==========================================
+    def smart_alerts(self):
+
+        return {
+            "BUY": False,
+            "SELL": False,
+            "BREAKOUT": False,
+            "BREAKDOWN": False,
+            "HIGH_VOLUME": False,
+            "NEWS_ALERT": False,
+        }
+
+
+    # ==========================================
+    # SYSTEM HEALTH
+    # ==========================================
+    def system_health(self):
+
+        return {
+            "STATUS": "OK",
+            "DATA_FEED": True,
+            "NSE": True,
+            "MCX": True,
+            "YFINANCE": True,
+            "LAST_UPDATE": datetime.now(),
+        }
         
     def momentum_analysis(self):
         return {}
