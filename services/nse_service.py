@@ -110,8 +110,8 @@ class NSEService:
 
             return True
 
-        except Exception:
-
+        except Exception as e:
+            print("NSE Connection Error:", e)
             return False
 
     def retry_connection(
