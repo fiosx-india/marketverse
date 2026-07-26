@@ -106,36 +106,27 @@ def get_all_sectors():
 
 
 
+import pandas as pd
+import os
 
-Sub SendToMainFile()
-    Dim wsSub As Worksheet
-    Dim wbMain As Workbook
-    Dim MainFilePath As String
+def main_file_report():
+    main_file_path = r"C:\MyFiles\MainFile.xlsx"
     
-    ' தற்போதைய சப்-ஃபைல் ஷீட்
-    Set wsSub = ActiveSheet
-    
-    ' உங்கள் மெயின் ஃபைல் இருக்கும் சரியான பாத் (Path) மற்றும் பெயரை இங்கு கொடுக்கவும்
-    MainFilePath = "C:\MyFiles\MainFile.xlsx"
-    
-    On Error Resume Next
-    ' மெயின் ஃபைலை பின்னணியில் திறத்தல்
-    Set wbMain = Workbooks.Open(MainFilePath)
-    On Error GoTo 0
-    
-    If wbMain Is Nothing Then
-        MsgBox "மெயின் ஃபைலைக் கண்டுபிடிக்க முடியவில்லை! பாத்தை சரிபார்க்கவும்.", vbCritical
-        Exit Sub
-    End If
-    
-    ' சப்-ஃபைலில் உள்ள டேட்டாவை மெயின் ஃபைலுக்கு மாற்றுவதற்கான கோடு இங்கு செயல்படும்
-    
-    ' மெயின் ஃபைலை சேமித்து மூடுதல்
-    wbMain.Save
-    wbMain.Close False
-    
-    MsgBox "தகவல் வெற்றிகரமாக மெயின் ஃபைலுக்கு அனுப்பப்பட்டுவிட்டது!", vbInformation, "Sent Successfully"
-    
-    ' இன்டர்நெட் அல்லது மெமரி குப்பைகள் சேராதவாறு கிளியர் செய்தல்
-    Application.CutCopyMode = False
-End Sub
+    if os.path.exists(main_file_path):
+        # மெயின் ஃபைலில் உள்ள டேட்டாவை லோட் செய்து ரிப்போர்ட் பார்த்தல்
+        df = pd.read_excel(main_file_path)
+        print(f"Total records in Main File: {len(df)}")
+        
+        # காப்பி-பேஸ்ட் செய்வதற்கு ஏற்றவாறு டேட்டாவை காண்பித்தல்
+        print("\n--- REPORT READY FOR COPY/PASTE ---")
+        print(df.head(10)) # முதல் 10 தகவல்களை காட்டும்
+        
+        # காப்பி செய்த பின் மெமரியை க்ளியர் செய்ய (இன்டர்நெட் குப்பை சேராமல் இருக்க)
+        del df
+        print("\nMemory cleared successfully. No internet data used.")
+    else:
+        print("Main file not found or waiting for sub-files data.")
+
+if __name__ == "__main__":
+    main_file_report()
+
