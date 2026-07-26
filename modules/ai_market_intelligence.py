@@ -472,11 +472,11 @@ class AIMarketIntelligence:
 
                 "volume": self.volume_analysis(dataframe),
 
-                "trend": self.trend_analysis(),
+                "trend": self.trend_analysis(dataframe),
 
-                "volatility": self.volatility_analysis(),
+                "volatility": self.volatility_analysis(dataframe),
 
-                "momentum": self.momentum_analysis(),
+                "momentum": self.momentum_analysis(dataframe),
 
                 "support_resistance": self.support_resistance(),
 
