@@ -53,11 +53,12 @@ class NSEService:
         if self._initialized:
             return
 
-        self.session.get(
+        response = self.session.get(
             self.BASE_URL,
             timeout=10
         )
 
+        response.raise_for_status()
         self._initialized = True
 
     def get_fno_symbols(self):
@@ -81,8 +82,10 @@ class NSEService:
             )
 
             response.raise_for_status()
-
             data = response.json()
+        if "data" not in data:
+            return []
+
 
             symbols = []
 
