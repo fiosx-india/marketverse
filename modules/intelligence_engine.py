@@ -41,10 +41,12 @@ class IntelligenceEngine:
 
             df = stock.history(
                 period="6mo",
-                interval="1d"
+                interval="1d",
+                auto_adjust=True
             )
 
             if df.empty:
+                print(f"No data found for {live_symbol}")
                 return pd.DataFrame()
 
             return df
