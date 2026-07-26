@@ -100,4 +100,34 @@ def get_all_sectors():
             }
         )
     )
-    
+
+
+
+
+
+# --- SUB-FILE TELEMETRY COLLECTOR (இந்த கோடை 50 பைல்களின் இறுதியில் வைக்கவும்) ---
+import os
+import ast
+
+def get_subfile_telemetry():
+    """Extracts functions, classes, and status of this specific file for the main app report."""
+    current_file = __file__ if '__file__' in locals() or '__file__' in globals() else "subfile.py"
+    file_info = {
+        "filename": os.path.basename(current_file),
+        "size": os.path.getsize(current_file) if os.path.exists(current_file) else 0,
+        "functions": [],
+        "classes": [],
+        "status": "Healthy & Connected ✅"
+    }
+    try:
+        with open(current_file, "r", encoding="utf-8") as f:
+            tree = ast.parse(f.read())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                file_info["functions"].append(node.name)
+            elif isinstance(node, ast.ClassDef):
+                file_info["classes"].append(node.name)
+    except Exception as e:
+        file_info["status"] = f"Error: {str(e)}"
+    return file_info
+
