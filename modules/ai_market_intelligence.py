@@ -408,18 +408,69 @@ class AIMarketIntelligence:
             return {
                 "ERROR": str(e)
             }
-
+            
     # ==========================================
     # MOMENTUM ANALYSIS
     # ==========================================
-    def momentum_analysis(self):
+    def momentum_analysis(self, df):
 
-        return {
-            "MOMENTUM_SCORE": None,
-            "ROC": None,
-            "CCI": None,
-            "STOCHASTIC": None,
-        }
+        if df is None or len(df) < 20:
+            return {
+                "MOMENTUM_SCORE": None,
+                "ROC": None,
+                "CCI": None,
+                "STOCHASTIC": None,
+            }
+
+        try:
+            import pandas_ta as ta
+
+            # Rate of Change
+            df["ROC"] = ta.roc(df["Close"], length=14)
+
+            # Commodity Channel Index
+            df["CCI"] = ta.cci(
+                df["High"],
+                df["Low"],
+                df["Close"],
+                length=20
+            )
+
+            # Stochastic Oscillator
+            stoch = ta.stoch(
+                df["High"],
+                df["Low"],
+                df["Close"]
+            )
+
+            k = stoch["STOCHk_14_3_3"].iloc[-1]
+
+            score = 0
+
+            if df["ROC"].iloc[-1] > 0:
+                score += 40
+
+            if df["CCI"].iloc[-1] > 100:
+                score += 30
+            elif df["CCI"].iloc[-1] > 0:
+                score += 15
+
+            if k > 80:
+                score += 30
+            elif k > 50:
+                score += 15
+
+            return {
+                "MOMENTUM_SCORE": score,
+                "ROC": round(df["ROC"].iloc[-1], 2),
+                "CCI": round(df["CCI"].iloc[-1], 2),
+                "STOCHASTIC": round(k, 2),
+            }
+
+        except Exception as e:
+            return {
+                "ERROR": str(e)
+            }
 
 
     # ==========================================
