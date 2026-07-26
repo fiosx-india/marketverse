@@ -1139,7 +1139,7 @@ if st.session_state.generated_output:
 import streamlit as st
 import os
 import glob
-import importlib.util
+import ast
 
 st.markdown("---")
 st.subheader("🛡️ Guardian Master Enterprise Deep Line Inspector & Intelligence Engine")
@@ -1165,13 +1165,12 @@ def run_master_chain_audit():
                 lines = content.splitlines()
                 line_count = len(lines)
                 
-            # Check for syntax or structural problems
-            import ast
+            # Check for syntax or structural problems in each file
             ast.parse(content)
             
         except SyntaxError as se:
             file_status = "Syntax Error Found ❌"
-            error_msg = f"Line {se.lineno}: {se.msg}"
+            error_msg = f"Line {se.lineno}: {se.msg} (Text: {se.text.strip() if se.text else 'N/A'})"
             total_errors_found += 1
         except Exception as e:
             file_status = "Error / Broken ❌"
@@ -1207,4 +1206,3 @@ st.text_area("Master Deep Inspection Report:", final_audit_report, height=550)
 if st.button("Copy Master Audit Report"):
     st.code(final_audit_report, language="text")
     st.success("Master audit report copied successfully!")
-
