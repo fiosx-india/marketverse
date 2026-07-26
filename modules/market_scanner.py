@@ -157,7 +157,7 @@ def inspect_subfile_lines():
             # AST parsing to catch syntax/line errors precisely
             ast.parse(code_content)
             
-    .except SyntaxError as se:
+    except SyntaxError as se:
         analysis_result["error_detected"] = True
         analysis_result["error_details"] = f"Syntax Error at Line {se.lineno}: {se.text.strip() if se.text else str(se)}"
     except Exception as e:
