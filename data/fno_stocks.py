@@ -110,29 +110,38 @@ import os
 import pandas as pd
 
 def send_to_main():
-    # உங்கள் சப்-ஃபைலின் சரியான பெயர் (எ.கா: file1.xlsx)
+    # தற்போதைய சப்-ஃபைலின் பெயர் (உங்கள் ஃபைல் பெயருக்கு ஏற்ப மாற்றிக் கொள்ளவும்)
     current_file_name = "file1.xlsx" 
     
-    # மெயின் ஃபைல் இருக்கும் சரியான பாத்
+    # மெயின் ஃபைல் சேமிக்கப்பட்டுள்ள முழுமையான மற்றும் சரியான பாத் (Path)
     main_file_path = r"C:\MyFiles\MainFile.xlsx"
     
-    if os.path.exists(current_file_name):
-        # சப்-ஃபைலைப் படித்தல்
-        df = pd.read_excel(current_file_name)
-        df['Source_File'] = current_file_name
-        
-        # மெயின் ஃபைலுடன் இணைத்தல்
-        if os.path.exists(main_file_path):
-            main_df = pd.read_excel(main_file_path)
-            combined_df = pd.concat([main_df, df], ignore_index=True)
-        else:
-            combined_df = df
+    # சப்-ஃபைல் இருக்கும் ஃபோல்டர் பாத் (நடப்பு ஃபோல்டர்)
+    current_file_path = os.path.join(os.getcwd(), current_file_name)
+    
+    # சப்-ஃபைல் உள்ளதா என சோதித்தல்
+    if os.path.exists(current_file_path):
+        try:
+            # சப்-ஃபைலைப் படித்தல்
+            df = pd.read_excel(current_file_path)
+            df['Source_File'] = current_file_name
             
-        # மெயின் ஃபைலில் சேமித்தல்
-        combined_df.to_excel(main_file_path, index=False)
-        print("Success: Data sent to Main File successfully!")
+            # மெயின் ஃபைல் ஏற்கனவே இருக்கிறதா என சோதித்து இணைத்தல்
+            if os.path.exists(main_file_path):
+                main_df = pd.read_excel(main_file_path)
+                # பழைய டேட்டாவுடன் புதிய டேட்டாவைச் சேர்த்தல்
+                combined_df = pd.concat([main_df, df], ignore_index=True)
+            else:
+                combined_df = df
+                
+            # மெயின் ஃபைலில் சேமித்தல் (இதுவே நேரடி இணைப்பு)
+            combined_df.to_excel(main_file_path, index=False)
+            print(f"Success: Data from '{current_file_name}' successfully sent and updated in Main File!")
+            
+        except Exception as e:
+            print(f"Error while processing the file: {e}")
     else:
-        print(f"Error: {current_file_name} was not found in this folder.")
+        print(f"Error: '{current_file_name}' was not found in the current folder. Please check the file name.")
 
 if __name__ == "__main__":
     send_to_main()
