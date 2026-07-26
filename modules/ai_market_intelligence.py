@@ -481,7 +481,7 @@ class AIMarketIntelligence:
 
                 "prediction": self.prediction(),
 
-                "volume": self.volume_analysis(),
+                "volume": self.volume_analysis(dataframe),
 
                 "trend": self.trend_analysis(),
 
