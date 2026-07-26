@@ -105,28 +105,39 @@ def get_all_sectors():
 
 
 
-
-import pandas as pd
 import os
+import pandas as pd
 
-def main_file_report():
+def send_current_file_to_main():
+    # தற்போதைய சப்-ஃபைலின் பெயர் (உங்கள் ஃபைலின் பெயருக்கு ஏற்ப இதை மாற்றவும்)
+    current_file_name = "sub_file_1.xlsx" 
+    
+    # மெயின் ஃபைல் இருக்கும் சரியான பாத்
     main_file_path = r"C:\MyFiles\MainFile.xlsx"
     
-    if os.path.exists(main_file_path):
-        # மெயின் ஃபைலில் உள்ள டேட்டாவை லோட் செய்து ரிப்போர்ட் பார்த்தல்
-        df = pd.read_excel(main_file_path)
-        print(f"Total records in Main File: {len(df)}")
-        
-        # காப்பி-பேஸ்ட் செய்வதற்கு ஏற்றவாறு டேட்டாவை காண்பித்தல்
-        print("\n--- REPORT READY FOR COPY/PASTE ---")
-        print(df.head(10)) # முதல் 10 தகவல்களை காட்டும்
-        
-        # காப்பி செய்த பின் மெமரியை க்ளியர் செய்ய (இன்டர்நெட் குப்பை சேராமல் இருக்க)
-        del df
-        print("\nMemory cleared successfully. No internet data used.")
-    else:
-        print("Main file not found or waiting for sub-files data.")
+    try:
+        # சப்-ஃபைல் டேட்டாவைப் படித்தல்
+        if os.path.exists(current_file_name):
+            df = pd.read_excel(current_file_name)
+            df['Source_File'] = current_file_name
+            
+            # மெயின் ஃபைல் ஏற்கனவே இருந்தால் அதனுடன் இணைத்தல்
+            if os.path.exists(main_file_path):
+                main_df = pd.read_excel(main_file_path)
+                combined_df = pd.concat([main_df, df], ignore_index=True)
+            else:
+                combined_df = df
+                
+            # மெயின் ஃபைலில் சேமித்தல்
+            combined_df.to_excel(main_file_path, index=False)
+            print(f"Success: {current_file_name} data sent to Main File.")
+        else:
+            print(f"Error: {current_file_name} not found!")
+            
+    except Exception as e:
+        print(f"Error processing file: {e}")
 
 if __name__ == "__main__":
-    main_file_report()
+    send_current_file_to_main()
+
 
