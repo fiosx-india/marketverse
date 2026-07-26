@@ -1137,33 +1137,57 @@ if st.session_state.generated_output:
 
 
 
+import os
+import pandas as pd
 
+def scan_excel_files():
+    # உங்கள் 100 ஃபைல்கள் இருக்கும் ஃபோல்டர் பாத்தை (Path) இங்கு கொடுக்கவும்
+    folder_path = r"C:\MyFiles\SubFiles\\"
+    
+    # மெயின் ஃபைலின் பாத்
+    main_file_path = r"C:\MyFiles\MainFile.xlsx"
+    
+    print("Scanning 100 files started...")
+    
+    report_data = []
+    
+    # ஃபோல்டரில் உள்ள அனைத்து எக்செல் ஃபைல்களையும் தேடுதல்
+    if not os.path.exists(folder_path):
+        print("Error: Specified folder path does not exist!")
+        return
 
-Sub ScanAll100Files()
-    Dim MainSheet As Worksheet
-    Dim FolderPath As String
-    Dim FileName As String
+    file_list = [f for f in os.listdir(folder_path) if f.endswith('.xlsx') or f.endswith('.xls')]
     
-    Set MainSheet = ActiveSheet
+    if not file_list:
+        print("No Excel files found in the specified folder!")
+        return
+        
+    for file_name in file_list:
+        file_full_path = os.path.join(folder_path, file_name)
+        try:
+            # ஒவ்வொரு சப்-ஃபைலையும் படித்து டேட்டாவைச் சேகரித்தல்
+            df = pd.read_excel(file_full_path)
+            
+            # இங்கு உங்களுக்கான மாற்றங்களை ஸ்கேன் செய்யும் லாஜிக் செயல்படும்
+            # உதாரணத்திற்கு ஃபைல் பெயர் மற்றும் அதன் ரோ (Row) எண்ணிக்கையைச் சேர்த்தல்
+            report_data.append({
+                "FileName": file_name,
+                "TotalRows": len(df),
+                "Status": "Checked"
+            })
+        except Exception as e:
+            print(f"Error reading {file_name}: {e}")
+            
+    # ரிப்போர்ட்டை மெயின் ஃபைலுக்கு அனுப்புதல் / சேமித்தல்
+    report_df = pd.DataFrame(report_data)
     
-    FolderPath = "C:\MyFiles\SubFiles\"
-    
-    FileName = Dir(FolderPath & "*.xlsx")
-    
-    If FileName = "" Then
-        MsgBox "No Excel files found in the specified folder!", vbCritical
-        Exit Sub
-    End If
-    
-    MsgBox "Scanning 100 files started...", vbInformation, "Scanning Started"
-    
-    Do While FileName <> ""
-        FileName = Dir
-    Loop
-    
-    MsgBox "Scanning finished! Report is ready in Main File.", vbInformation, "Success"
-    
-    Application.CutCopyMode = False
-    Application.ScreenUpdating = True
-End Sub
+    try:
+        report_df.to_excel(main_file_path, index=False)
+        print("Scanning finished! Report is successfully ready in Main File.")
+    except Exception as e:
+        print(f"Error saving to Main File: {e}")
+
+if __name__ == "__main__":
+    scan_excel_files()
+
 
