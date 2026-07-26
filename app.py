@@ -1135,74 +1135,23 @@ if st.session_state.generated_output:
 
 
 
-
-import streamlit as st
-import os
-import glob
-import ast
-
-st.markdown("---")
-st.subheader("🛡️ Guardian Master Enterprise Deep Line Inspector & Intelligence Engine")
-
-def run_master_chain_audit():
-    """Gathers reports from all sub-files and the main file to pinpoint exact line errors."""
-    py_files = sorted(glob.glob("*.py"))
-    master_report = "=== MASTER 50/60-FILE DEEP LINE AUDIT REPORT ===\n\n"
-    master_report += f"📊 Total Files Mapped in Workspace : {len(py_files)}\n"
-    master_report += "-" * 75 + "\n"
+Sub ScanAndReport()
+    Dim wsMain As Worksheet
+    Dim lastRow As Long
+    Dim rng As Range
     
-    total_errors_found = 0
+    ' மெயின் ஷீட்டின் பெயரை இங்கு குறிப்பிடவும்
+    Set wsMain = ThisWorkbook.Sheets("Sheet1")
     
-    for idx, file_path in enumerate(py_files, start=1):
-        file_name = os.path.basename(file_path)
-        file_status = "Clean & Healthy ✅"
-        line_count = 0
-        error_msg = "None"
-        
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-                lines = content.splitlines()
-                line_count = len(lines)
-                
-            # Check for syntax or structural problems in each file
-            ast.parse(content)
-            
-        except SyntaxError as se:
-            file_status = "Syntax Error Found ❌"
-            error_msg = f"Line {se.lineno}: {se.msg} (Text: {se.text.strip() if se.text else 'N/A'})"
-            total_errors_found += 1
-        except Exception as e:
-            file_status = "Error / Broken ❌"
-            error_msg = str(e)
-            total_errors_found += 1
-            
-        master_report += f"[{idx:02d}] File Name : {file_name}\n"
-        master_report += f"     - Total Lines : {line_count} lines\n"
-        master_report += f"     - Status      : {file_status}\n"
-        if file_status != "Clean & Healthy ✅":
-            master_report += f"     - ⚠️ Issue    : {error_msg}\n"
-        master_report += "\n"
-        
-    master_report += "-" * 75 + "\n"
-    master_report += f"🔍 **Diagnostic Summary:**\n"
-    master_report += f"     - Total Files Audited : {len(py_files)}\n"
-    master_report += f"     - Files with Errors   : {total_errors_found}\n"
-    if total_errors_found > 0:
-        master_report += f"     - Action Required     : Please check the flagged files above and fix the specific line errors.\n"
-    else:
-        master_report += f"     - Action Required     : All files are clear and running smoothly!\n"
-    master_report += "=" * 75 + "\n"
+    ' டேட்டாவை ஸ்கேன் செய்து ரிப்போர்ட் தயாரித்தல்
+    MsgBox "ஸ்கேனிங் தொடங்குகிறது...", vbInformation, "Scanning"
     
-    return master_report
+    ' உங்கள் தேவைக்ேற்ப ஃபார்முலா அல்லது லூப் (Loop) இங்கு செயல்படும்
+    ' டேட்டா கிடைத்தவுடன் ரிப்போர்ட் காட்டும்
+    
+    MsgBox "ஸ்கேனிங் முடிந்தது! ரிப்போர்ட் தயார்.", vbInformation, "Success"
+    
+    ' காப்பி செய்தவுடன் ஆட்டோமேட்டிக்காக கிளிப்போர்டை கிளியர் செய்ய அல்லது ரிஜெக்ட் செய்ய
+    Application.CutCopyMode = False
+End Sub
 
-# ரிப்போர்ட்டை உருவாக்குதல்
-final_audit_report = run_master_chain_audit()
-
-# Streamlit திரையில் காட்டுவது
-st.text_area("Master Deep Inspection Report:", final_audit_report, height=550)
-
-# காப்பி செய்யும் வசதி
-if st.button("Copy Master Audit Report"):
-    st.code(final_audit_report, language="text")
-    st.success("Master audit report copied successfully!")
