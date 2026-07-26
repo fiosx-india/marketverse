@@ -6,7 +6,7 @@ ta==0.11.0
 numpy>=1.26.4
 plotly>=5.24.1
 
-yfinance>=1.5.3
+yfinance==1.5.2
 requests>=2.32.3
 httpx>=0.28.1
 websockets>=15.0
