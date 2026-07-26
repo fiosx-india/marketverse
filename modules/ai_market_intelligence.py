@@ -41,21 +41,104 @@ class AIMarketIntelligence:
     # ==========================================
     # TECHNICAL AI
     # ==========================================
-
     def technical_analysis(self, df):
 
-        return {
-            "RSI": None,
-            "MACD": None,
-            "EMA20": None,
-            "EMA50": None,
-            "EMA200": None,
-            "VWAP": None,
-            "ATR": None,
-            "ADX": None,
-            "SUPERTREND": None,
-            "BOLLINGER": None,
-        }
+        if df is None or len(df) < 50:
+            return {
+                "RSI": None,
+                "MACD": None,
+                "EMA20": None,
+                "EMA50": None,
+                "EMA200": None,
+                "VWAP": None,
+                "ATR": None,
+                "ADX": None,
+                "SUPERTREND": None,
+                "BOLLINGER": None,
+            }
+
+        result = {}
+
+        try:
+            import pandas_ta as ta
+
+            # EMA
+            df["EMA20"] = ta.ema(df["Close"], length=20)
+            df["EMA50"] = ta.ema(df["Close"], length=50)
+            df["EMA200"] = ta.ema(df["Close"], length=200)
+
+            # RSI
+            df["RSI"] = ta.rsi(df["Close"], length=14)
+
+            # MACD
+            macd = ta.macd(df["Close"])
+            df["MACD"] = macd["MACD_12_26_9"]
+
+            # ATR
+            df["ATR"] = ta.atr(
+                df["High"],
+                df["Low"],
+                df["Close"],
+                length=14
+            )
+
+            # ADX
+            adx = ta.adx(
+                df["High"],
+                df["Low"],
+                df["Close"]
+            )
+
+            df["ADX"] = adx["ADX_14"]
+
+            # VWAP
+            df["VWAP"] = ta.vwap(
+                df["High"],
+                df["Low"],
+                df["Close"],
+                df["Volume"]
+            )
+
+            # Bollinger Bands
+            bb = ta.bbands(df["Close"])
+
+            # Supertrend
+            st = ta.supertrend(
+                df["High"],
+                df["Low"],
+                df["Close"]
+            )
+
+            result = {
+
+                "RSI": round(df["RSI"].iloc[-1], 2),
+
+                "MACD": round(df["MACD"].iloc[-1], 2),
+
+                "EMA20": round(df["EMA20"].iloc[-1], 2),
+
+                "EMA50": round(df["EMA50"].iloc[-1], 2),
+
+                "EMA200": round(df["EMA200"].iloc[-1], 2),
+
+                "VWAP": round(df["VWAP"].iloc[-1], 2),
+
+                "ATR": round(df["ATR"].iloc[-1], 2),
+
+                "ADX": round(df["ADX"].iloc[-1], 2),
+
+                "SUPERTREND": st.iloc[-1].to_dict(),
+
+                "BOLLINGER": bb.iloc[-1].to_dict(),
+            }
+
+        except Exception as e:
+
+            result = {
+                "ERROR": str(e)
+            }
+
+        return result
 
     # ==========================================
     # AI SIGNAL
