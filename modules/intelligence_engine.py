@@ -6,6 +6,7 @@ Version: 1.0
 import yfinance as yf
 import pandas as pd
 from modules.news_analysis import analyze_news, get_dummy_news
+from guardian.runtime_diagnostic import diagnostic
 import ta
 
 class IntelligenceEngine:
@@ -35,6 +36,24 @@ class IntelligenceEngine:
 
         live_symbol = self.get_live_symbol(symbol)
 
+
+        diagnostic.trace(
+            "Input Symbol",
+            symbol,
+            "IntelligenceEngine.fetch_market_data"
+        )
+
+        diagnostic.trace(
+            "Live Symbol",
+            live_symbol,
+            "IntelligenceEngine.fetch_market_data"
+        )
+
+        ok, message = diagnostic.validate_symbol(live_symbol)
+
+        if not ok:
+            print(message)
+
         try:
 
             stock = yf.Ticker(live_symbol)
@@ -52,7 +71,13 @@ class IntelligenceEngine:
             return df
 
         except Exception as e:
-
+            
+            diagnostic.error(
+                    __file__,
+                    "fetch_market_data",
+                    e
+            )
+            
             print(f"Market data error ({live_symbol}): {e}")
 
             return pd.DataFrame()
