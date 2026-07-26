@@ -131,28 +131,37 @@ if __name__ == "__main__":
 
 
 
-# --- SUB-FILE TELEMETRY COLLECTOR (இந்த கோடை 50 பைல்களின் இறுதியில் வைக்கவும்) ---
+
+# --- SUB-FILE DEEP LINE INSPECTOR (இதனை 50/60 சப்-பைல்களின் இறுதியில் வைக்கவும்) ---
 import os
 import ast
 
-def get_subfile_telemetry():
-    """Extracts functions, classes, and status of this specific file for the main app report."""
-    current_file = __file__ if '__file__' in locals() or '__file__' in globals() else "subfile.py"
-    file_info = {
+def inspect_subfile_lines():
+    """Scans lines of this specific file to find errors, syntax issues, or incorrect lines."""
+    current_file = __file__ if '__file__' in locals() or '__file__' in globals() else "sub_module.py"
+    analysis_result = {
         "filename": os.path.basename(current_file),
-        "size": os.path.getsize(current_file) if os.path.exists(current_file) else 0,
-        "functions": [],
-        "classes": [],
-        "status": "Healthy & Connected ✅"
+        "total_lines": 0,
+        "error_detected": False,
+        "error_details": "No errors found. All lines clean ✅"
     }
+    
     try:
-        with open(current_file, "r", encoding="utf-8") as f:
-            tree = ast.parse(f.read())
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                file_info["functions"].append(node.name)
-            elif isinstance(node, ast.ClassDef):
-                file_info["classes"].append(node.name)
+        if os.path.exists(current_file):
+            with open(current_file, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            
+            analysis_result["total_lines"] = len(lines)
+            code_content = "".join(lines)
+            
+            # AST parsing to catch syntax/line errors precisely
+            ast.parse(code_content)
+            
+    .except SyntaxError as se:
+        analysis_result["error_detected"] = True
+        analysis_result["error_details"] = f"Syntax Error at Line {se.lineno}: {se.text.strip() if se.text else str(se)}"
     except Exception as e:
-        file_info["status"] = f"Error: {str(e)}"
-    return file_info
+        analysis_result["error_detected"] = True
+        analysis_result["error_details"] = f"Error in file: {str(e)}"
+        
+    return analysis_result
