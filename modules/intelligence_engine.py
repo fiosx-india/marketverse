@@ -202,6 +202,17 @@ class IntelligenceEngine:
     # -------------------------------
     def run(self, symbol):
 
+        diagnostic.function(
+                __file__,
+                "run"
+            )
+
+            diagnostic.trace(
+                "Run Symbol",
+                symbol,
+                "IntelligenceEngine.run"
+            )
+
         df = self.fetch_market_data(symbol)
 
         market = self.technical_analysis(df)
