@@ -35,15 +35,25 @@ class IntelligenceEngine:
 
         live_symbol = self.get_live_symbol(symbol)
 
-        stock = yf.Ticker(live_symbol)
+        try:
 
-        df = stock.history(
-            period="6mo",
-            interval="1d"
-        )
+            stock = yf.Ticker(live_symbol)
 
-        return df
+            df = stock.history(
+                period="6mo",
+                interval="1d"
+            )
 
+            if df.empty:
+                return pd.DataFrame()
+
+            return df
+
+        except Exception as e:
+
+            print(f"Market data error ({live_symbol}): {e}")
+
+            return pd.DataFrame()
     # -------------------------------
     # Technical Analysis
     # -------------------------------
