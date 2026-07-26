@@ -20,7 +20,7 @@ FNO_STOCKS = [
 
     {"name": "Larsen & Toubro", "symbol": "LT.NS", "sector": "Infrastructure"},
     {"name": "Bharti Airtel", "symbol": "BHARTIARTL.NS", "sector": "Telecom"},
-    {"name": "Tata Motors", "symbol": "TATAMOTORS.NS", "sector": "Automobile"},
+    {"name": "Tata Motors Passenger Vehicles", "symbol": "TMPV.NS", "sector": "Automobile"},
     {"name": "Maruti Suzuki", "symbol": "MARUTI.NS", "sector": "Automobile"},
     {"name": "Mahindra & Mahindra", "symbol": "M&M.NS", "sector": "Automobile"},
     {"name": "Bajaj Auto", "symbol": "BAJAJ-AUTO.NS", "sector": "Automobile"},
