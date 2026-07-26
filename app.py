@@ -1135,82 +1135,70 @@ if st.session_state.generated_output:
 
 
 
-
-
 import os
 import pandas as pd
+import streamlit as st
 
-def process_all_files():
-    # 100 சப்-ஃபைல்கள் இருக்கும் ஃபோல்டர் பாத் (உங்கள் கணினிக்கு ஏற்ப மாற்றிக் கொள்ளவும்)
-    folder_path = r"C:\MyFiles\SubFiles\\"
-    
-    # மெயின் ஃபைல் சேமிக்கப்படும் பாத்
-    main_file_path = r"C:\MyFiles\MainFile.xlsx"
-    
+# டூப்ளிகேட் மற்றும் டேஷ்போர்டு அமைப்பு
+st.title("Excel Files Scanner & Main Report Dashboard")
+st.write("100 சப்-ஃபைல்களை ஸ்கேன் செய்து மெயின் ஃபைலுடன் இணைக்கும் ஆஃப்லைன் டேஷ்போர்டு")
+
+# ஃபோல்டர் மற்றும் மெயின் ஃபைல் பாத் உள்ளீடுகள்
+folder_path = st.text_input("Enter Sub-Files Folder Path:", r"C:\MyFiles\SubFiles\\")
+main_file_path = st.text_input("Enter Main File Path:", r"C:\MyFiles\MainFile.xlsx")
+
+# பட்டன் ஆப்ஷன் (Button Option)
+if st.button("Start Scanning & Generate Report"):
     if not os.path.exists(folder_path):
-        print("Error: Sub-files folder path not found!")
-        return
+        st.error("Error: Sub-files folder path not found!")
+    else:
+        file_list = [f for f in os.listdir(folder_path) if f.endswith('.xlsx') or f.endswith('.xls')]
         
-    file_list = [f for f in os.listdir(folder_path) if f.endswith('.xlsx') or f.endswith('.xls')]
-    
-    if not file_list:
-        print("No Excel files found in the specified folder!")
-        return
-        
-    print("Scanning 100 files and copying data...")
-    
-    all_data = []
-    report_list = []
-    
-    # 100 ஃபைல்களையும் ஒன் பை ஒன் ஆக ஸ்கேன் செய்தல்
-    for file_name in file_list:
-        file_full_path = os.path.join(folder_path, file_name)
-        try:
-            # சப்-ஃபைலில் உள்ள டேட்டாவை காப்பி செய்தல் (Read)
-            df = pd.read_excel(file_full_path)
-            
-            # எந்த ஃபைலில் இருந்து டேட்டா வருகிறது என்பதை இணைத்தல்
-            df['Source_File'] = file_name
-            all_data.append(df)
-            
-            # வெற்றிகரமாக காப்பி ஆனதற்கான ரிப்போர்ட் பதிவு
-            report_list.append({
-                "File_Name": file_name,
-                "Status": "Success",
-                "Rows_Copied": len(df),
-                "Error_Details": "None"
-            })
-            
-        except Exception as e:
-            # ஏதேனும் ஃபைலில் பிழை இருந்தால் ரிப்போர்ட்டில் பதிவிடுதல்
-            report_list.append({
-                "File_Name": file_name,
-                "Status": "Failed",
-                "Rows_Copied": 0,
-                "Error_Details": str(e)
-            })
-            
-    # அனைத்து டேட்டாவையும் மெயின் ஃபைலுக்கு அனுப்புதல் (Copy & Paste to Main File)
-    if all_data:
-        combined_df = pd.concat(all_data, ignore_index=True)
-        
-        # ரிப்போர்ட்டையும் சேர்த்து மெயின் ஃபைலில் ஷீட்டாகவோ அல்லது ஒட்டுமொத்தமாகவோ பதிவிடுதல்
-        try:
-            combined_df.to_excel(main_file_path, index=False)
-            print("\n--- SCANNING & REPORT GENERATED SUCCESSFULLY ---")
-            print(f"Total files processed: {len(file_list)}")
-            print(f"Data successfully copied and updated in Main File: {main_file_path}")
-        except Exception as e:
-            print(f"Error saving to Main File: {e}")
-            
-    # பிழை விவரங்கள் இருந்தால் ஸ்கிரீனில் காட்டுதல்
-    report_df = pd.DataFrame(report_list)
-    print("\n--- DETAILED REPORT FOR ALL FILES ---")
-    print(report_df)
-    
-    # நினைவகத்தை உடனே க்ளியர் செய்தல் (இன்டர்நெட் குப்பைகள் சேராது)
-    del all_data
-    del combined_df
-
-if __name__ == "__main__":
-    process_all_files()
+        if not file_list:
+            st.warning("No Excel files found in the specified folder!")
+        else:
+            with st.spinner("Scanning 100 files and copying data..."):
+                all_data = []
+                report_list = []
+                
+                for file_name in file_list:
+                    file_full_path = os.path.join(folder_path, file_name)
+                    try:
+                        df = pd.read_excel(file_full_path)
+                        df['Source_File'] = file_name
+                        all_data.append(df)
+                        
+                        report_list.append({
+                            "File_Name": file_name,
+                            "Status": "Success",
+                            "Rows_Copied": len(df),
+                            "Error_Details": "None"
+                        })
+                    except Exception as e:
+                        report_list.append({
+                            "File_Name": file_name,
+                            "Status": "Failed",
+                            "Rows_Copied": 0,
+                            "Error_Details": str(e)
+                        })
+                
+                if all_data:
+                    combined_df = pd.concat(all_data, ignore_index=True)
+                    try:
+                        combined_df.to_excel(main_file_path, index=False)
+                        st.success("Scanning finished! Data successfully updated in Main File.")
+                    except Exception as e:
+                        st.error(f"Error saving to Main File: {e}")
+                
+                # டேஷ்போர்டில் ரிப்போர்ட்டை அட்டவணையாகக் காட்டுதல்
+                report_df = pd.DataFrame(report_list)
+                st.subheader("Detailed Report Dashboard")
+                st.dataframe(report_df)
+                
+                # சுருக்கமான விவரங்கள்
+                success_count = len(report_df[report_df['Status'] == 'Success'])
+                failed_count = len(report_df[report_df['Status'] == 'Failed'])
+                
+                col1, col2 = st.columns(2)
+                col1.metric("Total Successful Files", success_count)
+                col2.metric("Total Failed Files", failed_count)
