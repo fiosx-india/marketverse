@@ -227,14 +227,68 @@ class AIMarketIntelligence:
     # ==========================================
     # TREND ANALYSIS
     # ==========================================
-    def trend_analysis(self):
+    def trend_analysis(self, df):
 
-        return {
-            "SHORT_TERM": None,
-            "MEDIUM_TERM": None,
-            "LONG_TERM": None,
-        }
+        if df is None or len(df) < 200:
+            return {
+                "SHORT_TERM": None,
+                "MEDIUM_TERM": None,
+                "LONG_TERM": None,
+                "TREND": None,
+                "GOLDEN_CROSS": False,
+                "DEATH_CROSS": False,
+            }
 
+        try:
+            import pandas_ta as ta
+
+            df["EMA20"] = ta.ema(df["Close"], length=20)
+            df["EMA50"] = ta.ema(df["Close"], length=50)
+            df["EMA200"] = ta.ema(df["Close"], length=200)
+
+            close = df["Close"].iloc[-1]
+            ema20 = df["EMA20"].iloc[-1]
+            ema50 = df["EMA50"].iloc[-1]
+            ema200 = df["EMA200"].iloc[-1]
+
+            short_term = "UP" if close > ema20 else "DOWN"
+            medium_term = "UP" if ema20 > ema50 else "DOWN"
+            long_term = "UP" if ema50 > ema200 else "DOWN"
+
+            if short_term == medium_term == long_term == "UP":
+                trend = "STRONG_BULLISH"
+            elif short_term == medium_term == long_term == "DOWN":
+                trend = "STRONG_BEARISH"
+            else:
+                trend = "SIDEWAYS"
+
+            golden_cross = (
+                df["EMA50"].iloc[-2] < df["EMA200"].iloc[-2]
+                and ema50 > ema200
+            )
+
+            death_cross = (
+                df["EMA50"].iloc[-2] > df["EMA200"].iloc[-2]
+                and ema50 < ema200
+            )
+
+            return {
+                "SHORT_TERM": short_term,
+                "MEDIUM_TERM": medium_term,
+                "LONG_TERM": long_term,
+                "TREND": trend,
+                "GOLDEN_CROSS": golden_cross,
+                "DEATH_CROSS": death_cross,
+                "EMA20": round(ema20, 2),
+                "EMA50": round(ema50, 2),
+                "EMA200": round(ema200, 2),
+            }
+
+        except Exception as e:
+
+            return {
+                "ERROR": str(e)
+            }
 
     # ==========================================
     # VOLUME ANALYSIS
