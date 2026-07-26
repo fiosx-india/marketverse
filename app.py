@@ -1138,6 +1138,7 @@ if st.session_state.generated_output:
 
 
 
+
 Sub ScanAll100Files()
     Dim MainSheet As Worksheet
     Dim FolderPath As String
@@ -1145,7 +1146,6 @@ Sub ScanAll100Files()
     
     Set MainSheet = ActiveSheet
     
-    ' உங்கள் 100 பைல்கள் இருக்கும் ஃபோல்டர் பாத்தை (Path) சரியாக மாற்றிக் கொள்ளவும்
     FolderPath = "C:\MyFiles\SubFiles\"
     
     FileName = Dir(FolderPath & "*.xlsx")
@@ -1155,20 +1155,14 @@ Sub ScanAll100Files()
         Exit Sub
     End If
     
-    ' ஸ்கேனிங் தொடக்கம்
     MsgBox "Scanning 100 files started...", vbInformation, "Scanning Started"
     
-    ' 100 பைல்களையும் வரிசையாக ஸ்கேன் செய்யும் லூப்
     Do While FileName <> ""
-        ' இங்கு ஒவ்வொரு பைலாக திறந்து அல்லது இணைத்து டேட்டா படிக்கப்படும்
-        
-        ' அடுத்த பைலுக்கு செல்வதற்கான கட்டளை
         FileName = Dir
     Loop
     
     MsgBox "Scanning finished! Report is ready in Main File.", vbInformation, "Success"
     
-    ' நினைவகத்தை கிளியர் செய்ய
     Application.CutCopyMode = False
     Application.ScreenUpdating = True
 End Sub
