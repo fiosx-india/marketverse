@@ -1,18 +1,24 @@
 import yfinance as yf
-
+import time
 
 def get_market_data(symbol):
     """
     Returns OHLC DataFrame for analysis.
     """
     try:
-        df = yf.download(
-            symbol,
-            period="3mo",
-            interval="1d",
-            auto_adjust=True,
-            progress=False
-        )
+        for attempt in range(3):
+            df = yf.download(
+                symbol,
+                period="3mo",
+                interval="1d",
+                auto_adjust=True,
+                progress=False
+            )
+
+            if not df.empty:
+                break
+
+            time.sleep(1)
 
         if df.empty:
             return None
