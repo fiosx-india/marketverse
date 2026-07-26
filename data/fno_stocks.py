@@ -105,39 +105,34 @@ def get_all_sectors():
 
 
 
+
 import os
 import pandas as pd
 
-def send_current_file_to_main():
-    # தற்போதைய சப்-ஃபைலின் பெயர் (உங்கள் ஃபைலின் பெயருக்கு ஏற்ப இதை மாற்றவும்)
-    current_file_name = "sub_file_1.xlsx" 
+def send_to_main():
+    # உங்கள் சப்-ஃபைலின் சரியான பெயர் (எ.கா: file1.xlsx)
+    current_file_name = "file1.xlsx" 
     
     # மெயின் ஃபைல் இருக்கும் சரியான பாத்
     main_file_path = r"C:\MyFiles\MainFile.xlsx"
     
-    try:
-        # சப்-ஃபைல் டேட்டாவைப் படித்தல்
-        if os.path.exists(current_file_name):
-            df = pd.read_excel(current_file_name)
-            df['Source_File'] = current_file_name
-            
-            # மெயின் ஃபைல் ஏற்கனவே இருந்தால் அதனுடன் இணைத்தல்
-            if os.path.exists(main_file_path):
-                main_df = pd.read_excel(main_file_path)
-                combined_df = pd.concat([main_df, df], ignore_index=True)
-            else:
-                combined_df = df
-                
-            # மெயின் ஃபைலில் சேமித்தல்
-            combined_df.to_excel(main_file_path, index=False)
-            print(f"Success: {current_file_name} data sent to Main File.")
+    if os.path.exists(current_file_name):
+        # சப்-ஃபைலைப் படித்தல்
+        df = pd.read_excel(current_file_name)
+        df['Source_File'] = current_file_name
+        
+        # மெயின் ஃபைலுடன் இணைத்தல்
+        if os.path.exists(main_file_path):
+            main_df = pd.read_excel(main_file_path)
+            combined_df = pd.concat([main_df, df], ignore_index=True)
         else:
-            print(f"Error: {current_file_name} not found!")
+            combined_df = df
             
-    except Exception as e:
-        print(f"Error processing file: {e}")
+        # மெயின் ஃபைலில் சேமித்தல்
+        combined_df.to_excel(main_file_path, index=False)
+        print("Success: Data sent to Main File successfully!")
+    else:
+        print(f"Error: {current_file_name} was not found in this folder.")
 
 if __name__ == "__main__":
-    send_current_file_to_main()
-
-
+    send_to_main()
