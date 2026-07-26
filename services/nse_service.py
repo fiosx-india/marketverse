@@ -41,20 +41,24 @@ class NSEService:
     def __init__(self):
 
         self.session = requests.Session()
-
         self.session.headers.update(HEADERS)
 
-        self._initialize()
+        self._initialized = False
 
     def _initialize(self):
         """
-        Create NSE session
+        Create NSE session only once.
         """
+
+        if self._initialized:
+            return
 
         self.session.get(
             self.BASE_URL,
             timeout=10
         )
+
+        self._initialized = True
 
     def get_fno_symbols(self):
         """
@@ -67,34 +71,39 @@ class NSEService:
         ]
         """
 
-        response = self.session.get(
-            self.FNO_API,
-            timeout=20
-        )
+        try:
 
-        response.raise_for_status()
+            self._initialize()
 
-        data = response.json()
+            response = self.session.get(
+                self.FNO_API,
+                timeout=60
+            )
 
-        symbols = []
+            response.raise_for_status()
 
-        for row in data.get("data", []):
+            data = response.json()
 
-            symbol = row.get("symbol")
+            symbols = []
 
-            if symbol:
-                symbols.append(symbol + ".NS")
+            for row in data.get("data", []):
 
-        return sorted(list(set(symbols)))
+                symbol = row.get("symbol")
+
+                if symbol:
+                    symbols.append(symbol + ".NS")
+
+            return sorted(list(set(symbols)))
+
+        except requests.exceptions.RequestException:
+
+            return []
 
     def is_connected(self):
 
         try:
 
-            self.session.get(
-                self.BASE_URL,
-                timeout=5
-            )
+            self._initialize()
 
             return True
 
@@ -118,12 +127,35 @@ class NSEService:
         return False
 
 
-# Singleton
+# ============================================================
+# Lazy Singleton
+# ============================================================
 
-nse = NSEService()
+_nse = None
 
+
+def get_nse():
+    """
+    Returns singleton NSEService.
+    Creates it only when required.
+    """
+
+    global _nse
+
+    if _nse is None:
+
+        _nse = NSEService()
+
+    return _nse
+
+
+# ============================================================
+# Standalone Test
+# ============================================================
 
 if __name__ == "__main__":
+
+    nse = get_nse()
 
     print("=" * 50)
 
@@ -133,6 +165,12 @@ if __name__ == "__main__":
 
     stocks = nse.get_fno_symbols()
 
-    print("Total F&O :", len(stocks))
+    if stocks:
 
-    print(stocks[:20])
+        print("Total F&O :", len(stocks))
+
+        print(stocks[:20])
+
+    else:
+
+        print("Unable to fetch F&O symbols.")
