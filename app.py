@@ -1135,85 +1135,76 @@ if st.session_state.generated_output:
 
 
 
+
 import streamlit as st
 import os
 import glob
 import importlib.util
 
 st.markdown("---")
-st.subheader("🛡️ Guardian 50-File Enterprise Cascading Intelligence & Governance Engine")
+st.subheader("🛡️ Guardian Master Enterprise Deep Line Inspector & Intelligence Engine")
 
-def gather_all_50_files_telemetry():
-    """Scans and gathers telemetry from all connected Python files in the workspace."""
+def run_master_chain_audit():
+    """Gathers reports from all sub-files and the main file to pinpoint exact line errors."""
     py_files = sorted(glob.glob("*.py"))
-    master_report_data = []
+    master_report = "=== MASTER 50/60-FILE DEEP LINE AUDIT REPORT ===\n\n"
+    master_report += f"📊 Total Files Mapped in Workspace : {len(py_files)}\n"
+    master_report += "-" * 75 + "\n"
     
-    for file_path in py_files:
+    total_errors_found = 0
+    
+    for idx, file_path in enumerate(py_files, start=1):
         file_name = os.path.basename(file_path)
-        file_data = {
-            "filename": file_name,
-            "size": os.path.getsize(file_path),
-            "functions_count": 0,
-            "classes_count": 0,
-            "connection_status": "Active & Linked ✅"
-        }
+        file_status = "Clean & Healthy ✅"
+        line_count = 0
+        error_msg = "None"
         
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
-            
-            # Simple AST parsing to inspect file contents without executing unsafe code
-            import ast
-            tree = ast.parse(content)
-            funcs = [n.name for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)]
-            classes = [n.name for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
-            
-            file_data["functions_count"] = len(funcs)
-            file_data["classes_count"] = len(classes)
-            
-            # Check if it contains the subfile telemetry method or has syntax validity
-            if "get_subfile_telemetry" in content or len(funcs) > 0:
-                file_data["connection_status"] = "Integrated Successfully 🟢"
-            else:
-                file_data["connection_status"] = "Warning: Low Integration 🟡"
+                lines = content.splitlines()
+                line_count = len(lines)
                 
-        except Exception as e:
-            file_data["connection_status"] = f"Error / Broken ❌: {str(e)}"
+            # Check for syntax or structural problems
+            import ast
+            ast.parse(content)
             
-        master_report_data.append(file_data)
+        except SyntaxError as se:
+            file_status = "Syntax Error Found ❌"
+            error_msg = f"Line {se.lineno}: {se.msg}"
+            total_errors_found += 1
+        except Exception as e:
+            file_status = "Error / Broken ❌"
+            error_msg = str(e)
+            total_errors_found += 1
+            
+        master_report += f"[{idx:02d}] File Name : {file_name}\n"
+        master_report += f"     - Total Lines : {line_count} lines\n"
+        master_report += f"     - Status      : {file_status}\n"
+        if file_status != "Clean & Healthy ✅":
+            master_report += f"     - ⚠️ Issue    : {error_msg}\n"
+        master_report += "\n"
         
-    return master_report_data
-
-def generate_master_governance_report():
-    files_info = gather_all_50_files_telemetry()
+    master_report += "-" * 75 + "\n"
+    master_report += f"🔍 **Diagnostic Summary:**\n"
+    master_report += f"     - Total Files Audited : {len(py_files)}\n"
+    master_report += f"     - Files with Errors   : {total_errors_found}\n"
+    if total_errors_found > 0:
+        master_report += f"     - Action Required     : Please check the flagged files above and fix the specific line errors.\n"
+    else:
+        master_report += f"     - Action Required     : All files are clear and running smoothly!\n"
+    master_report += "=" * 75 + "\n"
     
-    report = "=== ENTERPRISE 50-FILE CASCADING GOVERNANCE REPORT ===\n\n"
-    report += f"📊 Total Python Files Tracked in Workspace: {len(files_info)}\n"
-    report += "-" * 75 + "\n"
-    
-    for idx, info in enumerate(files_info, start=1):
-        report += f"[{idx:02d}] File Name : {info['filename']}\n"
-        report += f"     - File Size   : {info['size']} bytes\n"
-        report += f"     - Functions   : {info['functions_count']}\n"
-        report += f"     - Classes     : {info['classes_count']}\n"
-        report += f"     - Status      : {info['connection_status']}\n\n"
-        
-    report += "-" * 75 + "\n"
-    report += "🔍 **Diagnostic Summary:**\n"
-    report += "     - All 50 files scanned through cascading architecture.\n"
-    report += "     - Any broken links or syntax errors in sub-files are highlighted above with ❌ or 🟡.\n"
-    report += "     - Governance Status: FULLY SYNCHRONIZED & MONITORED ✅\n"
-    report += "=" * 75 + "\n"
-    
-    return report
+    return master_report
 
 # ரிப்போர்ட்டை உருவாக்குதல்
-master_report = generate_master_governance_report()
+final_audit_report = run_master_chain_audit()
 
-# Streamlit திரையில் காட்டுவது (எரர் வராதபடி பாதுகாப்பான முறையில்)
-st.text_area("Master 50-File Governance Intelligence Report:", master_report, height=500)
+# Streamlit திரையில் காட்டுவது
+st.text_area("Master Deep Inspection Report:", final_audit_report, height=550)
 
 # காப்பி செய்யும் வசதி
-if st.button("Copy Master Intelligence Report"):
-    st.code(master_report, language="text")
-    st.success("Master governance report copied successfully!")
+if st.button("Copy Master Audit Report"):
+    st.code(final_audit_report, language="text")
+    st.success("Master audit report copied successfully!")
+
