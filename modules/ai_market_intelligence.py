@@ -352,6 +352,63 @@ class AIMarketIntelligence:
                 "ERROR": str(e)
             }
 
+
+    # ==========================================
+    # VOLATILITY ANALYSIS
+    # ==========================================
+    def volatility_analysis(self, df):
+
+        if df is None or len(df) < 20:
+            return {
+                "ATR": None,
+                "VOLATILITY": None,
+                "BOLLINGER_WIDTH": None,
+                "VOLATILITY_LEVEL": None,
+            }
+
+        try:
+            import pandas_ta as ta
+            import numpy as np
+
+            # ATR
+            df["ATR"] = ta.atr(
+                df["High"],
+                df["Low"],
+                df["Close"],
+                length=14
+            )
+
+            # Historical Volatility
+            returns = np.log(df["Close"] / df["Close"].shift(1))
+            volatility = returns.std() * np.sqrt(252) * 100
+
+            # Bollinger Band Width
+            bb = ta.bbands(df["Close"], length=20)
+            upper = bb["BBU_20_2.0"].iloc[-1]
+            lower = bb["BBL_20_2.0"].iloc[-1]
+            middle = bb["BBM_20_2.0"].iloc[-1]
+
+            bb_width = ((upper - lower) / middle) * 100
+
+            if volatility < 20:
+                level = "LOW"
+            elif volatility < 40:
+                level = "MEDIUM"
+            else:
+                level = "HIGH"
+
+            return {
+                "ATR": round(df["ATR"].iloc[-1], 2),
+                "VOLATILITY": round(volatility, 2),
+                "BOLLINGER_WIDTH": round(bb_width, 2),
+                "VOLATILITY_LEVEL": level,
+            }
+
+        except Exception as e:
+            return {
+                "ERROR": str(e)
+            }
+
     # ==========================================
     # MOMENTUM ANALYSIS
     # ==========================================
