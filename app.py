@@ -1135,6 +1135,9 @@ if st.session_state.generated_output:
 
 
 
+
+
+
 Sub ScanAll100Files()
     Dim MainSheet As Worksheet
     Dim FolderPath As String
@@ -1148,24 +1151,25 @@ Sub ScanAll100Files()
     FileName = Dir(FolderPath & "*.xlsx")
     
     If FileName = "" Then
-        MsgBox "குறிப்பிட்ட ஃபோல்டரில் எக்செல் பைல்கள் எதுவும் இல்லை!", vbCritical
+        MsgBox "No Excel files found in the specified folder!", vbCritical
         Exit Sub
     End If
     
     ' ஸ்கேனிங் தொடக்கம்
-    MsgBox "100 பைல்களையும் ஸ்கேன் செய்யத் தொடங்குகிறது...", vbInformation, "Scanning Started"
+    MsgBox "Scanning 100 files started...", vbInformation, "Scanning Started"
     
     ' 100 பைல்களையும் வரிசையாக ஸ்கேன் செய்யும் லூப்
     Do While FileName <> ""
         ' இங்கு ஒவ்வொரு பைலாக திறந்து அல்லது இணைத்து டேட்டா படிக்கப்படும்
         
-        ' அடுத்த பைலுக்கு செல்வதற்கான கட்டளை (இது மிகவும் முக்கியம்)
+        ' அடுத்த பைலுக்கு செல்வதற்கான கட்டளை
         FileName = Dir
     Loop
     
-    MsgBox "ஸ்கேனிங் முடிந்தது! மெயின் பைலில் ரிப்போர்ட் தயாராக உள்ளது.", vbInformation, "Success"
+    MsgBox "Scanning finished! Report is ready in Main File.", vbInformation, "Success"
     
-    ' நினைவகத்தை கிளியர் செய்ய (இன்டர்நெட்/டெம்பரரி குப்பைகள் சேராது)
+    ' நினைவகத்தை கிளியர் செய்ய
     Application.CutCopyMode = False
     Application.ScreenUpdating = True
 End Sub
+
