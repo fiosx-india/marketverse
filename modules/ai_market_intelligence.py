@@ -472,17 +472,42 @@ class AIMarketIntelligence:
     # ==========================================
     # SUPPORT / RESISTANCE
     # ==========================================
-    def support_resistance(self):
+    def support_resistance(self, df):
 
-        return {
-            "SUPPORT_1": None,
-            "SUPPORT_2": None,
-            "RESISTANCE_1": None,
-            "RESISTANCE_2": None,
-            "PIVOT": None,
-        }
+        if df is None or len(df) < 2:
+            return {
+                "PIVOT": None,
+                "SUPPORT_1": None,
+                "SUPPORT_2": None,
+                "RESISTANCE_1": None,
+                "RESISTANCE_2": None,
+            }
 
+        try:
+            high = float(df["High"].iloc[-2])
+            low = float(df["Low"].iloc[-2])
+            close = float(df["Close"].iloc[-2])
 
+            pivot = (high + low + close) / 3
+
+            r1 = (2 * pivot) - low
+            s1 = (2 * pivot) - high
+
+            r2 = pivot + (high - low)
+            s2 = pivot - (high - low)
+
+            return {
+                "PIVOT": round(pivot, 2),
+                "SUPPORT_1": round(s1, 2),
+                "SUPPORT_2": round(s2, 2),
+                "RESISTANCE_1": round(r1, 2),
+                "RESISTANCE_2": round(r2, 2),
+            }
+
+        except Exception as e:
+            return {
+                "ERROR": str(e)
+            }
     # ==========================================
     # SECTOR ANALYSIS
     # ==========================================
@@ -636,7 +661,7 @@ class AIMarketIntelligence:
 
                 "momentum": self.momentum_analysis(dataframe),
 
-                "support_resistance": self.support_resistance(),
+                "support_resistance": self.support_resistance(dataframe),
 
                 "sector": self.sector_analysis(),
 
