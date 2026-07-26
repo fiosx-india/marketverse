@@ -58,6 +58,9 @@ class NSEService:
             timeout=10
         )
 
+        print("Connecting to NSE...")
+        print("Status Code:", response.status_code)
+        
         response.raise_for_status()
         self._initialized = True
 
@@ -111,7 +114,9 @@ class NSEService:
             return True
 
         except Exception as e:
-            print("NSE Connection Error:", e)
+            import traceback
+            traceback.print_exc()
+            print("NSE Connection Error:", repr(e))
             return False
 
     def retry_connection(
