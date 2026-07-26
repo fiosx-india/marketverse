@@ -425,10 +425,8 @@ class AIMarketIntelligence:
         try:
             import pandas_ta as ta
 
-            # Rate of Change
             df["ROC"] = ta.roc(df["Close"], length=14)
 
-            # Commodity Channel Index
             df["CCI"] = ta.cci(
                 df["High"],
                 df["Low"],
@@ -436,7 +434,6 @@ class AIMarketIntelligence:
                 length=20
             )
 
-            # Stochastic Oscillator
             stoch = ta.stoch(
                 df["High"],
                 df["Low"],
@@ -471,7 +468,6 @@ class AIMarketIntelligence:
             return {
                 "ERROR": str(e)
             }
-
 
     # ==========================================
     # SUPPORT / RESISTANCE
