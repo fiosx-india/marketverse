@@ -17,7 +17,7 @@ from modules.system_controller import SystemController
 from modules.portfolio import Portfolio
 from modules.intelligence_engine import IntelligenceEngine
 from guardian.runtime_diagnostic import diagnostic
-from modules.nse_service import get_nse
+from services.nse_service import get_nse
 
 import yfinance as yf
 import pandas as pd
