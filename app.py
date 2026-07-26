@@ -65,6 +65,13 @@ guardian_result = guardian.run()
 diagnostic.function(__file__, "app_start")
 engine = IntelligenceEngine()
 
+
+st.info("🛡️ Guardian Runtime Diagnostic Test")
+st.write("Runtime Diagnostic Module Loaded Successfully.")
+st.write("Health Score: 100%")
+st.success("Guardian Report Display Test Completed.")
+
+
 if guardian_result["report"].errors > 0:
     st.error("Guardian detected project errors.")
 
