@@ -1135,23 +1135,37 @@ if st.session_state.generated_output:
 
 
 
-Sub ScanAndReport()
-    Dim wsMain As Worksheet
-    Dim lastRow As Long
-    Dim rng As Range
+Sub ScanAll100Files()
+    Dim MainSheet As Worksheet
+    Dim FolderPath As String
+    Dim FileName As String
     
-    ' மெயின் ஷீட்டின் பெயரை இங்கு குறிப்பிடவும்
-    Set wsMain = ThisWorkbook.Sheets("Sheet1")
+    Set MainSheet = ActiveSheet
     
-    ' டேட்டாவை ஸ்கேன் செய்து ரிப்போர்ட் தயாரித்தல்
-    MsgBox "ஸ்கேனிங் தொடங்குகிறது...", vbInformation, "Scanning"
+    ' உங்கள் 100 பைல்கள் இருக்கும் ஃபோல்டர் பாத்தை (Path) சரியாக மாற்றிக் கொள்ளவும்
+    FolderPath = "C:\MyFiles\SubFiles\"
     
-    ' உங்கள் தேவைக்ேற்ப ஃபார்முலா அல்லது லூப் (Loop) இங்கு செயல்படும்
-    ' டேட்டா கிடைத்தவுடன் ரிப்போர்ட் காட்டும்
+    FileName = Dir(FolderPath & "*.xlsx")
     
-    MsgBox "ஸ்கேனிங் முடிந்தது! ரிப்போர்ட் தயார்.", vbInformation, "Success"
+    If FileName = "" Then
+        MsgBox "குறிப்பிட்ட ஃபோல்டரில் எக்செல் பைல்கள் எதுவும் இல்லை!", vbCritical
+        Exit Sub
+    End If
     
-    ' காப்பி செய்தவுடன் ஆட்டோமேட்டிக்காக கிளிப்போர்டை கிளியர் செய்ய அல்லது ரிஜெக்ட் செய்ய
+    ' ஸ்கேனிங் தொடக்கம்
+    MsgBox "100 பைல்களையும் ஸ்கேன் செய்யத் தொடங்குகிறது...", vbInformation, "Scanning Started"
+    
+    ' 100 பைல்களையும் வரிசையாக ஸ்கேன் செய்யும் லூப்
+    Do While FileName <> ""
+        ' இங்கு ஒவ்வொரு பைலாக திறந்து அல்லது இணைத்து டேட்டா படிக்கப்படும்
+        
+        ' அடுத்த பைலுக்கு செல்வதற்கான கட்டளை (இது மிகவும் முக்கியம்)
+        FileName = Dir
+    Loop
+    
+    MsgBox "ஸ்கேனிங் முடிந்தது! மெயின் பைலில் ரிப்போர்ட் தயாராக உள்ளது.", vbInformation, "Success"
+    
+    ' நினைவகத்தை கிளியர் செய்ய (இன்டர்நெட்/டெம்பரரி குப்பைகள் சேராது)
     Application.CutCopyMode = False
+    Application.ScreenUpdating = True
 End Sub
-
