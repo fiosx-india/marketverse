@@ -1135,6 +1135,7 @@ if st.session_state.generated_output:
 
 
 
+
 import os
 import pandas as pd
 import streamlit as st
@@ -1202,3 +1203,4 @@ if st.button("Start Scanning & Generate Report"):
                 col1, col2 = st.columns(2)
                 col1.metric("Total Successful Files", success_count)
                 col2.metric("Total Failed Files", failed_count)
+
