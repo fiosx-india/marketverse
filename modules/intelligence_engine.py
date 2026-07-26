@@ -197,42 +197,42 @@ class IntelligenceEngine:
 
         return signal
 
-# -------------------------------
-# Run Engine
-# -------------------------------
-def run(self, symbol):
+    # -------------------------------
+    # Run Engine
+    # -------------------------------
+    def run(self, symbol):
 
-    diagnostic.function(
-        __file__,
-        "run"
-    )
+        diagnostic.function(
+            __file__,
+            "run"
+        )
 
-    diagnostic.trace(
-        "Run Symbol",
-        symbol,
-        "IntelligenceEngine.run"
-    )
+        diagnostic.trace(
+            "Run Symbol",
+            symbol,
+            "IntelligenceEngine.run"
+        )
 
-    df = self.fetch_market_data(symbol)
+        df = self.fetch_market_data(symbol)
 
-    market = self.technical_analysis(df)
+        market = self.technical_analysis(df)
 
-    news = self.news_analysis(symbol)
+        news = self.news_analysis(symbol)
 
-    options = self.options_analysis(symbol)
+        options = self.options_analysis(symbol)
 
-    signal = self.ai_decision(market, news)
+        signal = self.ai_decision(market, news)
 
-    print("Market:", market)
-    print("News:", news)
-    print("Signal:", signal)
+        print("Market:", market)
+        print("News:", news)
+        print("Signal:", signal)
 
-    return {
-        "market": market,
-        "news": news,
-        "options": options,
-        "signal": signal,
-        "confidence": news["confidence"],
-        "volume_alert": self.volume_surveillance(df),
-        "volatility": self.volatility(df)
-    }
+        return {
+            "market": market,
+            "news": news,
+            "options": options,
+            "signal": signal,
+            "confidence": news["confidence"],
+            "volume_alert": self.volume_surveillance(df),
+            "volatility": self.volatility(df)
+        }
