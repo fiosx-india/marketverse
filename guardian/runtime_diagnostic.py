@@ -173,9 +173,12 @@ class RuntimeDiagnostic:
             technical.get("trend", "UNKNOWN")
         ).upper()
 
-        if trend == "UPTREND":
+        if trend == "STRONG_BULLISH":
             report["score"] += 20
-            report["checks"].append("Uptrend")
+            report["checks"].append("Strong Bullish Trend")
+
+        elif trend == "STRONG_BEARISH":
+            report["issues"].append("Strong Bearish Trend")
 
         elif trend == "DOWNTREND":
             report["issues"].append("Downtrend")
