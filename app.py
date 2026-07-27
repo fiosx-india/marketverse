@@ -33,6 +33,9 @@ from modules.market_scanner import (
 
 from data.fno_stocks import FNO_STOCKS
 from data.mcx_commodities import MCX_COMMODITIES
+from guardian_live_monitor import live_monitor
+
+live_monitor.ready("MarketVerse Startup")
 
 try:
     from project_check import ProjectChecker
