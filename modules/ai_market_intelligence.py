@@ -7,7 +7,7 @@ Version : 1.0
 
 from dataclasses import dataclass
 from datetime import datetime
-
+from guardian.runtime_diagnostic import diagnostic
 
 @dataclass
 class AISignal:
@@ -1049,4 +1049,24 @@ class AIMarketIntelligence:
             "alerts": self.smart_alerts(),
 
             "health": self.system_health(),
+            
         }
+
+        diagnostic.validate_signal(
+                symbol=symbol,
+                ai_signal=report["signal"].signal,
+                news={
+                    "sentiment": report["signal"].sentiment
+                },
+                technical={
+                    "trend": report["trend"]["TREND"]
+                },
+                prediction={
+                    "direction": report["prediction"]["TOMORROW"]
+                },
+                volume_alert=report["volume"]["VOLUME_SPIKE"]
+            )
+
+            return report
+
+
