@@ -1004,7 +1004,7 @@ class AIMarketIntelligence:
     # ==========================================
     def run(self, symbol, dataframe):
 
-        return {
+        report = {
 
             "market": self.market_status(),
 
