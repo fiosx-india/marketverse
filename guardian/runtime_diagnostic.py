@@ -133,6 +133,104 @@ class RuntimeDiagnostic:
         return True, "Valid"
 
     # -------------------------------------------------
+    # Signal Validation
+    # -------------------------------------------------
+    def validate_signal(
+        self,
+        symbol,
+        ai_signal,
+        news,
+        technical,
+        prediction=None,
+        volume_alert=False
+    ):
+        """
+        Validate AI signal against news, technicals,
+        prediction and volume.
+        """
+
+        report = {
+            "symbol": symbol,
+            "signal": ai_signal,
+            "status": "VERIFIED",
+            "score": 0,
+            "checks": [],
+            "issues": []
+        }
+
+        # News
+        sentiment = str(news.get("sentiment", "UNKNOWN")).upper()
+
+        if sentiment == "BULLISH":
+            report["score"] += 20
+            report["checks"].append("Bullish News")
+
+        elif sentiment == "BEARISH":
+            report["issues"].append("Bearish News")
+
+        # Trend
+        trend = str(
+            technical.get("trend", "UNKNOWN")
+        ).upper()
+
+        if trend == "UPTREND":
+            report["score"] += 20
+            report["checks"].append("Uptrend")
+
+        elif trend == "DOWNTREND":
+            report["issues"].append("Downtrend")
+
+        # Volume
+
+        if volume_alert:
+            report["score"] += 20
+            report["checks"].append("Volume Spike")
+
+        # Prediction
+
+        if prediction:
+
+            direction = str(
+                prediction.get("direction", "")
+            ).upper()
+
+            if direction == "UP":
+                report["score"] += 20
+                report["checks"].append("Prediction Up")
+
+            elif direction == "DOWN":
+                report["issues"].append("Prediction Down")
+
+        # AI Signal
+
+        if str(ai_signal).upper() == "BUY":
+            report["score"] += 20
+
+        elif str(ai_signal).upper() == "SELL":
+            report["score"] += 20
+
+        # Conflict Detection
+
+        if (
+            ai_signal == "BUY"
+            and sentiment == "BEARISH"
+        ):
+            report["status"] = "CONFLICT"
+
+        if (
+            ai_signal == "SELL"
+            and sentiment == "BULLISH"
+        ):
+            report["status"] = "CONFLICT"
+
+        if report["score"] < 60:
+            report["status"] = "WEAK"
+
+        self.signal_reports.append(report)
+
+        return report
+
+    # -------------------------------------------------
     # Root Cause
     # -------------------------------------------------
 
