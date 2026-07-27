@@ -140,89 +140,294 @@ class AIMarketIntelligence:
 
         return result
 
+
+
     # ==========================================
     # AI SIGNAL
     # ==========================================
+    def generate_signal(self, df):
 
-    def generate_signal(self):
+        tech = self.technical_analysis(df)
+        trend = self.trend_analysis(df)
+
+        signal = "HOLD"
+        confidence = 50
+        sentiment = "NEUTRAL"
+        risk = "MEDIUM"
+        recommendation = "WAIT"
+
+        try:
+
+            rsi = tech.get("RSI")
+            trend_name = trend.get("TREND")
+
+            if (
+                rsi is not None and
+                trend_name == "STRONG_BULLISH" and
+                rsi < 70
+            ):
+                signal = "BUY"
+                confidence = 90
+                sentiment = "BULLISH"
+                risk = "LOW"
+                recommendation = "BUY ON DIPS"
+
+            elif (
+                rsi is not None and
+                trend_name == "STRONG_BEARISH"
+            ):
+                signal = "SELL"
+                confidence = 90
+                sentiment = "BEARISH"
+                risk = "HIGH"
+                recommendation = "EXIT OR SHORT"
+
+        except Exception:
+            pass
 
         return AISignal(
-            signal="BUY",
-            confidence=95,
-            sentiment="BULLISH",
-            risk="LOW",
-            recommendation="BUY ON DIPS"
+            signal=signal,
+            confidence=confidence,
+            sentiment=sentiment,
+            risk=risk,
+            recommendation=recommendation,
         )
 
     # ==========================================
     # SMART TRACKING
     # ==========================================
+    def tracking(self, df):
 
-    def tracking(self):
+        if df is None or len(df) < 20:
+            return {
+                "BREAKOUT": False,
+                "BREAKDOWN": False,
+                "GAPUP": False,
+                "GAPDOWN": False,
+                "HIGH_VOLUME": False,
+                "UNUSUAL_MOVE": False,
+            }
 
-        return {
-            "BREAKOUT": False,
-            "BREAKDOWN": False,
-            "GAPUP": False,
-            "GAPDOWN": False,
-            "HIGH_VOLUME": False,
-            "UNUSUAL_MOVE": False,
-        }
+        try:
+            current_close = float(df["Close"].iloc[-1])
+            previous_close = float(df["Close"].iloc[-2])
+
+            current_high = float(df["High"].iloc[-1])
+            current_low = float(df["Low"].iloc[-1])
+
+            previous_high = float(df["High"].iloc[-2])
+            previous_low = float(df["Low"].iloc[-2])
+
+            current_open = float(df["Open"].iloc[-1])
+
+            current_volume = float(df["Volume"].iloc[-1])
+            average_volume = float(
+                df["Volume"].rolling(20).mean().iloc[-1]
+            )
+
+            breakout = current_close > previous_high
+            breakdown = current_close < previous_low
+
+            gapup = current_open > previous_high
+            gapdown = current_open < previous_low
+
+            high_volume = (
+                current_volume > (average_volume * 2)
+                if average_volume > 0
+                else False
+            )
+
+            change_percent = abs(
+                ((current_close - previous_close) / previous_close) * 100
+            )
+
+            unusual_move = change_percent >= 5
+
+            return {
+                "BREAKOUT": breakout,
+                "BREAKDOWN": breakdown,
+                "GAPUP": gapup,
+                "GAPDOWN": gapdown,
+                "HIGH_VOLUME": high_volume,
+                "UNUSUAL_MOVE": unusual_move,
+            }
+
+        except Exception as e:
+            return {
+                "ERROR": str(e)
+            }
 
     # ==========================================
     # NEWS AI
     # ==========================================
+    def news_monitor(
+            self,
+            sebi=None,
+            rbi=None,
+            nse=None,
+            mcx=None,
+            company=None,
+            global_news=None):
 
-    def news_monitor(self):
+        sebi = sebi if sebi is not None else []
+        rbi = rbi if rbi is not None else []
+        nse = nse if nse is not None else []
+        mcx = mcx if mcx is not None else []
+        company = company if company is not None else []
+        global_news = global_news if global_news is not None else []
+
+        total_news = (
+            len(sebi) +
+            len(rbi) +
+            len(nse) +
+            len(mcx) +
+            len(company) +
+            len(global_news)
+        )
+
+        if total_news >= 20:
+            sentiment = "HIGH_ACTIVITY"
+        elif total_news >= 10:
+            sentiment = "MODERATE_ACTIVITY"
+        else:
+            sentiment = "LOW_ACTIVITY"
 
         return {
-            "SEBI": [],
-            "RBI": [],
-            "NSE": [],
-            "MCX": [],
-            "COMPANY": [],
-            "GLOBAL": []
+            "SEBI": sebi,
+            "RBI": rbi,
+            "NSE": nse,
+            "MCX": mcx,
+            "COMPANY": company,
+            "GLOBAL": global_news,
+            "TOTAL_NEWS": total_news,
+            "NEWS_STATUS": sentiment,
         }
 
     # ==========================================
     # OPTIONS AI
     # ==========================================
+    def option_analysis(
+            self,
+            pcr=None,
+            oi=None,
+            max_pain=None,
+            iv=None,
+            gamma=None):
 
-    def option_analysis(self):
+        sentiment = "NEUTRAL"
+
+        if pcr is not None:
+            if pcr > 1.2:
+                sentiment = "BULLISH"
+            elif pcr < 0.8:
+                sentiment = "BEARISH"
 
         return {
-            "PCR": None,
-            "OI": None,
-            "MAX_PAIN": None,
-            "IV": None,
-            "GAMMA": None,
+            "PCR": pcr,
+            "OI": oi,
+            "MAX_PAIN": max_pain,
+            "IV": iv,
+            "GAMMA": gamma,
+            "SENTIMENT": sentiment,
         }
 
     # ==========================================
     # RISK
     # ==========================================
+    def risk_engine(self,
+                    entry=None,
+                    stoploss=None,
+                    target=None,
+                    capital=None,
+                    risk_percent=1.0):
 
-    def risk_engine(self):
+        if (
+            entry is None or
+            stoploss is None or
+            target is None
+        ):
+            return {
+                "STOPLOSS": stoploss,
+                "TARGET": target,
+                "RR_RATIO": None,
+                "POSITION_SIZE": None,
+                "RISK_AMOUNT": None,
+            }
+
+        risk = abs(entry - stoploss)
+        reward = abs(target - entry)
+
+        rr_ratio = round(
+            reward / risk, 2
+        ) if risk > 0 else None
+
+        risk_amount = (
+            capital * (risk_percent / 100)
+            if capital is not None
+            else None
+        )
+
+        position_size = (
+            int(risk_amount / risk)
+            if (
+                risk_amount is not None and
+                risk > 0
+            )
+            else None
+        )
 
         return {
-            "STOPLOSS": None,
-            "TARGET": None,
-            "RR_RATIO": None,
-            "POSITION_SIZE": None,
+            "STOPLOSS": round(stoploss, 2),
+            "TARGET": round(target, 2),
+            "RR_RATIO": rr_ratio,
+            "POSITION_SIZE": position_size,
+            "RISK_AMOUNT": (
+                round(risk_amount, 2)
+                if risk_amount is not None
+                else None
+            ),
         }
 
     # ==========================================
     # PREDICTION
     # ==========================================
+    def prediction(self, df):
 
-    def prediction(self):
+        if df is None or len(df) < 20:
+            return {
+                "INTRADAY": None,
+                "TOMORROW": None,
+                "WEEKLY": None,
+                "MONTHLY": None,
+            }
 
-        return {
-            "INTRADAY": None,
-            "TOMORROW": None,
-            "WEEKLY": None,
-            "MONTHLY": None,
-        }
+        try:
+
+            trend = self.trend_analysis(df)
+            momentum = self.momentum_analysis(df)
+
+            trend_name = trend.get("TREND")
+            score = momentum.get("MOMENTUM_SCORE", 0)
+
+            if trend_name == "STRONG_BULLISH" and score >= 70:
+                signal = "BULLISH"
+            elif trend_name == "STRONG_BEARISH":
+                signal = "BEARISH"
+            else:
+                signal = "SIDEWAYS"
+
+            return {
+                "INTRADAY": signal,
+                "TOMORROW": signal,
+                "WEEKLY": signal,
+                "MONTHLY": signal,
+                "CONFIDENCE": score,
+            }
+
+        except Exception as e:
+            return {
+                "ERROR": str(e)
+            }
         
     # ==========================================
     # TREND ANALYSIS
