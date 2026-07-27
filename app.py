@@ -82,7 +82,7 @@ try:
             if live_symbols:
                 print(f"Loaded {len(live_symbols)} NSE symbols")
 
-        else:
+      else: 
             live_monitor.warning("NSE Service", "Using Local F&O List")
             st.sidebar.warning("⚠️ NSE Offline - Using Local F&O List")
 
