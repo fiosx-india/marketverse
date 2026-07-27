@@ -197,12 +197,12 @@ class RuntimeDiagnostic:
                 prediction.get("direction", "")
             ).upper()
 
-        if direction == "BULLISH":
-            report["score"] += 20
-            report["checks"].append("Prediction Bullish")
+            if direction == "BULLISH":
+                report["score"] += 20
+                report["checks"].append("Prediction Bullish")
 
-        elif direction == "BEARISH":
-            report["issues"].append("Prediction Bearish")
+            elif direction == "BEARISH":
+                report["issues"].append("Prediction Bearish")
 
         # AI Signal
 
