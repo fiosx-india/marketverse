@@ -275,6 +275,7 @@ try:
 
     try:
         engine_result = engine.run(symbol)
+        live_monitor.ready("Intelligence Engine")
 
         # Default values
         market_results = []
@@ -297,6 +298,7 @@ try:
             st.rerun()
         
     except Exception as e:
+        live_monitor.error("Intelligence Engine", str(e))
         st.warning(f"Intelligence Engine: {e}")
         engine_result = {
             "signal": "N/A",
