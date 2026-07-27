@@ -324,6 +324,7 @@ class RuntimeDiagnostic:
             "events": len(self.events),
             "warnings": len(self.warnings),
             "errors": len(self.errors),
+            "signal_reports": len(self.signal_reports),
             "health": self.health_score()
 
         }
