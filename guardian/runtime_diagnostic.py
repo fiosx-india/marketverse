@@ -413,39 +413,40 @@ class RuntimeDiagnostic:
                 print("Function   :", item["function"])
                 print("Reason     :", item["reason"])
                 print("Suggestion :", item["suggestion"])
-                      
-                        print()
-                        print("=" * 70)
-                        print("SIGNAL VALIDATION REPORT")
-                        print("=" * 70)
 
-                        if not self.signal_reports:
+        print()
+        print("=" * 70)
+        print("SIGNAL VALIDATION REPORT")
+        print("=" * 70)
 
-                            print("No Signal Validation")
+        if not self.signal_reports:
 
-                        else:
+            print("No Signal Validation")
 
-                            for item in self.signal_reports:
+        else:
 
-                                print("-" * 60)
-                                print("Symbol :", item["symbol"])
-                                print("Signal :", item["signal"])
-                                print("Status :", item["status"])
-                                print("Score  :", item["score"])
+            for item in self.signal_reports:
 
-                                if item["checks"]:
+                print("-" * 60)
+                print("Symbol :", item["symbol"])
+                print("Signal :", item["signal"])
+                print("Status :", item["status"])
+                print("Score  :", item["score"])
 
-                                    print("Checks :")
+                if item["checks"]:
 
-                                    for check in item["checks"]:
-                                        print("  ✔", check)
+                    print("Checks :")
 
-                                if item["issues"]:
+                    for check in item["checks"]:
+                        print("  ✔", check)
 
-                                    print("Issues :")
+                if item["issues"]:
 
-                                    for issue in item["issues"]:
-                                        print("  ✘", issue)
+                    print("Issues :")
+
+                    for issue in item["issues"]:
+                        print("  ✘", issue)
+
 
         print()
         print("=" * 70)
