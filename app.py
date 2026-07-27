@@ -66,6 +66,7 @@ from guardian.controller import GuardianController
 
 guardian = GuardianController()
 guardian_result = guardian.run()
+live_monitor.ready("Guardian")
 diagnostic.function(__file__, "app_start")
 engine = IntelligenceEngine()
 
@@ -73,6 +74,9 @@ nse = get_nse()
 
 try:
     if nse.retry_connection():
+        live_monitor.ready("NSE Service")
+    else:
+        live_monitor.warning("NSE Service", "Using Local F&O Dat
 
         st.sidebar.success("✅ NSE Connected")
 
@@ -87,7 +91,7 @@ try:
         st.sidebar.warning("⚠️ NSE Offline - Using Local F&O List")
 
 except Exception as e:
-
+    live_monitor.error("NSE Service", str(e))
     print("NSE Error:", e)
 
     st.sidebar.success("✅ Local F&O Data Active")
