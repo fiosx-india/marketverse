@@ -332,6 +332,7 @@ try:
         ema20 = float(data["EMA_20"].iloc[-1])
 
 except Exception as e:
+    live_monitor.error("Market Data", str(e))
     st.error(f"Download Error : {e}")
     st.stop()
 
