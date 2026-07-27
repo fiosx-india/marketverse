@@ -78,6 +78,9 @@ class NSEService:
 
             self._initialize()
 
+        if not self._initialized:
+            return []
+
             response = self.session.get(
                 self.FNO_API,
                 timeout=60
@@ -108,15 +111,12 @@ class NSEService:
     def is_connected(self):
 
         try:
+            return bool(self._initialize())
 
-            self._initialize()
+        except requests.exceptions.RequestException:
+            return False
 
-            return True
-
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            print("NSE Connection Error:", repr(e))
+        except Exception:
             return False
 
     def retry_connection(
