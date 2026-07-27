@@ -264,9 +264,9 @@ symbol = st.session_state.get(
 # ==========================================
 # Download Data
 # ==========================================
-
 try:
     data = get_data(symbol)
+    live_monitor.ready("Market Data")
 
     try:
         engine_result = engine.run(symbol)
@@ -285,13 +285,15 @@ try:
             else:
                 market_results = scan_mcx()
 
+        live_monitor.ready("Market Scanner")
+
         buy_list = top_buy(market_results)
         sell_list = top_sell(market_results)
         volume_list = top_volume(market_results)
 
         if st.sidebar.button("🔄 Refresh Market"):
             st.rerun()
-        
+
     except Exception as e:
         live_monitor.error("Intelligence Engine", str(e))
         st.warning(f"Intelligence Engine: {e}")
@@ -310,7 +312,7 @@ try:
     macd = None
     macd_signal = None
     ema20 = None
-    
+
     if not data.empty and "Close" in data.columns:
         curr_price = float(data["Close"].iloc[-1])
 
