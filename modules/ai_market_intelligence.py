@@ -508,124 +508,289 @@ class AIMarketIntelligence:
             return {
                 "ERROR": str(e)
             }
+            
     # ==========================================
     # SECTOR ANALYSIS
     # ==========================================
-    def sector_analysis(self):
+    def sector_analysis(self, symbol=None):
 
-        return {
-            "SECTOR": None,
-            "SECTOR_STRENGTH": None,
-            "SECTOR_RANK": None,
-            "LEADER": None,
+        sectors = {
+            "RELIANCE": "ENERGY",
+            "ONGC": "ENERGY",
+            "IOC": "ENERGY",
+            "SBIN": "BANKING",
+            "HDFCBANK": "BANKING",
+            "ICICIBANK": "BANKING",
+            "AXISBANK": "BANKING",
+            "INFY": "IT",
+            "TCS": "IT",
+            "WIPRO": "IT",
+            "HCLTECH": "IT",
+            "SUNPHARMA": "PHARMA",
+            "DRREDDY": "PHARMA",
+            "CIPLA": "PHARMA",
+            "TATAMOTORS": "AUTO",
+            "MARUTI": "AUTO",
+            "M&M": "AUTO",
         }
 
+        sector = sectors.get(
+            symbol.upper(),
+            "UNKNOWN"
+        ) if symbol else "UNKNOWN"
+
+        return {
+            "SECTOR": sector,
+            "SECTOR_STRENGTH": "NEUTRAL",
+            "SECTOR_RANK": None,
+            "LEADER": symbol if symbol else None,
+        }
 
     # ==========================================
     # MARKET BREADTH
     # ==========================================
-    def market_breadth(self):
+    def market_breadth(self, advances=None, declines=None,
+                       new_highs=None, new_lows=None):
+
+        advances = advances if advances is not None else 0
+        declines = declines if declines is not None else 0
+        new_highs = new_highs if new_highs is not None else 0
+        new_lows = new_lows if new_lows is not None else 0
+
+        ratio = (
+            round(advances / declines, 2)
+            if declines > 0
+            else None
+        )
+
+        if ratio is None:
+            status = "UNKNOWN"
+        elif ratio >= 2:
+            status = "STRONG_BULLISH"
+        elif ratio >= 1:
+            status = "BULLISH"
+        elif ratio >= 0.5:
+            status = "BEARISH"
+        else:
+            status = "STRONG_BEARISH"
 
         return {
-            "ADVANCES": None,
-            "DECLINES": None,
-            "A_D_RATIO": None,
-            "NEW_HIGHS": None,
-            "NEW_LOWS": None,
+            "ADVANCES": advances,
+            "DECLINES": declines,
+            "A_D_RATIO": ratio,
+            "NEW_HIGHS": new_highs,
+            "NEW_LOWS": new_lows,
+            "MARKET_STATUS": status,
         }
-
 
     # ==========================================
     # INSTITUTIONAL ACTIVITY
     # ==========================================
-    def institutional_activity(self):
+    def institutional_activity(self, fii=None, dii=None):
+
+        fii = fii if fii is not None else 0.0
+        dii = dii if dii is not None else 0.0
+
+        net_flow = fii + dii
+
+        if net_flow > 1000:
+            sentiment = "STRONG_BULLISH"
+        elif net_flow > 0:
+            sentiment = "BULLISH"
+        elif net_flow < -1000:
+            sentiment = "STRONG_BEARISH"
+        elif net_flow < 0:
+            sentiment = "BEARISH"
+        else:
+            sentiment = "NEUTRAL"
 
         return {
-            "FII": None,
-            "DII": None,
-            "NET_FLOW": None,
+            "FII": round(fii, 2),
+            "DII": round(dii, 2),
+            "NET_FLOW": round(net_flow, 2),
+            "SENTIMENT": sentiment,
         }
-
 
     # ==========================================
     # ECONOMIC EVENTS
     # ==========================================
-    def economic_events(self):
+    def economic_events(self,
+                        rbi=None,
+                        sebi=None,
+                        fed=None,
+                        cpi=None,
+                        gdp=None):
 
         return {
-            "RBI": [],
-            "SEBI": [],
-            "FED": [],
-            "CPI": [],
-            "GDP": [],
+            "RBI": rbi if rbi is not None else [],
+            "SEBI": sebi if sebi is not None else [],
+            "FED": fed if fed is not None else [],
+            "CPI": cpi if cpi is not None else [],
+            "GDP": gdp if gdp is not None else [],
+            "EVENT_COUNT": (
+                len(rbi if rbi else []) +
+                len(sebi if sebi else []) +
+                len(fed if fed else []) +
+                len(cpi if cpi else []) +
+                len(gdp if gdp else [])
+            ),
         }
-
 
     # ==========================================
     # MARKET CORRELATION
     # ==========================================
-    def market_correlation(self):
+    def market_correlation(
+            self,
+            nifty=None,
+            banknifty=None,
+            usdinr=None,
+            gold=None,
+            crude=None):
 
         return {
-            "NIFTY": None,
-            "BANKNIFTY": None,
-            "USDINR": None,
-            "GOLD": None,
-            "CRUDE": None,
+            "NIFTY": nifty,
+            "BANKNIFTY": banknifty,
+            "USDINR": usdinr,
+            "GOLD": gold,
+            "CRUDE": crude,
+            "MARKET_SENTIMENT": (
+                "BULLISH"
+                if nifty is not None and nifty > 0
+                else "BEARISH"
+                if nifty is not None and nifty < 0
+                else "NEUTRAL"
+            ),
         }
-
 
     # ==========================================
     # LIQUIDITY ANALYSIS
     # ==========================================
-    def liquidity_analysis(self):
+    def liquidity_analysis(self, bid=None, ask=None):
+
+        if bid is None or ask is None:
+            return {
+                "BID": bid,
+                "ASK": ask,
+                "SPREAD": None,
+                "LIQUIDITY_SCORE": None,
+                "STATUS": "UNKNOWN",
+            }
+
+        spread = ask - bid
+
+        if spread <= 0.05:
+            score = 100
+            status = "EXCELLENT"
+        elif spread <= 0.20:
+            score = 80
+            status = "GOOD"
+        elif spread <= 0.50:
+            score = 60
+            status = "AVERAGE"
+        else:
+            score = 30
+            status = "LOW"
 
         return {
-            "BID": None,
-            "ASK": None,
-            "SPREAD": None,
-            "LIQUIDITY_SCORE": None,
+            "BID": round(bid, 2),
+            "ASK": round(ask, 2),
+            "SPREAD": round(spread, 2),
+            "LIQUIDITY_SCORE": score,
+            "STATUS": status,
         }
-
 
     # ==========================================
     # WATCHLIST
     # ==========================================
-    def watchlist_monitor(self):
+    def watchlist_monitor(self,
+                          watchlist=None,
+                          breakouts=None,
+                          alerts=None):
+
+        watchlist = watchlist if watchlist is not None else []
+        breakouts = breakouts if breakouts is not None else []
+        alerts = alerts if alerts is not None else []
 
         return {
-            "WATCHLIST": [],
-            "BREAKOUTS": [],
-            "ALERTS": [],
+            "WATCHLIST": watchlist,
+            "BREAKOUTS": breakouts,
+            "ALERTS": alerts,
+            "TOTAL_STOCKS": len(watchlist),
+            "TOTAL_BREAKOUTS": len(breakouts),
+            "TOTAL_ALERTS": len(alerts),
         }
-
 
     # ==========================================
     # SMART ALERTS
     # ==========================================
-    def smart_alerts(self):
+    def smart_alerts(
+            self,
+            buy=False,
+            sell=False,
+            breakout=False,
+            breakdown=False,
+            high_volume=False,
+            news_alert=False):
+
+        total_alerts = sum([
+            buy,
+            sell,
+            breakout,
+            breakdown,
+            high_volume,
+            news_alert
+        ])
+
+        if total_alerts >= 4:
+            priority = "CRITICAL"
+        elif total_alerts >= 2:
+            priority = "HIGH"
+        elif total_alerts == 1:
+            priority = "MEDIUM"
+        else:
+            priority = "LOW"
 
         return {
-            "BUY": False,
-            "SELL": False,
-            "BREAKOUT": False,
-            "BREAKDOWN": False,
-            "HIGH_VOLUME": False,
-            "NEWS_ALERT": False,
+            "BUY": buy,
+            "SELL": sell,
+            "BREAKOUT": breakout,
+            "BREAKDOWN": breakdown,
+            "HIGH_VOLUME": high_volume,
+            "NEWS_ALERT": news_alert,
+            "TOTAL_ALERTS": total_alerts,
+            "PRIORITY": priority,
         }
-
 
     # ==========================================
     # SYSTEM HEALTH
     # ==========================================
-    def system_health(self):
+    def system_health(
+            self,
+            data_feed=True,
+            nse=True,
+            mcx=True,
+            yfinance=True):
+
+        services = [data_feed, nse, mcx, yfinance]
+        healthy = sum(services)
+        score = int((healthy / len(services)) * 100)
+
+        if score == 100:
+            status = "EXCELLENT"
+        elif score >= 75:
+            status = "GOOD"
+        elif score >= 50:
+            status = "WARNING"
+        else:
+            status = "CRITICAL"
 
         return {
-            "STATUS": "OK",
-            "DATA_FEED": True,
-            "NSE": True,
-            "MCX": True,
-            "YFINANCE": True,
+            "STATUS": status,
+            "HEALTH_SCORE": score,
+            "DATA_FEED": data_feed,
+            "NSE": nse,
+            "MCX": mcx,
+            "YFINANCE": yfinance,
             "LAST_UPDATE": datetime.now(),
         }
 
