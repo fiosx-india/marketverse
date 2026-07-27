@@ -412,6 +412,39 @@ class RuntimeDiagnostic:
                 print("Function   :", item["function"])
                 print("Reason     :", item["reason"])
                 print("Suggestion :", item["suggestion"])
+                      
+                        print()
+                        print("=" * 70)
+                        print("SIGNAL VALIDATION REPORT")
+                        print("=" * 70)
+
+                        if not self.signal_reports:
+
+                            print("No Signal Validation")
+
+                        else:
+
+                            for item in self.signal_reports:
+
+                                print("-" * 60)
+                                print("Symbol :", item["symbol"])
+                                print("Signal :", item["signal"])
+                                print("Status :", item["status"])
+                                print("Score  :", item["score"])
+
+                                if item["checks"]:
+
+                                    print("Checks :")
+
+                                    for check in item["checks"]:
+                                        print("  ✔", check)
+
+                                if item["issues"]:
+
+                                    print("Issues :")
+
+                                    for issue in item["issues"]:
+                                        print("  ✘", issue)
 
         print()
         print("=" * 70)
@@ -424,6 +457,7 @@ class RuntimeDiagnostic:
         print("Warnings       :", summary["warnings"])
         print("Errors         :", summary["errors"])
         print("Health Score   :", f'{summary["health"]}%')
+        print("Signal Reports :", summary["signal_reports"])
 
         print("=" * 70)
 
