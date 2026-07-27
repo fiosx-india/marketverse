@@ -74,27 +74,22 @@ nse = get_nse()
 
 try:
     if nse.retry_connection():
-        live_monitor.ready("NSE Service")
-    else:
-        live_monitor.warning("NSE Service", "Using Local F&O Dat
+            live_monitor.ready("NSE Service")
+            st.sidebar.success("✅ NSE Connected")
 
-        st.sidebar.success("✅ NSE Connected")
+            live_symbols = nse.get_fno_symbols()
 
-        # Live NSE F&O list
-        live_symbols = nse.get_fno_symbols()
+            if live_symbols:
+                print(f"Loaded {len(live_symbols)} NSE symbols")
 
-        if live_symbols:
-            print(f"Loaded {len(live_symbols)} NSE symbols")
+        else:
+            live_monitor.warning("NSE Service", "Using Local F&O List")
+            st.sidebar.warning("⚠️ NSE Offline - Using Local F&O List")
 
-    else:
-
-        st.sidebar.warning("⚠️ NSE Offline - Using Local F&O List")
-
-except Exception as e:
-    live_monitor.error("NSE Service", str(e))
-    print("NSE Error:", e)
-
-    st.sidebar.success("✅ Local F&O Data Active")
+    except Exception as e:
+        live_monitor.error("NSE Service", str(e))
+        print("NSE Error:", e)
+        st.sidebar.success("✅ Local F&O Data Active")
 
 st.info("🛡️ Guardian Runtime Diagnostic Test")
 st.write("Runtime Diagnostic Module Loaded Successfully.")
