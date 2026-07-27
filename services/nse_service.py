@@ -61,9 +61,14 @@ class NSEService:
         print("Connecting to NSE...")
         print("Status Code:", response.status_code)
         
-        response.raise_for_status()
-        self._initialized = True
+        if response.status_code == 200:
+            self._initialized = True
+            return True
 
+        print(f"NSE unavailable (HTTP {response.status_code})")
+        self._initialized = False
+        return False
+        
     def get_fno_symbols(self):
         """
         Returns
