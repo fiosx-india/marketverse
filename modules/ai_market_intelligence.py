@@ -1067,6 +1067,6 @@ class AIMarketIntelligence:
                 volume_alert=report["volume"]["VOLUME_SPIKE"]
             )
 
-            return report
+       return report
 
 
