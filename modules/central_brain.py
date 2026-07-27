@@ -53,6 +53,11 @@ class CentralBrain:
         # AI Analysis
         result["ai"] = analyze(symbol)
 
+        result["ai_market_intelligence"] = self.ai_market.run(
+            symbol,
+            dataframe
+        )
+
         # News
         news = get_market_news(symbol)
         result["news"] = news
@@ -107,5 +112,10 @@ class CentralBrain:
         context.update("strategy", result["strategy"])
         context.update("risk", result["risk"])
         context.update("decision", result["decision"])
+        
+        context.update(
+            "ai_market_intelligence",
+            result["ai_market_intelligence"]
+        )
         
         return result
