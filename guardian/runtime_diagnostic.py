@@ -15,7 +15,8 @@ class RuntimeDiagnostic:
         self.events = []
         self.errors = []
         self.warnings = []
-
+        self.signal_reports = []
+              
     # -------------------------------------------------
     # Trace Variables
     # -------------------------------------------------
