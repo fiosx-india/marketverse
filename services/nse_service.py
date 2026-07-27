@@ -83,8 +83,8 @@ class NSEService:
 
             self._initialize()
 
-        if not self._initialized:
-            return []
+            if not self._initialized:
+                return []
 
             response = self.session.get(
                 self.FNO_API,
