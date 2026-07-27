@@ -1002,52 +1002,51 @@ class AIMarketIntelligence:
     # ==========================================
     # COMPLETE REPORT
     # ==========================================
-
     def run(self, symbol, dataframe):
 
         return {
 
-                "market": self.market_status(),
+            "market": self.market_status(),
 
-                "technical": self.technical_analysis(dataframe),
+            "technical": self.technical_analysis(dataframe),
 
-                "signal": self.generate_signal(),
+            "signal": self.generate_signal(dataframe),
 
-                "tracking": self.tracking(),
+            "tracking": self.tracking(dataframe),
 
-                "news": self.news_monitor(),
+            "news": self.news_monitor(),
 
-                "options": self.option_analysis(),
+            "options": self.option_analysis(),
 
-                "risk": self.risk_engine(),
+            "risk": self.risk_engine(),
 
-                "prediction": self.prediction(),
+            "prediction": self.prediction(dataframe),
 
-                "volume": self.volume_analysis(dataframe),
+            "volume": self.volume_analysis(dataframe),
 
-                "trend": self.trend_analysis(dataframe),
+            "trend": self.trend_analysis(dataframe),
 
-                "volatility": self.volatility_analysis(dataframe),
+            "volatility": self.volatility_analysis(dataframe),
 
-                "momentum": self.momentum_analysis(dataframe),
+            "momentum": self.momentum_analysis(dataframe),
 
-                "support_resistance": self.support_resistance(dataframe),
+            "support_resistance": self.support_resistance(dataframe),
 
-                "sector": self.sector_analysis(),
+            "sector": self.sector_analysis(symbol),
 
-                "market_breadth": self.market_breadth(),
+            "market_breadth": self.market_breadth(),
 
-                "institutional": self.institutional_activity(),
+            "institutional": self.institutional_activity(),
 
-                "economic": self.economic_events(),
+            "economic": self.economic_events(),
 
-                "correlation": self.market_correlation(),
+            "correlation": self.market_correlation(),
 
-                "liquidity": self.liquidity_analysis(),
+            "liquidity": self.liquidity_analysis(),
 
-                "watchlist": self.watchlist_monitor(),
+            "watchlist": self.watchlist_monitor(),
 
-                "alerts": self.smart_alerts(),
+            "alerts": self.smart_alerts(),
 
-                "health": self.system_health(),
+            "health": self.system_health(),
         }
