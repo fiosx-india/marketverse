@@ -1004,55 +1004,34 @@ class AIMarketIntelligence:
     # ==========================================
     def run(self, symbol, dataframe):
 
-        report = {
+            report = {
 
-            "market": self.market_status(),
+                "market": self.market_status(),
+                "technical": self.technical_analysis(dataframe),
+                "signal": self.generate_signal(dataframe),
+                "tracking": self.tracking(dataframe),
+                "news": self.news_monitor(),
+                "options": self.option_analysis(),
+                "risk": self.risk_engine(),
+                "prediction": self.prediction(dataframe),
+                "volume": self.volume_analysis(dataframe),
+                "trend": self.trend_analysis(dataframe),
+                "volatility": self.volatility_analysis(dataframe),
+                "momentum": self.momentum_analysis(dataframe),
+                "support_resistance": self.support_resistance(dataframe),
+                "sector": self.sector_analysis(symbol),
+                "market_breadth": self.market_breadth(),
+                "institutional": self.institutional_activity(),
+                "economic": self.economic_events(),
+                "correlation": self.market_correlation(),
+                "liquidity": self.liquidity_analysis(),
+                "watchlist": self.watchlist_monitor(),
+                "alerts": self.smart_alerts(),
+                "health": self.system_health(),
 
-            "technical": self.technical_analysis(dataframe),
+            }
 
-            "signal": self.generate_signal(dataframe),
-
-            "tracking": self.tracking(dataframe),
-
-            "news": self.news_monitor(),
-
-            "options": self.option_analysis(),
-
-            "risk": self.risk_engine(),
-
-            "prediction": self.prediction(dataframe),
-
-            "volume": self.volume_analysis(dataframe),
-
-            "trend": self.trend_analysis(dataframe),
-
-            "volatility": self.volatility_analysis(dataframe),
-
-            "momentum": self.momentum_analysis(dataframe),
-
-            "support_resistance": self.support_resistance(dataframe),
-
-            "sector": self.sector_analysis(symbol),
-
-            "market_breadth": self.market_breadth(),
-
-            "institutional": self.institutional_activity(),
-
-            "economic": self.economic_events(),
-
-            "correlation": self.market_correlation(),
-
-            "liquidity": self.liquidity_analysis(),
-
-            "watchlist": self.watchlist_monitor(),
-
-            "alerts": self.smart_alerts(),
-
-            "health": self.system_health(),
-            
-        }
-
-        diagnostic.validate_signal(
+            diagnostic.validate_signal(
                 symbol=symbol,
                 ai_signal=report["signal"].signal,
                 news={
@@ -1067,6 +1046,4 @@ class AIMarketIntelligence:
                 volume_alert=report["volume"]["VOLUME_SPIKE"]
             )
 
-       return report
-
-
+            return report
