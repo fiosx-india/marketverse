@@ -23,6 +23,9 @@ from modules.trade_executor import TradeExecutor
 from modules.performance_tracker import PerformanceTracker
 from modules.market_context import MarketContext
 from modules.market_scanner import scan_mcx
+from modules.ai_market_intelligence import AIMarketIntelligence
+from modules.market_data import get_market_data
+
 
 
 class CentralBrain:
@@ -33,11 +36,13 @@ class CentralBrain:
         self.executor = TradeExecutor()
         self.tracker = PerformanceTracker()
         self.decision = DecisionCore()
+        self.ai_market = AIMarketIntelligence()
 
     def think(self, symbol):
 
         result = {}
 
+        dataframe = get_market_data(symbol)
         context = MarketContext(symbol)
         # Market Scan
         result["scanner"] = {
