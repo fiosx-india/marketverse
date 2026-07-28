@@ -18,6 +18,7 @@ from modules.portfolio import Portfolio
 from modules.intelligence_engine import IntelligenceEngine
 from guardian.runtime_diagnostic import diagnostic
 from services.nse_service import get_nse
+from data.mw_securities_fno import FNO_STOCKS
 
 import yfinance as yf
 import pandas as pd
