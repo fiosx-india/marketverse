@@ -8,6 +8,7 @@ import pandas as pd
 from modules.news_analysis import analyze_news, get_dummy_news
 from guardian.runtime_diagnostic import diagnostic
 import ta
+import time
 
 class IntelligenceEngine:
 
