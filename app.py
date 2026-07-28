@@ -58,16 +58,19 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-/* Always show the sidebar toggle button */
-[data-testid="collapsedControl"]{
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    position: fixed !important;
-    top: 12px !important;
-    left: 12px !important;
-    z-index: 99999 !important;
+
+/* Sidebar width */
+section[data-testid="stSidebar"]{
+    min-width: 240px !important;
+    max-width: 240px !important;
 }
+
+/* Sidebar inner width */
+section[data-testid="stSidebar"] > div{
+    min-width: 240px !important;
+    max-width: 240px !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
