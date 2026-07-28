@@ -52,8 +52,24 @@ except Exception as e:
 st.set_page_config(
     page_title="MarketVerse AI v3.0 RC",
     page_icon="📈",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
+
+st.markdown("""
+<style>
+/* Always show the sidebar toggle button */
+[data-testid="collapsedControl"]{
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    z-index: 99999 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 st_autorefresh(
     interval=60000,   # 60 seconds
