@@ -7,7 +7,7 @@ Loads the local MW Securities F&O list.
 from pathlib import Path
 import pandas as pd
 
-CSV_FILE = Path(__file__).with_name("MW-SECURITIES-IN-F&O-03-Aug-2026.csv")
+CSV_FILE = Path(__file__).with_name("MW-SECURITIES-IN-F&O-05-Aug-2026.csv")
 
 
 def load_fno_stocks():
