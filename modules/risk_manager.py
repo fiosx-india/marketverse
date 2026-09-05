@@ -55,7 +55,6 @@ Shared MarketContext
 =========================================================
 """
 
-
 DEFAULT_CAPITAL = 100000
 DEFAULT_RISK_PERCENT = 2
 
@@ -73,44 +72,7 @@ def _safe_dict(value):
     return {}
 
 
-def _normalize_signal(signal):
-    """
-    Normalize supported signals.
-
-    Returns:
-    BUY / SELL / HOLD
-    """
-
-    if signal is None:
-        return "HOLD"
-
-    signal = str(signal).upper()
-
-    if signal in (
-        "BUY",
-        "STRONG BUY",
-        "BULLISH",
-        "VERY BULLISH",
-        "UP"
-    ):
-        return "BUY"
-
-    if signal in (
-        "SELL",
-        "STRONG SELL",
-        "BEARISH",
-        "VERY BEARISH",
-        "DOWN"
-    ):
-        return "SELL"
-
-    return "HOLD"
-
-
-def _safe_number(
-    value,
-    default=None
-):
+def _safe_number(value, default=None):
     """Convert a value to float safely."""
 
     try:
@@ -126,6 +88,83 @@ def _safe_number(
     ):
 
         return default
+
+
+def _normalize_signal(signal):
+    """
+    Normalize supported signals.
+
+    Returns:
+        BUY / SELL / HOLD
+    """
+
+    if signal is None:
+        return "HOLD"
+
+    signal = str(signal).upper().strip()
+
+    if signal in (
+        "BUY",
+        "STRONG BUY",
+        "LONG",
+        "BULLISH",
+        "VERY BULLISH",
+        "UP"
+    ):
+        return "BUY"
+
+    if signal in (
+        "SELL",
+        "STRONG SELL",
+        "SHORT",
+        "BEARISH",
+        "VERY BEARISH",
+        "DOWN"
+    ):
+        return "SELL"
+
+    return "HOLD"
+
+
+# =========================================================
+# DATAFRAME PRICE RESOLUTION
+# =========================================================
+
+def _extract_dataframe_price(market_data):
+    """
+    Extract latest closing price from a
+    pandas DataFrame without making pandas
+    a direct dependency of this module.
+    """
+
+    try:
+
+        if market_data is None:
+            return None
+
+        if not hasattr(market_data, "empty"):
+            return None
+
+        if market_data.empty:
+            return None
+
+        if "Close" in market_data.columns:
+
+            return _safe_number(
+                market_data["Close"].iloc[-1]
+            )
+
+        if "close" in market_data.columns:
+
+            return _safe_number(
+                market_data["close"].iloc[-1]
+            )
+
+    except Exception:
+
+        return None
+
+    return None
 
 
 # =========================================================
@@ -158,9 +197,7 @@ def calculate_risk(
     # INPUT VALIDATION
     # =====================================================
 
-    entry_price = _safe_number(
-        entry_price
-    )
+    entry_price = _safe_number(entry_price)
 
     if (
         entry_price is None
@@ -182,9 +219,7 @@ def calculate_risk(
 
         }
 
-    signal = _normalize_signal(
-        signal
-    )
+    signal = _normalize_signal(signal)
 
     confidence = _safe_number(
         confidence,
@@ -286,9 +321,7 @@ def calculate_risk(
     # =====================================================
 
     risk_per_unit = abs(
-        entry_price
-        -
-        stop_loss
+        entry_price - stop_loss
     )
 
     if risk_per_unit <= 0:
@@ -298,9 +331,7 @@ def calculate_risk(
     else:
 
         quantity = int(
-            risk_amount
-            /
-            risk_per_unit
+            risk_amount / risk_per_unit
         )
 
     # =====================================================
@@ -308,19 +339,11 @@ def calculate_risk(
     # =====================================================
 
     expected_profit = abs(
-
-        target2
-        -
-        entry_price
-
+        target2 - entry_price
     ) * quantity
 
     expected_loss = (
-
-        risk_per_unit
-        *
-        quantity
-
+        risk_per_unit * quantity
     )
 
     # =====================================================
@@ -330,11 +353,8 @@ def calculate_risk(
     if expected_loss > 0:
 
         risk_reward_ratio = (
-
-            expected_profit
-            /
+            expected_profit /
             expected_loss
-
         )
 
     else:
@@ -501,9 +521,8 @@ class RiskManager:
         analysis
     ):
         """
-        Evaluate risk using existing MarketContext evidence.
-
-        RiskManager does not decide market direction.
+        Evaluate risk using existing
+        Shared MarketContext evidence.
 
         Signal priority:
 
@@ -517,9 +536,11 @@ class RiskManager:
 
         Technical price
             ↓
-        Market data price
+        Market Data Dictionary
             ↓
-        Legacy market price
+        Market Data DataFrame
+            ↓
+        Legacy Market price
         """
 
         if not isinstance(
@@ -547,35 +568,19 @@ class RiskManager:
         # =================================================
 
         technical = _safe_dict(
-
-            analysis.get(
-                "technical"
-            )
-
+            analysis.get("technical")
         )
 
         strategy = _safe_dict(
-
-            analysis.get(
-                "strategy"
-            )
-
+            analysis.get("strategy")
         )
 
         prediction = _safe_dict(
-
-            analysis.get(
-                "prediction"
-            )
-
+            analysis.get("prediction")
         )
 
         ai = _safe_dict(
-
-            analysis.get(
-                "ai"
-            )
-
+            analysis.get("ai")
         )
 
         market_data = analysis.get(
@@ -583,11 +588,7 @@ class RiskManager:
         )
 
         market = _safe_dict(
-
-            analysis.get(
-                "market"
-            )
-
+            analysis.get("market")
         )
 
         # =================================================
@@ -612,6 +613,16 @@ class RiskManager:
                 entry_price = market_data.get(
                     "price"
                 )
+
+        # -------------------------------------------------
+        # MARKET DATA DATAFRAME
+        # -------------------------------------------------
+
+        if entry_price is None:
+
+            entry_price = _extract_dataframe_price(
+                market_data
+            )
 
         # -------------------------------------------------
         # LEGACY MARKET
@@ -674,12 +685,13 @@ class RiskManager:
         if not signal:
 
             signal = ai.get(
-                "signal",
+                "signal"
+            )
 
-                ai.get(
-                    "prediction"
-                )
+        if not signal:
 
+            signal = ai.get(
+                "prediction"
             )
 
         signal = _normalize_signal(
