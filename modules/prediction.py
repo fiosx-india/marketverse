@@ -6,11 +6,11 @@ Prediction Engine
 
 Purpose
 -------
-Generates prediction evidence from intelligence evidence
-already collected by CentralBrain.
+Generates probability-based prediction evidence from
+intelligence evidence already collected by CentralBrain.
 
 Prediction Engine combines multiple intelligence signals
-into one probability-based market prediction.
+into explainable market prediction evidence.
 
 Responsibilities
 ----------------
@@ -21,8 +21,11 @@ Responsibilities
 - Evaluate pattern evidence
 - Evaluate volume evidence
 - Evaluate market event evidence
+- Evaluate AI intelligence evidence
 - Estimate confidence
-- Estimate directional probability
+- Estimate bullish probability
+- Estimate bearish probability
+- Estimate dominant directional probability
 - Generate supporting evidence
 - Generate conflicting evidence
 
@@ -47,7 +50,7 @@ Shared MarketContext
     ├── Pattern
     ├── Volume
     ├── Events
-    └── Market Intelligence
+    └── AI Intelligence
             │
             ▼
       Prediction Engine
@@ -85,11 +88,9 @@ def _safe_float(value, default=0.0):
     try:
 
         if value is None:
-
             return default
 
         if pd.isna(value):
-
             return default
 
         return float(value)
@@ -98,7 +99,6 @@ def _safe_float(value, default=0.0):
         TypeError,
         ValueError
     ):
-
         return default
 
 
@@ -111,10 +111,9 @@ def _normalize_signal(value):
     """
 
     if value is None:
-
         return "HOLD"
 
-    value = str(value).upper()
+    value = str(value).upper().strip()
 
     if value in (
         "BUY",
@@ -124,7 +123,6 @@ def _normalize_signal(value):
         "POSITIVE",
         "UP"
     ):
-
         return "BUY"
 
     if value in (
@@ -135,7 +133,6 @@ def _normalize_signal(value):
         "NEGATIVE",
         "DOWN"
     ):
-
         return "SELL"
 
     return "HOLD"
@@ -154,26 +151,29 @@ def _unknown_prediction(message):
 
         "signal": "HOLD",
 
-        "confidence": 0,
+        "confidence": 0.0,
 
-        "probability": 0.0,
+        "probability": 0.5,
 
-        "price": 0,
+        "bullish_probability": 0.5,
+
+        "bearish_probability": 0.5,
+
+        "price": 0.0,
 
         "bullish_score": 0,
 
         "bearish_score": 0,
+
+        "total_evidence": 0,
 
         "supporting_evidence": [],
 
         "conflicting_evidence": [],
 
         "reason": [
-
             message
-
         ]
-
     }
 
 
@@ -216,11 +216,8 @@ def _add_signal_evidence(
         )
 
     return (
-
         bullish_score,
-
         bearish_score
-
     )
 
 
@@ -252,11 +249,7 @@ def get_prediction(
     data = data or {}
 
     indicators = _safe_dict(
-
-        data.get(
-            "indicators"
-        )
-
+        data.get("indicators")
     )
 
     market = data.get(
@@ -264,51 +257,27 @@ def get_prediction(
     )
 
     sentiment = _safe_dict(
-
-        data.get(
-            "sentiment"
-        )
-
+        data.get("sentiment")
     )
 
     news_analysis = _safe_dict(
-
-        data.get(
-            "news_analysis"
-        )
-
+        data.get("news_analysis")
     )
 
     pattern = _safe_dict(
-
-        data.get(
-            "pattern"
-        )
-
+        data.get("pattern")
     )
 
     volume = _safe_dict(
-
-        data.get(
-            "volume"
-        )
-
+        data.get("volume")
     )
 
     events = _safe_dict(
-
-        data.get(
-            "events"
-        )
-
+        data.get("events")
     )
 
     ai_market_intelligence = _safe_dict(
-
-        data.get(
-            "ai_market_intelligence"
-        )
-
+        data.get("ai_market_intelligence")
     )
 
     # =====================================================
@@ -325,22 +294,20 @@ def get_prediction(
         if market.empty:
 
             return _unknown_prediction(
-
                 "Market data unavailable"
-
             )
 
         try:
 
             price = _safe_float(
-
-                market[
-                    "Close"
-                ].iloc[-1]
-
+                market["Close"].iloc[-1]
             )
 
-        except Exception:
+        except (
+            KeyError,
+            IndexError,
+            TypeError
+        ):
 
             price = 0.0
 
@@ -350,30 +317,22 @@ def get_prediction(
     ):
 
         price = _safe_float(
-
             market.get(
                 "price",
-
                 market.get(
                     "close",
-
                     0
-
                 )
-
             )
-
         )
 
     if price <= 0:
 
         price = _safe_float(
-
             indicators.get(
                 "price",
                 0
             )
-
         )
 
     # =====================================================
@@ -381,50 +340,39 @@ def get_prediction(
     # =====================================================
 
     rsi = _safe_float(
-
         indicators.get(
             "rsi",
             50
         ),
-
         50
-
     )
 
     ema20 = _safe_float(
-
         indicators.get(
             "ema20",
             0
         )
-
     )
 
     ema50 = _safe_float(
-
         indicators.get(
             "ema50",
             0
         )
-
     )
 
     macd = _safe_float(
-
         indicators.get(
             "macd",
             0
         )
-
     )
 
     macd_signal = _safe_float(
-
         indicators.get(
             "macd_signal",
             0
         )
-
     )
 
     # =====================================================
@@ -439,22 +387,24 @@ def get_prediction(
 
     conflicting_evidence = []
 
+    evidence_sources = 0
+
     # =====================================================
     # TECHNICAL SIGNAL
     # =====================================================
 
     technical_signal = _normalize_signal(
-
         indicators.get(
             "signal"
         )
-
     )
+
+    if technical_signal != "HOLD":
+        evidence_sources += 1
 
     (
         bullish_score,
         bearish_score
-
     ) = _add_signal_evidence(
 
         technical_signal,
@@ -472,7 +422,6 @@ def get_prediction(
         "Technical analysis supports bullish movement",
 
         "Technical analysis supports bearish movement"
-
     )
 
     # =====================================================
@@ -481,14 +430,14 @@ def get_prediction(
 
     if ema20 > 0 and ema50 > 0:
 
+        evidence_sources += 1
+
         if ema20 > ema50:
 
             bullish_score += 2
 
             supporting_evidence.append(
-
                 "EMA20 is above EMA50"
-
             )
 
         elif ema20 < ema50:
@@ -496,9 +445,7 @@ def get_prediction(
             bearish_score += 2
 
             conflicting_evidence.append(
-
                 "EMA20 is below EMA50"
-
             )
 
     # =====================================================
@@ -507,14 +454,14 @@ def get_prediction(
 
     if price > 0 and ema20 > 0:
 
+        evidence_sources += 1
+
         if price > ema20:
 
             bullish_score += 1
 
             supporting_evidence.append(
-
                 "Price is above EMA20"
-
             )
 
         elif price < ema20:
@@ -522,47 +469,47 @@ def get_prediction(
             bearish_score += 1
 
             conflicting_evidence.append(
-
                 "Price is below EMA20"
-
             )
 
     # =====================================================
     # MACD
     # =====================================================
 
-    if macd > macd_signal:
+    if macd != 0 or macd_signal != 0:
 
-        bullish_score += 1
+        evidence_sources += 1
 
-        supporting_evidence.append(
+        if macd > macd_signal:
 
-            "MACD momentum is bullish"
+            bullish_score += 1
 
-        )
+            supporting_evidence.append(
+                "MACD momentum is bullish"
+            )
 
-    elif macd < macd_signal:
+        elif macd < macd_signal:
 
-        bearish_score += 1
+            bearish_score += 1
 
-        conflicting_evidence.append(
-
-            "MACD momentum is bearish"
-
-        )
+            conflicting_evidence.append(
+                "MACD momentum is bearish"
+            )
 
     # =====================================================
     # RSI
     # =====================================================
+
+    if rsi != 50:
+
+        evidence_sources += 1
 
     if rsi < 30:
 
         bullish_score += 1
 
         supporting_evidence.append(
-
             "RSI indicates oversold conditions"
-
         )
 
     elif rsi > 70:
@@ -570,17 +517,13 @@ def get_prediction(
         bearish_score += 1
 
         conflicting_evidence.append(
-
             "RSI indicates overbought conditions"
-
         )
 
     elif 45 <= rsi <= 60:
 
         supporting_evidence.append(
-
             "RSI is neutral"
-
         )
 
     # =====================================================
@@ -590,21 +533,20 @@ def get_prediction(
     sentiment_signal = _normalize_signal(
 
         sentiment.get(
-
             "signal",
-
             sentiment.get(
                 "sentiment"
             )
-
         )
-
     )
+
+    if sentiment_signal != "HOLD":
+
+        evidence_sources += 1
 
     (
         bullish_score,
         bearish_score
-
     ) = _add_signal_evidence(
 
         sentiment_signal,
@@ -622,7 +564,6 @@ def get_prediction(
         "Market sentiment is bullish",
 
         "Market sentiment is bearish"
-
     )
 
     # =====================================================
@@ -630,17 +571,18 @@ def get_prediction(
     # =====================================================
 
     news_signal = _normalize_signal(
-
         news_analysis.get(
             "sentiment"
         )
-
     )
+
+    if news_signal != "HOLD":
+
+        evidence_sources += 1
 
     (
         bullish_score,
         bearish_score
-
     ) = _add_signal_evidence(
 
         news_signal,
@@ -658,35 +600,36 @@ def get_prediction(
         "News analysis is positive",
 
         "News analysis is negative"
-
     )
 
     # =====================================================
     # PATTERN EVIDENCE
     # =====================================================
 
-    if pattern.get(
-        "bullish"
-    ):
+    pattern_detected = False
+
+    if pattern.get("bullish"):
 
         bullish_score += 2
 
+        evidence_sources += 1
+
+        pattern_detected = True
+
         supporting_evidence.append(
-
             "Bullish market pattern detected"
-
         )
 
-    if pattern.get(
-        "bearish"
-    ):
+    if pattern.get("bearish"):
 
         bearish_score += 2
 
+        if not pattern_detected:
+
+            evidence_sources += 1
+
         conflicting_evidence.append(
-
             "Bearish market pattern detected"
-
         )
 
     # =====================================================
@@ -694,17 +637,18 @@ def get_prediction(
     # =====================================================
 
     volume_signal = _normalize_signal(
-
         volume.get(
             "signal"
         )
-
     )
+
+    if volume_signal != "HOLD":
+
+        evidence_sources += 1
 
     (
         bullish_score,
         bearish_score
-
     ) = _add_signal_evidence(
 
         volume_signal,
@@ -722,7 +666,6 @@ def get_prediction(
         "Volume supports bullish movement",
 
         "Volume supports bearish movement"
-
     )
 
     # =====================================================
@@ -732,21 +675,20 @@ def get_prediction(
     event_signal = _normalize_signal(
 
         events.get(
-
             "signal",
-
             events.get(
                 "sentiment"
             )
-
         )
-
     )
+
+    if event_signal != "HOLD":
+
+        evidence_sources += 1
 
     (
         bullish_score,
         bearish_score
-
     ) = _add_signal_evidence(
 
         event_signal,
@@ -764,7 +706,6 @@ def get_prediction(
         "Market events support bullish conditions",
 
         "Market events indicate bearish risk"
-
     )
 
     # =====================================================
@@ -780,15 +721,16 @@ def get_prediction(
             ai_market_intelligence.get(
                 "prediction"
             )
-
         )
-
     )
+
+    if intelligence_signal != "HOLD":
+
+        evidence_sources += 1
 
     (
         bullish_score,
         bearish_score
-
     ) = _add_signal_evidence(
 
         intelligence_signal,
@@ -803,31 +745,30 @@ def get_prediction(
 
         conflicting_evidence,
 
-        "Market intelligence supports bullish conditions",
+        "AI intelligence supports bullish conditions",
 
-        "Market intelligence supports bearish conditions"
+        "AI intelligence supports bearish conditions"
+    )
 
+    # =====================================================
+    # SCORE CALCULATION
+    # =====================================================
+
+    total_directional_evidence = (
+        bullish_score
+        +
+        bearish_score
+    )
+
+    difference = (
+        bullish_score
+        -
+        bearish_score
     )
 
     # =====================================================
     # SIGNAL CLASSIFICATION
     # =====================================================
-
-    difference = (
-
-        bullish_score
-        -
-        bearish_score
-
-    )
-
-    total_directional_evidence = (
-
-        bullish_score
-        +
-        bearish_score
-
-    )
 
     if total_directional_evidence == 0:
 
@@ -854,87 +795,143 @@ def get_prediction(
         signal = "HOLD"
 
     # =====================================================
-    # CONFIDENCE
+    # BULLISH / BEARISH PROBABILITY
     # =====================================================
 
     if total_directional_evidence == 0:
 
-        confidence = 0
+        bullish_probability = 0.5
+
+        bearish_probability = 0.5
 
     else:
 
-        dominance = abs(
-            difference
-        )
-
-        dominance_ratio = (
-
-            dominance
+        bullish_probability = (
+            bullish_score
             /
             total_directional_evidence
-
         )
 
-        evidence_strength = min(
+        bearish_probability = (
+            bearish_score
+            /
+            total_directional_evidence
+        )
+
+    bullish_probability = round(
+        bullish_probability,
+        2
+    )
+
+    bearish_probability = round(
+        bearish_probability,
+        2
+    )
+
+    # =====================================================
+    # DOMINANT DIRECTION PROBABILITY
+    #
+    # Backward compatible:
+    # probability = strongest directional side
+    # =====================================================
+
+    probability = round(
+
+        max(
+            bullish_probability,
+            bearish_probability
+        ),
+
+        2
+    )
+
+    # =====================================================
+    # CONFIDENCE MODEL
+    #
+    # Confidence depends on:
+    #
+    # 1. Evidence Coverage
+    # 2. Directional Agreement
+    # 3. Directional Dominance
+    #
+    # Low evidence must NOT produce
+    # artificially high confidence.
+    # =====================================================
+
+    if total_directional_evidence == 0:
+
+        confidence = 0.0
+
+    else:
+
+        # -----------------------------------------------
+        # Evidence coverage
+        #
+        # Maximum expected intelligence sources = 9
+        # -----------------------------------------------
+
+        coverage_ratio = min(
+            evidence_sources / 9,
+            1.0
+        )
+
+        coverage_score = (
+            coverage_ratio
+            *
+            40
+        )
+
+        # -----------------------------------------------
+        # Directional agreement
+        # -----------------------------------------------
+
+        dominance_ratio = (
+            abs(difference)
+            /
+            total_directional_evidence
+        )
+
+        agreement_score = (
+            dominance_ratio
+            *
+            40
+        )
+
+        # -----------------------------------------------
+        # Evidence strength
+        # -----------------------------------------------
+
+        strength_score = min(
 
             total_directional_evidence
             *
-            5,
+            2,
 
-            30
-
+            20
         )
 
         confidence = (
 
-            50
-            +
-            dominance_ratio * 30
-            +
-            evidence_strength
+            coverage_score
 
+            +
+
+            agreement_score
+
+            +
+
+            strength_score
         )
 
         confidence = min(
-
             confidence,
-
             95
-
         )
 
     confidence = round(
-
         confidence,
-
         2
-
     )
-
-    # =====================================================
-    # PROBABILITY
-    # =====================================================
-
-    if total_directional_evidence == 0:
-
-        probability = 0.5
-
-    else:
-
-        probability = round(
-
-            max(
-                bullish_score,
-                bearish_score
-            )
-
-            /
-
-            total_directional_evidence,
-
-            2
-
-        )
 
     # =====================================================
     # DEFAULT EVIDENCE
@@ -943,17 +940,13 @@ def get_prediction(
     if not supporting_evidence:
 
         supporting_evidence.append(
-
             "No strong bullish evidence detected"
-
         )
 
     if not conflicting_evidence:
 
         conflicting_evidence.append(
-
             "No strong bearish evidence detected"
-
         )
 
     # =====================================================
@@ -970,16 +963,32 @@ def get_prediction(
 
         "confidence": confidence,
 
+        # Backward compatible dominant probability
         "probability": probability,
+
+        # Explainable directional probabilities
+        "bullish_probability":
+            bullish_probability,
+
+        "bearish_probability":
+            bearish_probability,
 
         "price": round(
             price,
             2
         ),
 
-        "bullish_score": bullish_score,
+        "bullish_score":
+            bullish_score,
 
-        "bearish_score": bearish_score,
+        "bearish_score":
+            bearish_score,
+
+        "total_evidence":
+            total_directional_evidence,
+
+        "evidence_sources":
+            evidence_sources,
 
         "supporting_evidence":
             supporting_evidence,
@@ -991,7 +1000,6 @@ def get_prediction(
             supporting_evidence
             +
             conflicting_evidence
-
     }
 
 
@@ -1010,17 +1018,13 @@ def predict_market(df):
     ):
 
         return _unknown_prediction(
-
             "Invalid market DataFrame"
-
         )
 
     if df.empty:
 
         return _unknown_prediction(
-
             "Market DataFrame is empty"
-
         )
 
     technical = technical_analysis(
@@ -1033,9 +1037,7 @@ def predict_market(df):
     ):
 
         return _unknown_prediction(
-
             "Technical analysis failed"
-
         )
 
     return get_prediction(
@@ -1045,9 +1047,7 @@ def predict_market(df):
             "market": df,
 
             "indicators": technical
-
         }
-
     )
 
 
@@ -1061,6 +1061,8 @@ def _predict_from_symbol(symbol):
 
     This path is only for external callers that still
     provide a symbol.
+
+    CentralBrain should use Shared MarketContext instead.
     """
 
     dataframe = get_market_data(
@@ -1068,17 +1070,12 @@ def _predict_from_symbol(symbol):
     )
 
     if (
-
         dataframe is None
-
         or dataframe.empty
-
     ):
 
         return _unknown_prediction(
-
             "Market data unavailable"
-
         )
 
     technical = technical_analysis(
@@ -1094,9 +1091,7 @@ def _predict_from_symbol(symbol):
             "market": dataframe,
 
             "indicators": technical
-
         }
-
     )
 
 
@@ -1129,11 +1124,9 @@ def predict_price(source=None):
     ):
 
         technical = _safe_dict(
-
             source.get(
                 "technical"
             )
-
         )
 
         market_data = source.get(
@@ -1141,52 +1134,60 @@ def predict_price(source=None):
         )
 
         sentiment = _safe_dict(
-
             source.get(
                 "sentiment"
             )
-
         )
 
         news_analysis = _safe_dict(
-
             source.get(
                 "news_analysis"
             )
-
         )
 
         pattern = _safe_dict(
-
             source.get(
                 "pattern"
             )
-
         )
 
         volume = _safe_dict(
-
             source.get(
                 "volume"
             )
-
         )
 
         events = _safe_dict(
-
             source.get(
                 "events"
             )
-
         )
+
+        # =================================================
+        # AI INTELLIGENCE
+        #
+        # Preferred future key:
+        # ai_market_intelligence
+        #
+        # Current CentralBrain compatibility:
+        # ai
+        # =================================================
 
         ai_market_intelligence = _safe_dict(
 
             source.get(
                 "ai_market_intelligence"
             )
-
         )
+
+        if not ai_market_intelligence:
+
+            ai_market_intelligence = _safe_dict(
+
+                source.get(
+                    "ai"
+                )
+            )
 
         # =================================================
         # MARKET DATA RESOLUTION
@@ -1218,7 +1219,6 @@ def predict_price(source=None):
                         "price",
                         0
                     )
-
             }
 
         return get_prediction(
@@ -1229,26 +1229,31 @@ def predict_price(source=None):
 
             data={
 
-                "market": market,
+                "market":
+                    market,
 
-                "indicators": technical,
+                "indicators":
+                    technical,
 
-                "sentiment": sentiment,
+                "sentiment":
+                    sentiment,
 
-                "news_analysis": news_analysis,
+                "news_analysis":
+                    news_analysis,
 
-                "pattern": pattern,
+                "pattern":
+                    pattern,
 
-                "volume": volume,
+                "volume":
+                    volume,
 
-                "events": events,
+                "events":
+                    events,
 
                 "ai_market_intelligence":
 
                     ai_market_intelligence
-
             }
-
         )
 
     # =====================================================
@@ -1282,7 +1287,5 @@ def predict_price(source=None):
     # =====================================================
 
     return _unknown_prediction(
-
         "Prediction input unavailable"
-
     )
