@@ -7,40 +7,125 @@ Risk Manager
 Purpose
 -------
 Provides risk assessment and trade risk calculations
-for the MarketVerse intelligence pipeline.
+for the MarketVerse AI intelligence pipeline.
+
+RiskManager converts existing intelligence and strategy
+evidence into risk information.
 
 Responsibilities
 ----------------
-- Stop Loss Calculation
-- Target Calculation
-- Position Size Calculation
-- Capital Protection
-- Risk Amount Calculation
-- Risk / Reward Assessment
+- Validate trade eligibility
+- Resolve entry price
+- Calculate stop loss
+- Calculate targets
+- Calculate position size
+- Calculate risk amount
+- Calculate risk / reward
+- Assess risk level
 
-This module does NOT:
-
+RiskManager DOES NOT:
+- Fetch market data
 - Perform market analysis
-- Generate market predictions
+- Generate predictions
+- Generate strategies
 - Make the final market decision
+- Orchestrate the pipeline
 
-CentralBrain:
-    Orchestrates the workflow.
+Architecture
+------------
 
-Strategy Engine:
-    Provides strategy evidence.
-
-RiskManager:
-    Evaluates trade risk.
-
-DecisionCore:
-    Produces the final intelligence decision.
+CentralBrain
+    │
+    ▼
+Shared MarketContext
+    │
+    ├── Technical
+    ├── Prediction
+    ├── AI
+    └── Strategy
+            │
+            ▼
+        RiskManager
+            │
+            ▼
+      Risk Assessment
+            │
+            ▼
+       DecisionCore
 =========================================================
 """
 
 
 DEFAULT_CAPITAL = 100000
 DEFAULT_RISK_PERCENT = 2
+
+
+# =========================================================
+# SAFE HELPERS
+# =========================================================
+
+def _safe_dict(value):
+    """Return a dictionary safely."""
+
+    if isinstance(value, dict):
+        return value
+
+    return {}
+
+
+def _normalize_signal(signal):
+    """
+    Normalize supported signals.
+
+    Returns:
+    BUY / SELL / HOLD
+    """
+
+    if signal is None:
+        return "HOLD"
+
+    signal = str(signal).upper()
+
+    if signal in (
+        "BUY",
+        "STRONG BUY",
+        "BULLISH",
+        "VERY BULLISH",
+        "UP"
+    ):
+        return "BUY"
+
+    if signal in (
+        "SELL",
+        "STRONG SELL",
+        "BEARISH",
+        "VERY BEARISH",
+        "DOWN"
+    ):
+        return "SELL"
+
+    return "HOLD"
+
+
+def _safe_number(
+    value,
+    default=None
+):
+    """Convert a value to float safely."""
+
+    try:
+
+        if value is None:
+            return default
+
+        return float(value)
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return default
 
 
 # =========================================================
@@ -55,8 +140,10 @@ def calculate_risk(
     risk_percent=DEFAULT_RISK_PERCENT
 ):
     """
-    Calculate:
+    Calculate risk parameters.
 
+    Returns:
+    - Entry
     - Stop Loss
     - Target 1
     - Target 2
@@ -64,78 +151,77 @@ def calculate_risk(
     - Risk Amount
     - Expected Profit
     - Expected Loss
+    - Risk Reward Ratio
     """
 
-    # -----------------------------------------------------
-    # Input Validation
-    # -----------------------------------------------------
+    # =====================================================
+    # INPUT VALIDATION
+    # =====================================================
 
-    try:
+    entry_price = _safe_number(
+        entry_price
+    )
 
-        entry_price = float(entry_price)
-
-    except (TypeError, ValueError):
-
-        return {
-
-            "status": "error",
-
-            "message": "Invalid entry price"
-
-        }
-
-    if entry_price <= 0:
+    if (
+        entry_price is None
+        or entry_price <= 0
+    ):
 
         return {
 
             "status": "error",
 
-            "message": "Entry price must be greater than zero"
+            "trade_allowed": False,
+
+            "risk_level": "UNKNOWN",
+
+            "message": (
+                "Valid entry price unavailable "
+                "for risk calculation"
+            )
 
         }
 
-    signal = str(
+    signal = _normalize_signal(
         signal
-    ).upper()
+    )
 
-    try:
+    confidence = _safe_number(
+        confidence,
+        50
+    )
 
-        confidence = float(
-            confidence
+    confidence = max(
+        0,
+        min(
+            confidence,
+            100
         )
+    )
 
-    except (TypeError, ValueError):
+    capital = _safe_number(
+        capital,
+        DEFAULT_CAPITAL
+    )
 
-        confidence = 50
-
-    try:
-
-        capital = float(
-            capital
-        )
-
-    except (TypeError, ValueError):
+    if capital <= 0:
 
         capital = DEFAULT_CAPITAL
 
-    try:
+    risk_percent = _safe_number(
+        risk_percent,
+        DEFAULT_RISK_PERCENT
+    )
 
-        risk_percent = float(
-            risk_percent
-        )
-
-    except (TypeError, ValueError):
+    if risk_percent <= 0:
 
         risk_percent = DEFAULT_RISK_PERCENT
 
-    # -----------------------------------------------------
+    # =====================================================
     # HOLD
-    # -----------------------------------------------------
+    # =====================================================
 
-    if signal not in (
-        "BUY",
-        "SELL"
-    ):
+    if signal == "HOLD":
 
         return {
 
@@ -143,13 +229,13 @@ def calculate_risk(
 
             "signal": "HOLD",
 
-            "entry": round(
-                entry_price,
+            "confidence": round(
+                confidence,
                 2
             ),
 
-            "confidence": round(
-                confidence,
+            "entry": round(
+                entry_price,
                 2
             ),
 
@@ -157,66 +243,52 @@ def calculate_risk(
 
             "trade_allowed": False,
 
-            "message": "No active trade strategy"
+            "message": (
+                "No active trade strategy"
+            )
 
         }
 
-    # -----------------------------------------------------
-    # Risk Amount
-    # -----------------------------------------------------
+    # =====================================================
+    # RISK AMOUNT
+    # =====================================================
 
     risk_amount = capital * (
         risk_percent / 100
     )
 
-    # -----------------------------------------------------
-    # BUY Risk Calculation
-    # -----------------------------------------------------
+    # =====================================================
+    # BUY
+    # =====================================================
 
     if signal == "BUY":
 
-        stop_loss = round(
-            entry_price * 0.98,
-            2
-        )
+        stop_loss = entry_price * 0.98
 
-        target1 = round(
-            entry_price * 1.03,
-            2
-        )
+        target1 = entry_price * 1.03
 
-        target2 = round(
-            entry_price * 1.06,
-            2
-        )
+        target2 = entry_price * 1.06
 
-    # -----------------------------------------------------
-    # SELL Risk Calculation
-    # -----------------------------------------------------
+    # =====================================================
+    # SELL
+    # =====================================================
 
     else:
 
-        stop_loss = round(
-            entry_price * 1.02,
-            2
-        )
+        stop_loss = entry_price * 1.02
 
-        target1 = round(
-            entry_price * 0.97,
-            2
-        )
+        target1 = entry_price * 0.97
 
-        target2 = round(
-            entry_price * 0.94,
-            2
-        )
+        target2 = entry_price * 0.94
 
-    # -----------------------------------------------------
-    # Position Size
-    # -----------------------------------------------------
+    # =====================================================
+    # POSITION SIZE
+    # =====================================================
 
     risk_per_unit = abs(
-        entry_price - stop_loss
+        entry_price
+        -
+        stop_loss
     )
 
     if risk_per_unit <= 0:
@@ -226,43 +298,42 @@ def calculate_risk(
     else:
 
         quantity = int(
-            risk_amount / risk_per_unit
+            risk_amount
+            /
+            risk_per_unit
         )
 
-    # -----------------------------------------------------
-    # Expected Profit / Loss
-    # -----------------------------------------------------
+    # =====================================================
+    # EXPECTED PROFIT / LOSS
+    # =====================================================
 
-    expected_profit = round(
+    expected_profit = abs(
 
-        abs(
-            target2 - entry_price
-        ) * quantity,
+        target2
+        -
+        entry_price
 
-        2
+    ) * quantity
 
-    )
+    expected_loss = (
 
-    expected_loss = round(
-
-        risk_per_unit * quantity,
-
-        2
+        risk_per_unit
+        *
+        quantity
 
     )
 
-    # -----------------------------------------------------
-    # Risk Reward Ratio
-    # -----------------------------------------------------
+    # =====================================================
+    # RISK REWARD
+    # =====================================================
 
     if expected_loss > 0:
 
-        risk_reward_ratio = round(
+        risk_reward_ratio = (
 
-            expected_profit /
-            expected_loss,
-
-            2
+            expected_profit
+            /
+            expected_loss
 
         )
 
@@ -270,9 +341,9 @@ def calculate_risk(
 
         risk_reward_ratio = 0
 
-    # -----------------------------------------------------
-    # Risk Classification
-    # -----------------------------------------------------
+    # =====================================================
+    # RISK LEVEL
+    # =====================================================
 
     if confidence >= 80:
 
@@ -286,9 +357,24 @@ def calculate_risk(
 
         risk_level = "HIGH"
 
-    # -----------------------------------------------------
-    # Final Result
-    # -----------------------------------------------------
+    # =====================================================
+    # TRADE ELIGIBILITY
+    # =====================================================
+
+    trade_allowed = (
+
+        signal in (
+            "BUY",
+            "SELL"
+        )
+
+        and quantity > 0
+
+    )
+
+    # =====================================================
+    # RETURN RESULT
+    # =====================================================
 
     return {
 
@@ -306,11 +392,20 @@ def calculate_risk(
             2
         ),
 
-        "stop_loss": stop_loss,
+        "stop_loss": round(
+            stop_loss,
+            2
+        ),
 
-        "target_1": target1,
+        "target_1": round(
+            target1,
+            2
+        ),
 
-        "target_2": target2,
+        "target_2": round(
+            target2,
+            2
+        ),
 
         "quantity": quantity,
 
@@ -334,15 +429,24 @@ def calculate_risk(
             2
         ),
 
-        "expected_profit": expected_profit,
+        "expected_profit": round(
+            expected_profit,
+            2
+        ),
 
-        "expected_loss": expected_loss,
+        "expected_loss": round(
+            expected_loss,
+            2
+        ),
 
-        "risk_reward_ratio": risk_reward_ratio,
+        "risk_reward_ratio": round(
+            risk_reward_ratio,
+            2
+        ),
 
         "risk_level": risk_level,
 
-        "trade_allowed": True
+        "trade_allowed": trade_allowed
 
     }
 
@@ -353,12 +457,12 @@ def calculate_risk(
 
 class RiskManager:
     """
-    Risk Management Interface.
+    Risk Management interface.
 
     Supports:
 
-    1. Direct Risk Calculation
-    2. CentralBrain Shared Analysis Evaluation
+    1. Direct calculation
+    2. CentralBrain Shared MarketContext evaluation
     """
 
     # =====================================================
@@ -373,9 +477,6 @@ class RiskManager:
         capital=DEFAULT_CAPITAL,
         risk_percent=DEFAULT_RISK_PERCENT
     ):
-        """
-        Direct risk calculation interface.
-        """
 
         return calculate_risk(
 
@@ -392,7 +493,7 @@ class RiskManager:
         )
 
     # =====================================================
-    # CENTRAL BRAIN INTEGRATION
+    # CENTRAL BRAIN EVALUATION
     # =====================================================
 
     def evaluate(
@@ -400,19 +501,25 @@ class RiskManager:
         analysis
     ):
         """
-        Evaluate risk using CentralBrain analysis.
+        Evaluate risk using existing MarketContext evidence.
 
-        Expected analysis sections:
+        RiskManager does not decide market direction.
 
-        - technical
-        - strategy
-        - prediction
-        - decision
+        Signal priority:
 
-        This method does not make a market decision.
+        Strategy
+            ↓
+        Prediction
+            ↓
+        AI
 
-        It only converts existing strategy evidence
-        into risk parameters.
+        Entry price priority:
+
+        Technical price
+            ↓
+        Market data price
+            ↓
+        Legacy market price
         """
 
         if not isinstance(
@@ -424,151 +531,188 @@ class RiskManager:
 
                 "status": "error",
 
+                "trade_allowed": False,
+
+                "risk_level": "UNKNOWN",
+
                 "message": (
                     "RiskManager expects "
-                    "a dictionary analysis"
+                    "Shared MarketContext dictionary"
                 )
 
             }
 
-        # -------------------------------------------------
-        # Read Sections
-        # -------------------------------------------------
+        # =================================================
+        # READ CONTEXT SECTIONS
+        # =================================================
 
-        technical = analysis.get(
+        technical = _safe_dict(
 
-            "technical",
-
-            {}
-
-        ) or {}
-
-        strategy = analysis.get(
-
-            "strategy",
-
-            {}
-
-        ) or {}
-
-        prediction = analysis.get(
-
-            "prediction",
-
-            {}
-
-        ) or {}
-
-        # -------------------------------------------------
-        # Entry Price
-        # -------------------------------------------------
-
-        entry_price = technical.get(
-
-            "price"
+            analysis.get(
+                "technical"
+            )
 
         )
 
-        # Compatibility with alternative structures
+        strategy = _safe_dict(
 
-        if entry_price is None:
-
-            market = analysis.get(
-
-                "market",
-
-                {}
-
-            ) or {}
-
-            entry_price = market.get(
-
-                "price"
-
+            analysis.get(
+                "strategy"
             )
 
+        )
+
+        prediction = _safe_dict(
+
+            analysis.get(
+                "prediction"
+            )
+
+        )
+
+        ai = _safe_dict(
+
+            analysis.get(
+                "ai"
+            )
+
+        )
+
+        market_data = analysis.get(
+            "market_data"
+        )
+
+        market = _safe_dict(
+
+            analysis.get(
+                "market"
+            )
+
+        )
+
+        # =================================================
+        # ENTRY PRICE
+        # =================================================
+
+        entry_price = technical.get(
+            "price"
+        )
+
         # -------------------------------------------------
-        # No Entry Price
+        # MARKET DATA DICTIONARY
         # -------------------------------------------------
 
         if entry_price is None:
+
+            if isinstance(
+                market_data,
+                dict
+            ):
+
+                entry_price = market_data.get(
+                    "price"
+                )
+
+        # -------------------------------------------------
+        # LEGACY MARKET
+        # -------------------------------------------------
+
+        if entry_price is None:
+
+            entry_price = market.get(
+                "price"
+            )
+
+        # =================================================
+        # VALIDATE ENTRY
+        # =================================================
+
+        entry_price = _safe_number(
+            entry_price
+        )
+
+        if (
+            entry_price is None
+            or entry_price <= 0
+        ):
 
             return {
 
                 "status": "error",
 
+                "trade_allowed": False,
+
+                "risk_level": "UNKNOWN",
+
                 "message": (
                     "Entry price unavailable "
-                    "for risk calculation"
+                    "from MarketContext"
                 )
 
             }
 
-        # -------------------------------------------------
-        # Signal Resolution
-        # -------------------------------------------------
+        # =================================================
+        # SIGNAL RESOLUTION
+        # =================================================
 
         signal = strategy.get(
-
             "action"
-
         )
 
         if not signal:
 
             signal = strategy.get(
-
                 "decision"
-
             )
 
         if not signal:
 
             signal = prediction.get(
+                "signal"
+            )
 
+        if not signal:
+
+            signal = ai.get(
                 "signal",
 
-                "HOLD"
+                ai.get(
+                    "prediction"
+                )
 
             )
 
-        # Normalize strong signals
-
-        signal = str(
+        signal = _normalize_signal(
             signal
-        ).upper()
+        )
 
-        if signal == "STRONG BUY":
-
-            signal = "BUY"
-
-        elif signal == "STRONG SELL":
-
-            signal = "SELL"
-
-        # -------------------------------------------------
-        # Confidence Resolution
-        # -------------------------------------------------
+        # =================================================
+        # CONFIDENCE RESOLUTION
+        # =================================================
 
         confidence = strategy.get(
-
             "confidence"
-
         )
 
         if confidence is None:
 
             confidence = prediction.get(
-
-                "confidence",
-
-                50
-
+                "confidence"
             )
 
-        # -------------------------------------------------
-        # Risk Calculation
-        # -------------------------------------------------
+        if confidence is None:
+
+            confidence = ai.get(
+                "confidence"
+            )
+
+        if confidence is None:
+
+            confidence = 50
+
+        # =================================================
+        # RISK CALCULATION
+        # =================================================
 
         return calculate_risk(
 
