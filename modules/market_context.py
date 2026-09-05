@@ -13,7 +13,7 @@ intelligence pipeline.
 Every analysis module contributes evidence to this
 context.
 
-MarketContext is a data container only.
+MarketContext is a passive data container only.
 
 It NEVER:
 - Performs analysis
@@ -27,7 +27,8 @@ CentralBrain:
     Controls the workflow.
 
 Guardian:
-    Monitors health and validates the system.
+    Monitors platform health, validation,
+    diagnostics, and recovery.
 
 MarketContext:
     Stores shared intelligence evidence.
@@ -35,28 +36,76 @@ MarketContext:
 """
 
 from datetime import datetime, timezone
+import uuid
 
 
 class MarketContext:
     """
     Shared Market Intelligence Context.
 
-    Stores:
+    Responsibilities
+    ----------------
+    - Store shared market intelligence evidence
+    - Store module execution status
+    - Store pipeline metadata
+    - Track errors
+    - Track data freshness
 
-    - Market evidence
-    - Analysis results
-    - Pipeline metadata
-    - Module execution status
-    - Data freshness information
-
-    This object remains intentionally passive.
+    This class intentionally remains passive.
     """
+
+    # =====================================================
+    # ALLOWED CONTEXT SECTIONS
+    # =====================================================
+
+    ALLOWED_KEYS = {
+
+        "symbol",
+
+        "market_data",
+
+        "scanner",
+
+        "ai",
+
+        "news",
+
+        "news_analysis",
+
+        "events",
+
+        "technical",
+
+        "pattern",
+
+        "volume",
+
+        "sentiment",
+
+        "prediction",
+
+        "strategy",
+
+        "risk",
+
+        "decision",
+
+        "confidence",
+
+        "probability",
+
+        "opportunity",
+
+        "metadata"
+    }
 
     # =====================================================
     # INITIALIZATION
     # =====================================================
 
     def __init__(self, symbol=None):
+
+        created_at = self._timestamp()
 
         self.data = {
 
@@ -77,8 +126,6 @@ class MarketContext:
             # =================================================
 
             "scanner": {},
-
-            "ai_market_intelligence": {},
 
             "ai": {},
 
@@ -144,13 +191,17 @@ class MarketContext:
 
             "metadata": {
 
-                "created_at": self._timestamp(),
+                "pipeline_id": str(uuid.uuid4()),
 
-                "updated_at": None,
+                "created_at": created_at,
+
+                "updated_at": created_at,
 
                 "pipeline_status": "created",
 
                 "module_status": {},
+
+                "data_freshness": {},
 
                 "errors": [],
 
@@ -186,6 +237,24 @@ class MarketContext:
         return self.data
 
     # =====================================================
+    # CONTEXT VALIDATION
+    # =====================================================
+
+    def _validate_key(self, key):
+        """
+        Validate context section name.
+
+        Prevent accidental creation of invalid
+        context sections caused by typing mistakes.
+        """
+
+        if key not in self.ALLOWED_KEYS:
+
+            raise KeyError(
+                f"Invalid MarketContext key: {key}"
+            )
+
+    # =====================================================
     # UPDATE CONTEXT SECTION
     # =====================================================
 
@@ -201,7 +270,6 @@ class MarketContext:
 
         Parameters
         ----------
-
         key:
             Context section name.
 
@@ -212,34 +280,24 @@ class MarketContext:
             Optional module name.
 
         status:
-            Execution status.
+            Module execution status.
         """
 
-        self.data[key] = value
-
-        metadata = self.data.get(
-            "metadata",
-            {}
-        )
+        self._validate_key(key)
 
         timestamp = self._timestamp()
 
-        # -------------------------------------------------
-        # Context Update Time
-        # -------------------------------------------------
+        self.data[key] = value
+
+        metadata = self.data["metadata"]
 
         metadata["updated_at"] = timestamp
 
         # -------------------------------------------------
-        # Module Status
+        # MODULE STATUS
         # -------------------------------------------------
 
-        module_status = metadata.get(
-            "module_status",
-            {}
-        )
-
-        module_status[key] = {
+        metadata["module_status"][key] = {
 
             "status": status,
 
@@ -249,18 +307,23 @@ class MarketContext:
 
         }
 
-        metadata["module_status"] = module_status
-
         # -------------------------------------------------
-        # Update History
+        # DATA FRESHNESS
         # -------------------------------------------------
 
-        history = metadata.get(
-            "update_history",
-            []
-        )
+        metadata["data_freshness"][key] = {
 
-        history.append({
+            "updated_at": timestamp,
+
+            "source": source or key
+
+        }
+
+        # -------------------------------------------------
+        # UPDATE HISTORY
+        # -------------------------------------------------
+
+        metadata["update_history"].append({
 
             "key": key,
 
@@ -271,10 +334,6 @@ class MarketContext:
             "timestamp": timestamp
 
         })
-
-        metadata["update_history"] = history
-
-        self.data["metadata"] = metadata
 
     # =====================================================
     # READ CONTEXT SECTION
@@ -306,28 +365,20 @@ class MarketContext:
         """
         Record module execution failure.
 
-        This method does NOT handle recovery.
+        Recovery is NOT performed here.
 
         Guardian is responsible for:
         - Diagnostics
-        - Recovery
         - Validation
+        - Recovery
         - Self-healing
         """
 
-        metadata = self.data.get(
-            "metadata",
-            {}
-        )
-
-        errors = metadata.get(
-            "errors",
-            []
-        )
-
         timestamp = self._timestamp()
 
-        errors.append({
+        metadata = self.data["metadata"]
+
+        metadata["errors"].append({
 
             "module": module,
 
@@ -337,9 +388,19 @@ class MarketContext:
 
         })
 
-        metadata["errors"] = errors
+        metadata["updated_at"] = timestamp
 
-        self.data["metadata"] = metadata
+        # Record failed module status
+
+        metadata["module_status"][module] = {
+
+            "status": "failed",
+
+            "source": module,
+
+            "updated_at": timestamp
+
+        }
 
     # =====================================================
     # PIPELINE STATUS
@@ -357,25 +418,30 @@ class MarketContext:
         - created
         - running
         - completed
+        - completed_with_errors
         - failed
         """
 
-        metadata = self.data.get(
-            "metadata",
-            {}
-        )
+        metadata = self.data["metadata"]
 
-        metadata[
-            "pipeline_status"
-        ] = status
+        metadata["pipeline_status"] = status
 
-        metadata[
-            "updated_at"
-        ] = self._timestamp()
+        metadata["updated_at"] = self._timestamp()
 
-        self.data[
+    # =====================================================
+    # PIPELINE STATUS ACCESS
+    # =====================================================
+
+    def get_pipeline_status(self):
+        """
+        Return current pipeline status.
+        """
+
+        return self.data[
             "metadata"
-        ] = metadata
+        ].get(
+            "pipeline_status"
+        )
 
     # =====================================================
     # MODULE STATUS
@@ -390,17 +456,34 @@ class MarketContext:
         Read execution status for one module.
         """
 
-        metadata = self.data.get(
-            "metadata",
-            {}
+        return self.data[
+            "metadata"
+        ][
+            "module_status"
+        ].get(
+            key,
+            default
         )
 
-        module_status = metadata.get(
-            "module_status",
-            {}
-        )
+    # =====================================================
+    # DATA FRESHNESS
+    # =====================================================
 
-        return module_status.get(
+    def get_data_freshness(
+        self,
+        key,
+        default=None
+    ):
+        """
+        Return freshness information for
+        a specific context section.
+        """
+
+        return self.data[
+            "metadata"
+        ][
+            "data_freshness"
+        ].get(
             key,
             default
         )
@@ -414,12 +497,37 @@ class MarketContext:
         Return all pipeline errors.
         """
 
-        metadata = self.data.get(
-            "metadata",
-            {}
-        )
-
-        return metadata.get(
+        return self.data[
+            "metadata"
+        ].get(
             "errors",
             []
+        )
+
+    # =====================================================
+    # ERROR STATUS
+    # =====================================================
+
+    def has_errors(self):
+        """
+        Check whether pipeline contains errors.
+        """
+
+        return len(
+            self.get_errors()
+        ) > 0
+
+    # =====================================================
+    # PIPELINE IDENTIFIER
+    # =====================================================
+
+    def get_pipeline_id(self):
+        """
+        Return unique pipeline execution ID.
+        """
+
+        return self.data[
+            "metadata"
+        ].get(
+            "pipeline_id"
         )
