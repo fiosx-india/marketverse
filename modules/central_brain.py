@@ -52,8 +52,11 @@ Final Market Context
 """
 
 from modules.ai_engine import analyze
-from modules.market_scanner import scan_market
-from modules.market_scanner import scan_mcx
+
+from modules.market_scanner import (
+    scan_market,
+    scan_mcx
+)
 
 from modules.news import get_market_news
 from modules.news_analysis import analyze_news
@@ -66,6 +69,7 @@ from modules.volume_analysis import volume_analysis
 
 from modules.prediction import predict_price
 from modules.strategy import generate_strategy
+
 from modules.risk_manager import RiskManager
 from modules.decision_core import DecisionCore
 
@@ -75,7 +79,9 @@ from modules.performance_tracker import PerformanceTracker
 from modules.market_context import MarketContext
 from modules.market_data import get_market_data
 
-from modules.ai_market_intelligence import AIMarketIntelligence
+from modules.ai_market_intelligence import (
+    AIMarketIntelligence
+)
 
 
 class CentralBrain:
@@ -112,11 +118,21 @@ class CentralBrain:
         **kwargs
     ):
         """
-        Execute an intelligence module safely.
+        Execute one intelligence module safely.
 
-        CentralBrain records failures inside metadata
-        instead of immediately destroying the complete
-        intelligence pipeline.
+        CentralBrain controls execution.
+
+        MarketContext stores:
+        - Result
+        - Module status
+        - Error information
+
+        Guardian remains responsible for:
+        - Diagnostics
+        - Monitoring
+        - Validation
+        - Recovery
+        - Self-healing
         """
 
         try:
@@ -128,7 +144,9 @@ class CentralBrain:
 
             context.update(
                 key,
-                result
+                result,
+                source=key,
+                status="success"
             )
 
             return result
@@ -143,32 +161,14 @@ class CentralBrain:
 
             context.update(
                 key,
-                fallback
+                fallback,
+                source=key,
+                status="failed"
             )
 
-            metadata = context.read(
-                "metadata",
-                {}
-            ) or {}
-
-            errors = metadata.get(
-                "errors",
-                []
-            )
-
-            errors.append({
-
-                "module": key,
-
-                "error": str(error)
-
-            })
-
-            metadata["errors"] = errors
-
-            context.update(
-                "metadata",
-                metadata
+            context.record_error(
+                module=key,
+                error=error
             )
 
             return fallback
@@ -183,21 +183,27 @@ class CentralBrain:
         dataframe
     ):
         """
-        Supports both DataFrame-based and legacy
-        symbol-based technical modules.
+        Supports both:
+
+        - DataFrame-based technical analysis
+        - Legacy symbol-based technical analysis
         """
 
         try:
 
-            return technical_analysis(
-                dataframe
-            )
+            if dataframe is not None:
+
+                return technical_analysis(
+                    dataframe
+                )
 
         except Exception:
 
-            return technical_analysis(
-                symbol
-            )
+            pass
+
+        return technical_analysis(
+            symbol
+        )
 
     # =====================================================
     # NEWS HEADLINE EXTRACTION
@@ -208,7 +214,7 @@ class CentralBrain:
         news
     ):
         """
-        Extract news titles safely.
+        Safely extract news headlines.
         """
 
         if not isinstance(
@@ -234,20 +240,22 @@ class CentralBrain:
 
         for article in articles:
 
-            if isinstance(
+            if not isinstance(
                 article,
                 dict
             ):
 
-                title = article.get(
-                    "title"
+                continue
+
+            title = article.get(
+                "title"
+            )
+
+            if title:
+
+                headlines.append(
+                    title
                 )
-
-                if title:
-
-                    headlines.append(
-                        title
-                    )
 
         return headlines
 
@@ -264,37 +272,19 @@ class CentralBrain:
         intelligence pipeline.
 
         Returns:
-            Shared MarketContext dictionary.
+            Complete shared MarketContext dictionary.
         """
 
-        # -------------------------------------------------
-        # Create Shared Market Context
-        # -------------------------------------------------
+        # =================================================
+        # CREATE SHARED MARKET CONTEXT
+        # =================================================
 
         context = MarketContext(
             symbol
         )
 
-        # -------------------------------------------------
-        # Metadata
-        # -------------------------------------------------
-
-        context.update(
-
-            "metadata",
-
-            {
-
-                "pipeline": "CentralBrain",
-
-                "symbol": symbol,
-
-                "status": "running",
-
-                "errors": []
-
-            }
-
+        context.set_pipeline_status(
+            "running"
         )
 
         # =================================================
@@ -319,7 +309,7 @@ class CentralBrain:
         # 2. MARKET SCANNER
         # =================================================
 
-        scanner = self._safe_execute(
+        self._safe_execute(
 
             context,
 
@@ -506,8 +496,16 @@ class CentralBrain:
         # =================================================
         # 11. PREDICTION
         # =================================================
+        #
+        # IMPORTANT:
+        #
+        # Prediction receives existing intelligence
+        # evidence from MarketContext.
+        #
+        # It does NOT fetch market data again.
+        # =================================================
 
-        prediction = self._safe_execute(
+        self._safe_execute(
 
             context,
 
@@ -515,7 +513,7 @@ class CentralBrain:
 
             predict_price,
 
-            symbol,
+            context.get(),
 
             default={}
 
@@ -525,8 +523,7 @@ class CentralBrain:
         # 12. AI INTELLIGENCE
         # =================================================
         #
-        # AI Engine receives evidence from
-        # the shared Market Context.
+        # AI Engine receives unified evidence.
         #
         # CentralBrain remains the only orchestrator.
         # =================================================
@@ -605,31 +602,43 @@ class CentralBrain:
         # PIPELINE COMPLETE
         # =================================================
 
+        context.set_pipeline_status(
+            "completed"
+        )
+
         metadata = context.read(
             "metadata",
             {}
         ) or {}
 
-        metadata["status"] = "completed"
+        metadata["pipeline"] = (
+            "CentralBrain"
+        )
+
+        metadata["symbol"] = symbol
 
         metadata["module_count"] = 15
 
         metadata["error_count"] = len(
 
-            metadata.get(
-                "errors",
-                []
-            )
+            context.get_errors()
 
         )
 
         context.update(
+
             "metadata",
-            metadata
+
+            metadata,
+
+            source="CentralBrain",
+
+            status="completed"
+
         )
 
         # =================================================
-        # RETURN UNIFIED CONTEXT
+        # RETURN UNIFIED MARKET CONTEXT
         # =================================================
 
         return context.get()
