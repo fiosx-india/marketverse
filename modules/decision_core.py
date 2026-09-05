@@ -6,44 +6,45 @@ Decision Core
 
 Purpose
 -------
-Combines intelligence evidence produced by the
-MarketVerse AI pipeline and produces one final
-explainable market decision.
+Combines independent intelligence evidence from the
+Shared MarketContext and produces one final explainable
+market decision.
 
-DecisionCore is the final decision layer.
+DecisionCore is the final decision fusion layer.
 
-It DOES:
-- Combine intelligence evidence
-- Evaluate bullish and bearish evidence
-- Detect conflicting evidence
-- Calculate directional confidence
-- Consider risk restrictions
-- Produce one final explainable decision
+Architecture Rules
+------------------
+- CentralBrain remains the only orchestrator.
+- DecisionCore does not fetch or analyze market data.
+- DecisionCore does not generate predictions.
+- DecisionCore does not generate strategies.
+- RiskManager does not determine market direction.
+- Market direction and trade eligibility remain separate.
+- Raw evidence is weighted independently.
+- Derived intelligence is used carefully to reduce
+  double-counting.
 
-It DOES NOT:
-- Fetch market data
-- Perform technical analysis
-- Generate predictions
-- Generate strategies
-- Calculate risk
-- Orchestrate the pipeline
-
-Architecture
-------------
-
+Pipeline
+--------
 Analysis Modules
         │
         ▼
 Shared MarketContext
         │
-        ▼
-AI Intelligence
+        ├── Raw Evidence
+        │     ├── Technical
+        │     ├── Pattern
+        │     ├── Volume
+        │     ├── Sentiment
+        │     └── News
+        │
+        ├── Derived Intelligence
+        │     ├── Prediction
+        │     ├── AI
+        │     └── Strategy
         │
         ▼
-Strategy
-        │
-        ▼
-Risk
+RiskManager
         │
         ▼
 DecisionCore
@@ -58,22 +59,20 @@ class DecisionCore:
     """
     Final MarketVerse AI decision layer.
 
-    Supports:
+    Responsibilities
+    ----------------
+    - Fuse independent market evidence
+    - Evaluate bullish and bearish evidence
+    - Detect evidence conflicts
+    - Calculate explainable confidence
+    - Calculate directional probability
+    - Respect RiskManager trade restrictions
+    - Produce one final explainable decision
 
-    1. Shared MarketContext object
-    2. Standard analysis dictionary
-
-    DecisionCore determines:
-
-    - Market direction
-    - Evidence balance
-    - Confidence
-    - Direction probability
-    - Trade restriction status
-
-    RiskManager does not control market direction.
-    RiskManager only controls whether an active
-    trade is allowed.
+    Supports
+    --------
+    1. Dictionary
+    2. MarketContext-like object with get()
     """
 
     # =====================================================
@@ -82,86 +81,59 @@ class DecisionCore:
 
     def decide(self, analysis):
 
-        analysis = self._resolve_analysis(
-            analysis
-        )
+        analysis = self._resolve_analysis(analysis)
 
         # =================================================
-        # READ INTELLIGENCE SECTIONS
+        # READ CONTEXT
         # =================================================
 
-        technical = self._section(
-            analysis,
-            "technical"
-        )
-
-        prediction = self._section(
-            analysis,
-            "prediction"
-        )
-
-        ai = self._section(
-            analysis,
-            "ai"
-        )
-
-        news = self._section(
-            analysis,
-            "news_analysis"
-        )
-
-        pattern = self._section(
-            analysis,
-            "pattern"
-        )
-
-        volume = self._section(
-            analysis,
-            "volume"
-        )
-
-        sentiment = self._section(
-            analysis,
-            "sentiment"
-        )
-
-        strategy = self._section(
-            analysis,
-            "strategy"
-        )
-
-        risk = self._section(
-            analysis,
-            "risk"
-        )
+        technical = self._section(analysis, "technical")
+        prediction = self._section(analysis, "prediction")
+        ai = self._section(analysis, "ai")
+        news = self._section(analysis, "news_analysis")
+        pattern = self._section(analysis, "pattern")
+        volume = self._section(analysis, "volume")
+        sentiment = self._section(analysis, "sentiment")
+        strategy = self._section(analysis, "strategy")
+        risk = self._section(analysis, "risk")
 
         # =================================================
         # SCORE INITIALIZATION
         # =================================================
 
-        bullish_score = 0
-        bearish_score = 0
+        bullish_score = 0.0
+        bearish_score = 0.0
 
         supporting_evidence = []
         conflicting_evidence = []
+        neutral_evidence = []
 
         confidence_sources = []
 
         assumptions = []
 
+        evidence_sources = 0
+        directional_sources = 0
+
         # =================================================
-        # TECHNICAL EVIDENCE
+        # RAW EVIDENCE
+        #
+        # Raw evidence receives the primary weight.
+        # =================================================
+
+        # =================================================
+        # TECHNICAL
         # =================================================
 
         technical_signal = self._normalize_signal(
-            technical.get(
-                "signal"
-            )
+            technical.get("signal")
         )
 
         if technical_signal == "BUY":
 
-            bullish_score += 2
+            bullish_score += 2.0
+            evidence_sources += 1
+            directional_sources += 1
 
             supporting_evidence.append(
                 "Technical analysis supports bullish conditions"
@@ -169,10 +141,20 @@ class DecisionCore:
 
         elif technical_signal == "SELL":
 
-            bearish_score += 2
+            bearish_score += 2.0
+            evidence_sources += 1
+            directional_sources += 1
 
             conflicting_evidence.append(
                 "Technical analysis supports bearish conditions"
+            )
+
+        elif technical:
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "Technical analysis provides no strong directional signal"
             )
 
         self._collect_confidence(
@@ -181,29 +163,227 @@ class DecisionCore:
         )
 
         # =================================================
-        # PREDICTION EVIDENCE
+        # PATTERN
+        # =================================================
+
+        pattern_bullish = bool(
+            pattern.get("bullish")
+        )
+
+        pattern_bearish = bool(
+            pattern.get("bearish")
+        )
+
+        if pattern_bullish:
+
+            bullish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
+
+            supporting_evidence.append(
+                "Bullish chart pattern detected"
+            )
+
+        if pattern_bearish:
+
+            bearish_score += 1.0
+
+            if not pattern_bullish:
+                evidence_sources += 1
+
+            directional_sources += 1
+
+            conflicting_evidence.append(
+                "Bearish chart pattern detected"
+            )
+
+        if (
+            pattern
+            and not pattern_bullish
+            and not pattern_bearish
+        ):
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "No strong directional chart pattern detected"
+            )
+
+        self._collect_confidence(
+            pattern,
+            confidence_sources
+        )
+
+        # =================================================
+        # VOLUME
+        # =================================================
+
+        volume_signal = self._normalize_signal(
+            volume.get("signal")
+        )
+
+        if volume_signal == "BUY":
+
+            bullish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
+
+            supporting_evidence.append(
+                "Volume supports bullish movement"
+            )
+
+        elif volume_signal == "SELL":
+
+            bearish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
+
+            conflicting_evidence.append(
+                "Volume supports bearish movement"
+            )
+
+        elif volume:
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "Volume provides no strong directional confirmation"
+            )
+
+        self._collect_confidence(
+            volume,
+            confidence_sources
+        )
+
+        # =================================================
+        # SENTIMENT
+        # =================================================
+
+        sentiment_signal = self._normalize_signal(
+
+            sentiment.get(
+                "signal",
+                sentiment.get("sentiment")
+            )
+
+        )
+
+        if sentiment_signal == "BUY":
+
+            bullish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
+
+            supporting_evidence.append(
+                "Market sentiment supports bullish conditions"
+            )
+
+        elif sentiment_signal == "SELL":
+
+            bearish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
+
+            conflicting_evidence.append(
+                "Market sentiment supports bearish conditions"
+            )
+
+        elif sentiment:
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "Market sentiment provides no strong directional confirmation"
+            )
+
+        self._collect_confidence(
+            sentiment,
+            confidence_sources
+        )
+
+        # =================================================
+        # NEWS
+        # =================================================
+
+        news_signal = self._normalize_signal(
+            news.get("sentiment")
+        )
+
+        if news_signal == "BUY":
+
+            bullish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
+
+            supporting_evidence.append(
+                "News sentiment is positive"
+            )
+
+        elif news_signal == "SELL":
+
+            bearish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
+
+            conflicting_evidence.append(
+                "News sentiment is negative"
+            )
+
+        elif news:
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "News analysis provides no strong directional confirmation"
+            )
+
+        self._collect_confidence(
+            news,
+            confidence_sources
+        )
+
+        # =================================================
+        # DERIVED INTELLIGENCE
+        #
+        # Prediction, AI and Strategy may already use
+        # raw evidence. Therefore they receive smaller
+        # confirmation weights.
+        # =================================================
+
+        # =================================================
+        # PREDICTION
         # =================================================
 
         prediction_signal = self._normalize_signal(
-            prediction.get(
-                "signal"
-            )
+            prediction.get("signal")
         )
 
         if prediction_signal == "BUY":
 
-            bullish_score += 2
+            bullish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
 
             supporting_evidence.append(
-                "Prediction supports upward movement"
+                "Prediction confirms upward probability"
             )
 
         elif prediction_signal == "SELL":
 
-            bearish_score += 2
+            bearish_score += 1.0
+            evidence_sources += 1
+            directional_sources += 1
 
             conflicting_evidence.append(
-                "Prediction supports downward movement"
+                "Prediction confirms downward probability"
+            )
+
+        elif prediction:
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "Prediction provides no strong directional confirmation"
             )
 
         self._collect_confidence(
@@ -219,18 +399,16 @@ class DecisionCore:
 
             ai.get(
                 "signal",
-
-                ai.get(
-                    "prediction"
-                )
-
+                ai.get("prediction")
             )
 
         )
 
         if ai_signal == "BUY":
 
-            bullish_score += 3
+            bullish_score += 1.5
+            evidence_sources += 1
+            directional_sources += 1
 
             supporting_evidence.append(
                 "AI intelligence supports bullish movement"
@@ -238,10 +416,20 @@ class DecisionCore:
 
         elif ai_signal == "SELL":
 
-            bearish_score += 3
+            bearish_score += 1.5
+            evidence_sources += 1
+            directional_sources += 1
 
             conflicting_evidence.append(
                 "AI intelligence supports bearish movement"
+            )
+
+        elif ai:
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "AI intelligence provides no strong directional confirmation"
             )
 
         self._collect_confidence(
@@ -250,167 +438,47 @@ class DecisionCore:
         )
 
         # =================================================
-        # NEWS ANALYSIS
-        # =================================================
-
-        news_signal = self._normalize_signal(
-            news.get(
-                "sentiment"
-            )
-        )
-
-        if news_signal == "BUY":
-
-            bullish_score += 1
-
-            supporting_evidence.append(
-                "News sentiment is positive"
-            )
-
-        elif news_signal == "SELL":
-
-            bearish_score += 1
-
-            conflicting_evidence.append(
-                "News sentiment is negative"
-            )
-
-        self._collect_confidence(
-            news,
-            confidence_sources
-        )
-
-        # =================================================
-        # PATTERN ANALYSIS
-        # =================================================
-
-        if pattern.get(
-            "bullish"
-        ):
-
-            bullish_score += 1
-
-            supporting_evidence.append(
-                "Bullish chart pattern detected"
-            )
-
-        if pattern.get(
-            "bearish"
-        ):
-
-            bearish_score += 1
-
-            conflicting_evidence.append(
-                "Bearish chart pattern detected"
-            )
-
-        self._collect_confidence(
-            pattern,
-            confidence_sources
-        )
-
-        # =================================================
-        # VOLUME ANALYSIS
-        # =================================================
-
-        volume_signal = self._normalize_signal(
-            volume.get(
-                "signal"
-            )
-        )
-
-        if volume_signal == "BUY":
-
-            bullish_score += 1
-
-            supporting_evidence.append(
-                "Volume supports bullish movement"
-            )
-
-        elif volume_signal == "SELL":
-
-            bearish_score += 1
-
-            conflicting_evidence.append(
-                "Volume supports bearish movement"
-            )
-
-        self._collect_confidence(
-            volume,
-            confidence_sources
-        )
-
-        # =================================================
-        # MARKET SENTIMENT
-        # =================================================
-
-        sentiment_signal = self._normalize_signal(
-
-            sentiment.get(
-
-                "signal",
-
-                sentiment.get(
-                    "sentiment"
-                )
-
-            )
-
-        )
-
-        if sentiment_signal == "BUY":
-
-            bullish_score += 1
-
-            supporting_evidence.append(
-                "Market sentiment supports bullish conditions"
-            )
-
-        elif sentiment_signal == "SELL":
-
-            bearish_score += 1
-
-            conflicting_evidence.append(
-                "Market sentiment supports bearish conditions"
-            )
-
-        self._collect_confidence(
-            sentiment,
-            confidence_sources
-        )
-
-        # =================================================
-        # STRATEGY EVIDENCE
+        # STRATEGY CONFIRMATION
+        #
+        # Strategy is the most derived layer before risk.
+        # It receives only a light confirmation weight.
         # =================================================
 
         strategy_signal = self._normalize_signal(
 
             strategy.get(
-
                 "action",
-
-                strategy.get(
-                    "decision"
-                )
-
+                strategy.get("decision")
             )
 
         )
 
         if strategy_signal == "BUY":
 
-            bullish_score += 1
+            bullish_score += 0.5
+            evidence_sources += 1
+            directional_sources += 1
 
             supporting_evidence.append(
-                "Strategy supports a BUY position"
+                "Strategy aligns with a bullish position"
             )
 
         elif strategy_signal == "SELL":
 
-            bearish_score += 1
+            bearish_score += 0.5
+            evidence_sources += 1
+            directional_sources += 1
 
             conflicting_evidence.append(
-                "Strategy supports a SELL position"
+                "Strategy aligns with a bearish position"
+            )
+
+        elif strategy:
+
+            evidence_sources += 1
+
+            neutral_evidence.append(
+                "Strategy does not provide directional confirmation"
             )
 
         self._collect_confidence(
@@ -435,28 +503,51 @@ class DecisionCore:
         )
 
         # =================================================
-        # MARKET DECISION
+        # CONFLICT DETECTION
         # =================================================
 
-        if (
-            bullish_score >= 6
+        evidence_conflict = (
+
+            bullish_score > 0
+            and bearish_score > 0
+
+        )
+
+        if evidence_conflict:
+
+            conflicting_evidence.append(
+                "Bullish and bearish evidence are both present"
+            )
+
+        # =================================================
+        # MARKET DECISION
+        #
+        # Direction is determined independently from risk.
+        # =================================================
+
+        if total_score <= 0:
+
+            market_decision = "HOLD"
+
+        elif (
+            bullish_score >= 4.5
             and difference >= 3
         ):
 
             market_decision = "STRONG BUY"
 
-        elif difference >= 2:
+        elif difference >= 1.5:
 
             market_decision = "BUY"
 
         elif (
-            bearish_score >= 6
+            bearish_score >= 4.5
             and difference <= -3
         ):
 
             market_decision = "STRONG SELL"
 
-        elif difference <= -2:
+        elif difference <= -1.5:
 
             market_decision = "SELL"
 
@@ -465,27 +556,10 @@ class DecisionCore:
             market_decision = "HOLD"
 
         # =================================================
-        # CONFLICT DETECTION
-        # =================================================
-
-        evidence_conflict = False
-
-        if (
-            bullish_score > 0
-            and bearish_score > 0
-        ):
-
-            evidence_conflict = True
-
-            conflicting_evidence.append(
-                "Bullish and bearish evidence are both present"
-            )
-
-        # =================================================
         # RISK VALIDATION
         # =================================================
 
-        trade_allowed = risk.get(
+        trade_allowed_value = risk.get(
             "trade_allowed"
         )
 
@@ -500,35 +574,46 @@ class DecisionCore:
 
         risk_restricted = False
 
-        # =================================================
-        # TRADE RESTRICTION
-        # =================================================
+        risk_status = str(
+            risk.get(
+                "status",
+                ""
+            )
+        ).lower()
 
-        if trade_allowed is False:
+        # Explicit risk rejection only
+
+        if trade_allowed_value is False:
 
             risk_restricted = True
 
             conflicting_evidence.append(
-
                 "Risk management does not allow an active trade"
-
             )
+
+        # Risk calculation failure
+
+        if risk_status == "error":
+
+            risk_restricted = True
+
+            conflicting_evidence.append(
+                "Risk assessment could not validate trade eligibility"
+            )
+
+        # HIGH risk is a warning, not automatically
+        # a market-direction override.
 
         if risk_level == "HIGH":
 
             conflicting_evidence.append(
-
                 "High risk conditions detected"
-
             )
 
         # =================================================
         # FINAL ACTION
-        # =================================================
         #
-        # Market direction and trade eligibility
-        # are intentionally separated.
-        #
+        # Market direction and trading action are separate.
         # =================================================
 
         if risk_restricted:
@@ -549,6 +634,10 @@ class DecisionCore:
 
             bearish_score=bearish_score,
 
+            evidence_sources=evidence_sources,
+
+            directional_sources=directional_sources,
+
             confidence_sources=confidence_sources,
 
             evidence_conflict=evidence_conflict
@@ -556,7 +645,7 @@ class DecisionCore:
         )
 
         # =================================================
-        # DIRECTION PROBABILITY
+        # DIRECTIONAL PROBABILITY
         # =================================================
 
         probability = self._calculate_probability(
@@ -576,17 +665,31 @@ class DecisionCore:
         if not confidence_sources:
 
             assumptions.append(
-
-                "Confidence is estimated from evidence strength because source confidence values are unavailable"
-
+                "Source confidence values were unavailable; confidence relies on evidence balance and coverage"
             )
 
-        if total_score == 0:
+        if evidence_sources == 0:
 
             assumptions.append(
+                "No usable intelligence evidence was available"
+            )
 
-                "Decision is based on insufficient directional evidence"
+        elif directional_sources == 0:
 
+            assumptions.append(
+                "Available evidence does not provide a strong directional signal"
+            )
+
+        if evidence_conflict:
+
+            assumptions.append(
+                "Confidence is reduced because evidence sources disagree"
+            )
+
+        if risk_restricted:
+
+            assumptions.append(
+                "Market direction may differ from the final trading action because risk restrictions are active"
             )
 
         # =================================================
@@ -596,34 +699,54 @@ class DecisionCore:
         if not supporting_evidence:
 
             supporting_evidence.append(
-
                 "No strong bullish evidence detected"
-
             )
 
         if not conflicting_evidence:
 
             conflicting_evidence.append(
-
                 "No strong bearish evidence detected"
+            )
 
+        if not neutral_evidence:
+
+            neutral_evidence.append(
+                "No major neutral evidence recorded"
             )
 
         # =================================================
         # DATA FRESHNESS
         # =================================================
 
-        data_freshness = analysis.get(
+        metadata = analysis.get(
             "metadata",
             {}
         )
 
         if not isinstance(
-            data_freshness,
+            metadata,
             dict
         ):
 
-            data_freshness = {}
+            metadata = {}
+
+        data_freshness = {
+
+            "timestamp": metadata.get("timestamp"),
+
+            "market_data_timestamp": metadata.get(
+                "market_data_timestamp"
+            ),
+
+            "data_age_seconds": metadata.get(
+                "data_age_seconds"
+            ),
+
+            "source": metadata.get(
+                "source"
+            )
+
+        }
 
         # =================================================
         # FINAL RESULT
@@ -633,51 +756,73 @@ class DecisionCore:
 
             "status": "success",
 
-            # ---------------------------------------------
+            # =============================================
             # MARKET INTELLIGENCE
-            # ---------------------------------------------
+            # =============================================
 
             "decision": market_decision,
 
             "signal": market_decision,
 
-            # ---------------------------------------------
-            # FINAL ACTION
-            # ---------------------------------------------
+            "market_direction": market_decision,
+
+            # =============================================
+            # TRADING ACTION
+            # =============================================
 
             "final_action": final_action,
 
-            # ---------------------------------------------
+            "trade_action": final_action,
+
+            # =============================================
             # SCORES
-            # ---------------------------------------------
+            # =============================================
 
-            "bullish_score": bullish_score,
+            "bullish_score": round(
+                bullish_score,
+                2
+            ),
 
-            "bearish_score": bearish_score,
+            "bearish_score": round(
+                bearish_score,
+                2
+            ),
 
-            "score": difference,
+            "score": round(
+                difference,
+                2
+            ),
 
-            # ---------------------------------------------
-            # AI CONFIDENCE
-            # ---------------------------------------------
+            "total_evidence_score": round(
+                total_score,
+                2
+            ),
+
+            "evidence_sources": evidence_sources,
+
+            "directional_sources": directional_sources,
+
+            # =============================================
+            # CONFIDENCE
+            # =============================================
 
             "confidence": confidence,
 
-            # ---------------------------------------------
-            # DIRECTIONAL PROBABILITY
-            # ---------------------------------------------
+            # =============================================
+            # PROBABILITY
+            # =============================================
 
             "probability": probability,
 
-            # ---------------------------------------------
+            # =============================================
             # CONFLICT
-            # ---------------------------------------------
+            # =============================================
 
             "evidence_conflict": evidence_conflict,
 
-            # ---------------------------------------------
+            # =============================================
             # RISK
-            # ---------------------------------------------
+            # =============================================
 
             "risk_restricted": risk_restricted,
 
@@ -689,9 +834,9 @@ class DecisionCore:
 
             ),
 
-            # ---------------------------------------------
+            # =============================================
             # EXPLAINABILITY
-            # ---------------------------------------------
+            # =============================================
 
             "supporting_evidence":
 
@@ -701,21 +846,25 @@ class DecisionCore:
 
                 conflicting_evidence,
 
+            "neutral_evidence":
+
+                neutral_evidence,
+
             "assumptions":
 
                 assumptions,
 
-            # ---------------------------------------------
+            # =============================================
             # DATA FRESHNESS
-            # ---------------------------------------------
+            # =============================================
 
             "data_freshness":
 
                 data_freshness,
 
-            # ---------------------------------------------
+            # =============================================
             # BACKWARD COMPATIBILITY
-            # ---------------------------------------------
+            # =============================================
 
             "reason":
 
@@ -734,7 +883,6 @@ class DecisionCore:
 
         """
         Accept:
-
         - Dictionary
         - MarketContext-like object
         """
@@ -747,13 +895,9 @@ class DecisionCore:
             return analysis
 
         get_context = getattr(
-
             analysis,
-
             "get",
-
             None
-
         )
 
         if callable(
@@ -770,10 +914,8 @@ class DecisionCore:
                 return resolved
 
         raise TypeError(
-
             "DecisionCore.decide() expects "
             "a dictionary or MarketContext-like object"
-
         )
 
     # =====================================================
@@ -787,11 +929,8 @@ class DecisionCore:
     ):
 
         value = analysis.get(
-
             key,
-
             {}
-
         )
 
         if isinstance(
@@ -810,7 +949,7 @@ class DecisionCore:
     @staticmethod
     def _normalize_signal(signal):
 
-        if not signal:
+        if signal is None:
 
             return "HOLD"
 
@@ -821,16 +960,12 @@ class DecisionCore:
         if signal in (
 
             "BUY",
-
             "STRONG BUY",
-
             "LONG",
-
             "BULLISH",
-
             "VERY BULLISH",
-
-            "UP"
+            "UP",
+            "POSITIVE"
 
         ):
 
@@ -839,16 +974,12 @@ class DecisionCore:
         if signal in (
 
             "SELL",
-
             "STRONG SELL",
-
             "SHORT",
-
             "BEARISH",
-
             "VERY BEARISH",
-
-            "DOWN"
+            "DOWN",
+            "NEGATIVE"
 
         ):
 
@@ -888,14 +1019,11 @@ class DecisionCore:
             )
 
             confidence = max(
-
                 0,
-
                 min(
                     confidence,
                     100
                 )
-
             )
 
             confidence_sources.append(
@@ -903,11 +1031,8 @@ class DecisionCore:
             )
 
         except (
-
             TypeError,
-
             ValueError
-
         ):
 
             pass
@@ -923,6 +1048,10 @@ class DecisionCore:
 
         bearish_score,
 
+        evidence_sources,
+
+        directional_sources,
+
         confidence_sources,
 
         evidence_conflict=False
@@ -930,65 +1059,86 @@ class DecisionCore:
     ):
 
         total_score = (
-
             bullish_score
             +
             bearish_score
-
         )
 
-        if total_score == 0:
+        # ---------------------------------------------
+        # Direction agreement
+        # ---------------------------------------------
 
-            evidence_confidence = 50
+        if total_score <= 0:
+
+            agreement_score = 50
 
         else:
 
             dominant_score = max(
-
                 bullish_score,
-
                 bearish_score
-
             )
 
-            dominance_ratio = (
-
+            agreement_ratio = (
                 dominant_score
                 /
                 total_score
-
             )
 
-            evidence_confidence = (
-
-                50
+            agreement_score = (
+                40
                 +
                 (
-                    dominance_ratio
+                    agreement_ratio
                     *
-                    40
+                    50
                 )
-
             )
 
+        # ---------------------------------------------
+        # Evidence coverage
+        # ---------------------------------------------
+
+        coverage_ratio = min(
+            directional_sources / 6,
+            1
+        )
+
+        coverage_score = (
+            coverage_ratio
+            *
+            15
+        )
+
+        # ---------------------------------------------
+        # Base confidence
+        # ---------------------------------------------
+
+        evidence_confidence = (
+            agreement_score
+            +
+            coverage_score
+        )
+
+        # ---------------------------------------------
         # Conflict penalty
+        # ---------------------------------------------
 
         if evidence_conflict:
 
-            evidence_confidence -= 10
+            evidence_confidence -= 12
 
         evidence_confidence = max(
-
             0,
-
             min(
                 evidence_confidence,
                 95
             )
-
         )
 
-        # Source confidence combination
+        # ---------------------------------------------
+        # Source confidence
+        # ---------------------------------------------
 
         if confidence_sources:
 
@@ -1008,10 +1158,16 @@ class DecisionCore:
             confidence = (
 
                 evidence_confidence
-                +
-                source_confidence
+                *
+                0.60
 
-            ) / 2
+            ) + (
+
+                source_confidence
+                *
+                0.40
+
+            )
 
         else:
 
@@ -1020,14 +1176,11 @@ class DecisionCore:
         return round(
 
             max(
-
                 0,
-
                 min(
                     confidence,
                     100
                 )
-
             ),
 
             2
@@ -1061,9 +1214,9 @@ class DecisionCore:
 
             return {
 
-                "up": 0.5,
+                "up": 0.50,
 
-                "down": 0.5,
+                "down": 0.50,
 
                 "direction": "NEUTRAL"
 
