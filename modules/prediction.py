@@ -6,33 +6,42 @@ Prediction Engine
 
 Purpose
 -------
-Generates prediction evidence from market and technical
-analysis.
+Generates prediction evidence from intelligence evidence
+provided by CentralBrain.
 
 Responsibilities
 ----------------
-- Market direction estimation
-- Bullish / bearish evidence evaluation
-- Prediction confidence estimation
-- Supporting reasons
-- Conflicting evidence
+- Evaluate market direction
+- Evaluate bullish evidence
+- Evaluate bearish evidence
+- Estimate prediction confidence
+- Generate supporting evidence
+- Generate conflicting evidence
 
 This module does NOT:
-- Calculate trade risk
+- Fetch market data independently during CentralBrain flow
+- Perform orchestration
 - Generate strategy
+- Calculate risk
 - Make the final market decision
 
 Architecture
 ------------
+
 CentralBrain
-    ↓
-Market Data / Technical Evidence
-    ↓
+    │
+    ├── Market Data
+    │
+    ├── Technical Analysis
+    │
+    ▼
 Prediction Engine
-    ↓
+    │
+    ▼
 Prediction Evidence
-    ↓
-Strategy / Risk / DecisionCore
+    │
+    ▼
+MarketContext
 =========================================================
 """
 
@@ -43,7 +52,7 @@ from modules.technical import technical_analysis
 
 
 # =========================================================
-# HELPER
+# SAFE VALUE CONVERSION
 # =========================================================
 
 def _safe_float(value, default=0.0):
@@ -52,347 +61,19 @@ def _safe_float(value, default=0.0):
     """
 
     try:
+
         if pd.isna(value):
+
             return default
 
         return float(value)
 
-    except (TypeError, ValueError):
+    except (
+        TypeError,
+        ValueError
+    ):
+
         return default
-
-
-# =========================================================
-# CORE PREDICTION
-# =========================================================
-
-def get_prediction(symbol=None, data=None):
-    """
-    Generate prediction evidence.
-
-    Supports structured market intelligence input:
-
-    {
-        "market": {...},
-        "indicators": {...},
-        "news": {...}
-    }
-
-    Returns a standardized prediction result.
-    """
-
-    data = data or {}
-
-    indicators = data.get(
-        "indicators",
-        {}
-    ) or {}
-
-    market = data.get(
-        "market",
-        {}
-    )
-
-    # -----------------------------------------------------
-    # DataFrame Compatibility
-    # -----------------------------------------------------
-
-    if isinstance(market, pd.DataFrame):
-
-        if market.empty:
-
-            return _unknown_prediction(
-                "Market data unavailable"
-            )
-
-        try:
-
-            price = _safe_float(
-                market["Close"].iloc[-1]
-            )
-
-        except Exception:
-
-            return _unknown_prediction(
-                "Close price unavailable"
-            )
-
-    elif isinstance(market, dict):
-
-        price = _safe_float(
-            market.get("price", 0)
-        )
-
-    else:
-
-        price = 0
-
-    # -----------------------------------------------------
-    # Indicator Values
-    # -----------------------------------------------------
-
-    rsi = _safe_float(
-        indicators.get(
-            "rsi",
-            50
-        ),
-        50
-    )
-
-    sma20 = _safe_float(
-        indicators.get(
-            "sma20",
-            0
-        )
-    )
-
-    ema20 = _safe_float(
-        indicators.get(
-            "ema20",
-            0
-        )
-    )
-
-    ema50 = _safe_float(
-        indicators.get(
-            "ema50",
-            0
-        )
-    )
-
-    macd = _safe_float(
-        indicators.get(
-            "macd",
-            0
-        )
-    )
-
-    macd_signal = _safe_float(
-        indicators.get(
-            "macd_signal",
-            0
-        )
-    )
-
-    # -----------------------------------------------------
-    # Evidence
-    # -----------------------------------------------------
-
-    bullish_score = 0
-    bearish_score = 0
-
-    supporting_evidence = []
-    conflicting_evidence = []
-
-    # -----------------------------------------------------
-    # EMA Trend
-    # -----------------------------------------------------
-
-    if ema20 > 0 and ema50 > 0:
-
-        if ema20 > ema50:
-
-            bullish_score += 1
-
-            supporting_evidence.append(
-                "EMA20 is above EMA50"
-            )
-
-        elif ema20 < ema50:
-
-            bearish_score += 1
-
-            conflicting_evidence.append(
-                "EMA20 is below EMA50"
-            )
-
-    # -----------------------------------------------------
-    # Price vs EMA20
-    # -----------------------------------------------------
-
-    if price > 0 and ema20 > 0:
-
-        if price > ema20:
-
-            bullish_score += 1
-
-            supporting_evidence.append(
-                "Price is above EMA20"
-            )
-
-        elif price < ema20:
-
-            bearish_score += 1
-
-            conflicting_evidence.append(
-                "Price is below EMA20"
-            )
-
-    # -----------------------------------------------------
-    # MACD Momentum
-    # -----------------------------------------------------
-
-    if macd > macd_signal:
-
-        bullish_score += 1
-
-        supporting_evidence.append(
-            "MACD momentum is bullish"
-        )
-
-    elif macd < macd_signal:
-
-        bearish_score += 1
-
-        conflicting_evidence.append(
-            "MACD momentum is bearish"
-        )
-
-    # -----------------------------------------------------
-    # RSI
-    # -----------------------------------------------------
-
-    if rsi < 30:
-
-        bullish_score += 1
-
-        supporting_evidence.append(
-            "RSI indicates oversold conditions"
-        )
-
-    elif rsi > 70:
-
-        bearish_score += 1
-
-        conflicting_evidence.append(
-            "RSI indicates overbought conditions"
-        )
-
-    elif 45 <= rsi <= 60:
-
-        supporting_evidence.append(
-            "RSI is neutral"
-        )
-
-    # -----------------------------------------------------
-    # Signal Classification
-    # -----------------------------------------------------
-
-    difference = (
-        bullish_score -
-        bearish_score
-    )
-
-    if bullish_score >= 3:
-
-        signal = "STRONG BUY"
-
-    elif difference >= 1:
-
-        signal = "BUY"
-
-    elif bearish_score >= 3:
-
-        signal = "STRONG SELL"
-
-    elif difference <= -1:
-
-        signal = "SELL"
-
-    else:
-
-        signal = "HOLD"
-
-    # -----------------------------------------------------
-    # Confidence
-    # -----------------------------------------------------
-
-    total_evidence = (
-        bullish_score +
-        bearish_score
-    )
-
-    if total_evidence == 0:
-
-        confidence = 50
-
-    else:
-
-        dominant_score = max(
-            bullish_score,
-            bearish_score
-        )
-
-        confidence = min(
-            50 + dominant_score * 12,
-            90
-        )
-
-    # -----------------------------------------------------
-    # Probability
-    # -----------------------------------------------------
-
-    probability = round(
-        confidence / 100,
-        2
-    )
-
-    # -----------------------------------------------------
-    # Default Reasons
-    # -----------------------------------------------------
-
-    if not supporting_evidence:
-
-        supporting_evidence.append(
-            "No strong bullish evidence detected"
-        )
-
-    if not conflicting_evidence:
-
-        conflicting_evidence.append(
-            "No strong bearish evidence detected"
-        )
-
-    # -----------------------------------------------------
-    # Result
-    # -----------------------------------------------------
-
-    return {
-
-        "status": "success",
-
-        "symbol": symbol,
-
-        "signal": signal,
-
-        "confidence": confidence,
-
-        "probability": probability,
-
-        "price": round(
-            price,
-            2
-        ),
-
-        "bullish_score": bullish_score,
-
-        "bearish_score": bearish_score,
-
-        "supporting_evidence": (
-            supporting_evidence
-        ),
-
-        "conflicting_evidence": (
-            conflicting_evidence
-        ),
-
-        # Backward Compatibility
-
-        "reason": (
-            supporting_evidence +
-            conflicting_evidence
-        )
-
-    }
 
 
 # =========================================================
@@ -424,7 +105,408 @@ def _unknown_prediction(message):
 
         "conflicting_evidence": [],
 
-        "reason": [message]
+        "reason": [
+
+            message
+
+        ]
+
+    }
+
+
+# =========================================================
+# CORE PREDICTION ENGINE
+# =========================================================
+
+def get_prediction(
+    symbol=None,
+    data=None
+):
+    """
+    Generate prediction evidence.
+
+    Expected structured data:
+
+    {
+        "market": {},
+        "indicators": {}
+    }
+
+    CentralBrain should provide the evidence.
+    """
+
+    data = data or {}
+
+    indicators = data.get(
+        "indicators",
+        {}
+    ) or {}
+
+    market = data.get(
+        "market",
+        {}
+    )
+
+    # =====================================================
+    # PRICE RESOLUTION
+    # =====================================================
+
+    price = 0.0
+
+    if isinstance(
+        market,
+        pd.DataFrame
+    ):
+
+        if market.empty:
+
+            return _unknown_prediction(
+
+                "Market data unavailable"
+
+            )
+
+        try:
+
+            price = _safe_float(
+
+                market[
+                    "Close"
+                ].iloc[-1]
+
+            )
+
+        except Exception:
+
+            return _unknown_prediction(
+
+                "Close price unavailable"
+
+            )
+
+    elif isinstance(
+        market,
+        dict
+    ):
+
+        price = _safe_float(
+
+            market.get(
+                "price",
+                0
+            )
+
+        )
+
+    # =====================================================
+    # INDICATORS
+    # =====================================================
+
+    rsi = _safe_float(
+
+        indicators.get(
+            "rsi",
+            50
+        ),
+
+        50
+
+    )
+
+    ema20 = _safe_float(
+
+        indicators.get(
+            "ema20",
+            0
+        )
+
+    )
+
+    ema50 = _safe_float(
+
+        indicators.get(
+            "ema50",
+            0
+        )
+
+    )
+
+    macd = _safe_float(
+
+        indicators.get(
+            "macd",
+            0
+        )
+
+    )
+
+    macd_signal = _safe_float(
+
+        indicators.get(
+            "macd_signal",
+            0
+        )
+
+    )
+
+    # =====================================================
+    # EVIDENCE SCORING
+    # =====================================================
+
+    bullish_score = 0
+
+    bearish_score = 0
+
+    supporting_evidence = []
+
+    conflicting_evidence = []
+
+    # =====================================================
+    # EMA TREND
+    # =====================================================
+
+    if ema20 > 0 and ema50 > 0:
+
+        if ema20 > ema50:
+
+            bullish_score += 1
+
+            supporting_evidence.append(
+
+                "EMA20 is above EMA50"
+
+            )
+
+        elif ema20 < ema50:
+
+            bearish_score += 1
+
+            conflicting_evidence.append(
+
+                "EMA20 is below EMA50"
+
+            )
+
+    # =====================================================
+    # PRICE VS EMA20
+    # =====================================================
+
+    if price > 0 and ema20 > 0:
+
+        if price > ema20:
+
+            bullish_score += 1
+
+            supporting_evidence.append(
+
+                "Price is above EMA20"
+
+            )
+
+        elif price < ema20:
+
+            bearish_score += 1
+
+            conflicting_evidence.append(
+
+                "Price is below EMA20"
+
+            )
+
+    # =====================================================
+    # MACD
+    # =====================================================
+
+    if macd > macd_signal:
+
+        bullish_score += 1
+
+        supporting_evidence.append(
+
+            "MACD momentum is bullish"
+
+        )
+
+    elif macd < macd_signal:
+
+        bearish_score += 1
+
+        conflicting_evidence.append(
+
+            "MACD momentum is bearish"
+
+        )
+
+    # =====================================================
+    # RSI
+    # =====================================================
+
+    if rsi < 30:
+
+        bullish_score += 1
+
+        supporting_evidence.append(
+
+            "RSI indicates oversold conditions"
+
+        )
+
+    elif rsi > 70:
+
+        bearish_score += 1
+
+        conflicting_evidence.append(
+
+            "RSI indicates overbought conditions"
+
+        )
+
+    elif 45 <= rsi <= 60:
+
+        supporting_evidence.append(
+
+            "RSI is neutral"
+
+        )
+
+    # =====================================================
+    # SIGNAL CLASSIFICATION
+    # =====================================================
+
+    difference = (
+
+        bullish_score
+        -
+        bearish_score
+
+    )
+
+    if bullish_score >= 3:
+
+        signal = "STRONG BUY"
+
+    elif difference >= 1:
+
+        signal = "BUY"
+
+    elif bearish_score >= 3:
+
+        signal = "STRONG SELL"
+
+    elif difference <= -1:
+
+        signal = "SELL"
+
+    else:
+
+        signal = "HOLD"
+
+    # =====================================================
+    # CONFIDENCE
+    # =====================================================
+
+    total_evidence = (
+
+        bullish_score
+        +
+        bearish_score
+
+    )
+
+    if total_evidence == 0:
+
+        confidence = 50
+
+    else:
+
+        dominant_score = max(
+
+            bullish_score,
+
+            bearish_score
+
+        )
+
+        confidence = min(
+
+            50
+            +
+            dominant_score * 12,
+
+            90
+
+        )
+
+    # =====================================================
+    # PROBABILITY
+    # =====================================================
+
+    probability = round(
+
+        confidence / 100,
+
+        2
+
+    )
+
+    # =====================================================
+    # DEFAULT EVIDENCE
+    # =====================================================
+
+    if not supporting_evidence:
+
+        supporting_evidence.append(
+
+            "No strong bullish evidence detected"
+
+        )
+
+    if not conflicting_evidence:
+
+        conflicting_evidence.append(
+
+            "No strong bearish evidence detected"
+
+        )
+
+    # =====================================================
+    # FINAL RESULT
+    # =====================================================
+
+    return {
+
+        "status": "success",
+
+        "symbol": symbol,
+
+        "signal": signal,
+
+        "confidence": confidence,
+
+        "probability": probability,
+
+        "price": round(
+            price,
+            2
+        ),
+
+        "bullish_score": bullish_score,
+
+        "bearish_score": bearish_score,
+
+        "supporting_evidence":
+
+            supporting_evidence,
+
+        "conflicting_evidence":
+
+            conflicting_evidence,
+
+        "reason":
+
+            supporting_evidence
+            +
+            conflicting_evidence
 
     }
 
@@ -435,10 +517,9 @@ def _unknown_prediction(message):
 
 def predict_market(df):
     """
-    Compatibility interface for DataFrame callers.
+    Backward-compatible DataFrame interface.
 
-    Performs technical analysis first and then
-    generates prediction evidence.
+    Existing callers can continue passing a DataFrame.
     """
 
     if not isinstance(
@@ -447,23 +528,31 @@ def predict_market(df):
     ):
 
         return _unknown_prediction(
+
             "Invalid market DataFrame"
+
         )
 
     if df.empty:
 
         return _unknown_prediction(
+
             "Market DataFrame is empty"
+
         )
 
-    technical = technical_analysis(df)
+    technical = technical_analysis(
+        df
+    )
 
     if technical.get(
         "status"
     ) == "error":
 
         return _unknown_prediction(
+
             "Technical analysis failed"
+
         )
 
     return get_prediction(
@@ -480,58 +569,134 @@ def predict_market(df):
 
 
 # =========================================================
+# LEGACY SYMBOL COMPATIBILITY
+# =========================================================
+
+def _predict_from_symbol(symbol):
+    """
+    Legacy compatibility path.
+
+    This path is only for external callers that still
+    provide a symbol instead of CentralBrain evidence.
+    """
+
+    dataframe = get_market_data(
+        symbol
+    )
+
+    if (
+
+        dataframe is None
+
+        or dataframe.empty
+
+    ):
+
+        return _unknown_prediction(
+
+            "Market data unavailable"
+
+        )
+
+    technical = technical_analysis(
+        dataframe
+    )
+
+    return get_prediction(
+
+        symbol=symbol,
+
+        data={
+
+            "market": dataframe,
+
+            "indicators": technical
+
+        }
+
+    )
+
+
+# =========================================================
 # CENTRAL BRAIN INTERFACE
 # =========================================================
 
 def predict_price(source=None):
     """
-    Prediction interface for CentralBrain.
+    Prediction interface.
 
     Supports:
 
-    1. Symbol string
-    2. OHLC DataFrame
+    1. Shared MarketContext dictionary
+    2. Raw DataFrame
+    3. Symbol string for backward compatibility
 
-    Example:
+    Preferred CentralBrain usage:
 
-        predict_price("RELIANCE.NS")
+        predict_price(context.get())
 
-        predict_price(dataframe)
+    This prevents duplicate market-data fetching.
     """
 
-    # -----------------------------------------------------
-    # SYMBOL MODE
-    # -----------------------------------------------------
+    # =====================================================
+    # SHARED CONTEXT MODE
+    # =====================================================
 
     if isinstance(
         source,
-        str
+        dict
     ):
 
-        dataframe = get_market_data(
-            source
+        technical = source.get(
+
+            "technical",
+
+            {}
+
+        ) or {}
+
+        market_data = source.get(
+
+            "market_data"
+
         )
 
-        if (
-            dataframe is None
-            or dataframe.empty
+        # -----------------------------------------------
+        # Resolve Market Evidence
+        # -----------------------------------------------
+
+        market = {}
+
+        if isinstance(
+            market_data,
+            pd.DataFrame
         ):
 
-            return _unknown_prediction(
-                "Market data unavailable"
-            )
+            market = market_data
 
-        technical = technical_analysis(
-            dataframe
-        )
+        elif technical:
+
+            market = {
+
+                "price": technical.get(
+
+                    "price",
+
+                    0
+
+                )
+
+            }
 
         return get_prediction(
 
-            symbol=source,
+            symbol=source.get(
+                "symbol"
+            ),
 
             data={
 
-                "market": dataframe,
+                "market": market,
 
                 "indicators": technical
 
@@ -539,9 +704,9 @@ def predict_price(source=None):
 
         )
 
-    # -----------------------------------------------------
+    # =====================================================
     # DATAFRAME MODE
-    # -----------------------------------------------------
+    # =====================================================
 
     if isinstance(
         source,
@@ -552,10 +717,25 @@ def predict_price(source=None):
             source
         )
 
-    # -----------------------------------------------------
+    # =====================================================
+    # SYMBOL MODE
+    # =====================================================
+
+    if isinstance(
+        source,
+        str
+    ):
+
+        return _predict_from_symbol(
+            source
+        )
+
+    # =====================================================
     # NO INPUT
-    # -----------------------------------------------------
+    # =====================================================
 
     return _unknown_prediction(
+
         "Prediction input unavailable"
+
     )
