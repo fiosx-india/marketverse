@@ -9,54 +9,21 @@ Purpose
 Transforms existing intelligence evidence into a unified
 AI analysis result.
 
-Responsibilities
-----------------
-- Combine available intelligence evidence
-- Evaluate bullish evidence
-- Evaluate bearish evidence
-- Evaluate neutral evidence
-- Measure evidence conflict
-- Produce AI signal
-- Produce confidence
-- Produce directional probabilities
-- Produce explainable AI reasoning
+CentralBrain remains the primary orchestrator.
+
+This module:
+- Consumes Shared MarketContext evidence
+- Combines directional evidence
+- Measures evidence coverage and conflict
+- Produces probability-based AI intelligence
+- Produces explainable reasoning
 
 This module does NOT:
 - Fetch market data independently
-- Orchestrate the intelligence workflow
+- Orchestrate the workflow
+- Generate strategies
 - Calculate risk
-- Generate trading strategy
 - Make the final market decision
-
-Architecture
-------------
-
-CentralBrain
-    │
-    ├── Market Data
-    ├── Technical Analysis
-    ├── News Analysis
-    ├── Sentiment
-    ├── Pattern
-    ├── Volume
-    └── Prediction
-            │
-            ▼
-      AI Intelligence Engine
-            │
-            ▼
-      AI Evidence
-            │
-            ▼
-      Strategy Engine
-            │
-            ▼
-        RiskManager
-            │
-            ▼
-       DecisionCore
-
-CentralBrain remains the primary orchestrator.
 =========================================================
 """
 
@@ -66,14 +33,31 @@ CentralBrain remains the primary orchestrator.
 # =========================================================
 
 def _safe_dict(value):
-    """
-    Return dictionary safely.
-    """
+    """Return dictionary safely."""
 
-    if isinstance(value, dict):
-        return value
+    return value if isinstance(value, dict) else {}
 
-    return {}
+
+def _safe_number(value, default=0.0):
+    """Convert value safely to float."""
+
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_confidence(value, default=50.0):
+    """Normalize confidence to 0-100."""
+
+    confidence = _safe_number(value, default)
+
+    return max(
+        0.0,
+        min(confidence, 100.0)
+    )
 
 
 def _normalize_signal(signal):
@@ -89,11 +73,11 @@ def _normalize_signal(signal):
     if signal is None:
         return "HOLD"
 
-    signal = str(signal).strip().upper()
+    value = str(signal).strip().upper()
 
-    if signal in (
-        "STRONG BUY",
+    if value in (
         "BUY",
+        "STRONG BUY",
         "BULLISH",
         "VERY BULLISH",
         "UP",
@@ -101,9 +85,9 @@ def _normalize_signal(signal):
     ):
         return "BUY"
 
-    if signal in (
-        "STRONG SELL",
+    if value in (
         "SELL",
+        "STRONG SELL",
         "BEARISH",
         "VERY BEARISH",
         "DOWN",
@@ -112,57 +96,6 @@ def _normalize_signal(signal):
         return "SELL"
 
     return "HOLD"
-
-
-def _safe_confidence(
-    value,
-    default=50
-):
-    """
-    Normalize confidence safely.
-    """
-
-    try:
-
-        confidence = float(value)
-
-        return max(
-            0,
-            min(
-                confidence,
-                100
-            )
-        )
-
-    except (
-        TypeError,
-        ValueError
-    ):
-
-        return default
-
-
-def _safe_number(
-    value,
-    default=0
-):
-    """
-    Convert value safely to float.
-    """
-
-    try:
-
-        if value is None:
-            return default
-
-        return float(value)
-
-    except (
-        TypeError,
-        ValueError
-    ):
-
-        return default
 
 
 # =========================================================
@@ -181,13 +114,7 @@ def _register_evidence(
     bearish_message,
     neutral_message
 ):
-    """
-    Register evidence consistently.
-
-    Returns:
-        bullish_score,
-        bearish_score
-    """
+    """Register directional evidence."""
 
     if direction == "BUY":
 
@@ -211,10 +138,7 @@ def _register_evidence(
             neutral_message
         )
 
-    return (
-        bullish_score,
-        bearish_score
-    )
+    return bullish_score, bearish_score
 
 
 # =========================================================
@@ -223,87 +147,71 @@ def _register_evidence(
 
 def _resolve_signal(
     bullish_score,
-    bearish_score
+    bearish_score,
+    available_sources
 ):
     """
-    Resolve AI signal using directional dominance.
+    Resolve signal conservatively.
 
     Strong signals require:
-    - Enough directional evidence
+    - Minimum 4 available evidence sources
+    - Strong directional score
     - Clear separation from conflicting evidence
     """
 
-    difference = (
-
-        bullish_score
-        -
-        bearish_score
-
-    )
-
     total_directional = (
-
         bullish_score
         +
         bearish_score
-
     )
 
-    # -----------------------------------------------------
-    # NO DIRECTIONAL EVIDENCE
-    # -----------------------------------------------------
-
     if total_directional <= 0:
-
         return "HOLD"
 
-    # -----------------------------------------------------
-    # STRONG BUY
-    # -----------------------------------------------------
+    difference = (
+        bullish_score
+        -
+        bearish_score
+    )
 
-    if (
+    # =====================================================
+    # STRONG SIGNALS
+    #
+    # Important:
+    # Low evidence coverage cannot generate STRONG signals.
+    # =====================================================
 
-        bullish_score >= 5
+    if available_sources >= 4:
 
-        and difference >= 3
+        if (
+            bullish_score >= 6
+            and difference >= 4
+        ):
+            return "STRONG BUY"
 
-    ):
+        if (
+            bearish_score >= 6
+            and difference <= -4
+        ):
+            return "STRONG SELL"
 
-        return "STRONG BUY"
-
-    # -----------------------------------------------------
-    # BUY
-    # -----------------------------------------------------
+    # =====================================================
+    # NORMAL BUY
+    # =====================================================
 
     if difference >= 2:
-
         return "BUY"
 
-    # -----------------------------------------------------
-    # STRONG SELL
-    # -----------------------------------------------------
-
-    if (
-
-        bearish_score >= 5
-
-        and difference <= -3
-
-    ):
-
-        return "STRONG SELL"
-
-    # -----------------------------------------------------
-    # SELL
-    # -----------------------------------------------------
+    # =====================================================
+    # NORMAL SELL
+    # =====================================================
 
     if difference <= -2:
-
         return "SELL"
 
-    # -----------------------------------------------------
-    # MIXED
-    # -----------------------------------------------------
+    # =====================================================
+    # MIXED MARKET
+    # =====================================================
 
     return "HOLD"
 
@@ -319,176 +227,156 @@ def _calculate_confidence(
     available_sources
 ):
     """
-    Calculate confidence from:
+    Calculate confidence conservatively.
 
-    1. Evidence coverage
-    2. Directional dominance
-    3. Source confidence
-    4. Conflict penalty
+    Components:
+    - Evidence coverage
+    - Directional dominance
+    - Source confidence
+    - Conflict penalty
 
-    Confidence does not equal probability.
+    Confidence caps prevent low evidence from producing
+    unrealistic high confidence.
     """
 
     total_directional = (
-
         bullish_score
         +
         bearish_score
-
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # NO DIRECTIONAL EVIDENCE
-    # -----------------------------------------------------
+    # =====================================================
 
     if total_directional <= 0:
+
+        if available_sources == 0:
+            return 0.0
 
         return 50.0
 
     dominant_score = max(
-
         bullish_score,
         bearish_score
-
     )
 
     conflicting_score = min(
-
         bullish_score,
         bearish_score
-
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # DIRECTIONAL DOMINANCE
-    # -----------------------------------------------------
+    # =====================================================
 
     dominance_ratio = (
-
         dominant_score
         /
         total_directional
-
     )
 
-    dominance_score = (
-
+    # Maximum 30 points.
+    dominance_component = (
         dominance_ratio
         *
-        35
-
+        30
     )
 
-    # -----------------------------------------------------
-    # EVIDENCE STRENGTH
-    # -----------------------------------------------------
-
-    evidence_strength = min(
-
-        total_directional * 4,
-
-        25
-
-    )
-
-    # -----------------------------------------------------
-    # SOURCE COVERAGE
-    # -----------------------------------------------------
+    # =====================================================
+    # EVIDENCE COVERAGE
+    # =====================================================
 
     maximum_sources = 6
 
     coverage_ratio = min(
-
         available_sources
         /
         maximum_sources,
-
-        1
-
+        1.0
     )
 
-    coverage_score = (
-
+    # Maximum 30 points.
+    coverage_component = (
         coverage_ratio
         *
-        20
-
+        30
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # SOURCE CONFIDENCE
-    # -----------------------------------------------------
+    # =====================================================
 
     if confidence_sources:
 
         average_source_confidence = (
-
-            sum(
-                confidence_sources
-            )
-
+            sum(confidence_sources)
             /
-            len(
-                confidence_sources
-            )
-
+            len(confidence_sources)
         )
 
     else:
 
-        average_source_confidence = 50
+        average_source_confidence = 50.0
 
-    source_confidence_score = (
-
+    # Maximum 25 points.
+    source_component = (
         average_source_confidence
         *
-        0.20
-
+        0.25
     )
 
-    # -----------------------------------------------------
+    # =====================================================
+    # EVIDENCE STRENGTH
+    # =====================================================
+
+    evidence_strength_component = min(
+        total_directional
+        *
+        2,
+        10
+    )
+
+    # =====================================================
     # CONFLICT PENALTY
-    # -----------------------------------------------------
+    # =====================================================
 
     conflict_ratio = (
-
         conflicting_score
         /
         total_directional
-
     )
 
+    # Maximum 20 point penalty.
     conflict_penalty = (
-
         conflict_ratio
         *
         20
-
     )
 
-    # -----------------------------------------------------
-    # FINAL
-    # -----------------------------------------------------
+    # =====================================================
+    # RAW CONFIDENCE
+    # =====================================================
 
     confidence = (
 
-        25
+        10
 
         +
 
-        dominance_score
+        dominance_component
 
         +
 
-        evidence_strength
+        coverage_component
 
         +
 
-        coverage_score
+        source_component
 
         +
 
-        source_confidence_score
+        evidence_strength_component
 
         -
 
@@ -496,15 +384,45 @@ def _calculate_confidence(
 
     )
 
+    # =====================================================
+    # COVERAGE CAPS
+    #
+    # Prevent artificial confidence when only a few
+    # intelligence sources are available.
+    # =====================================================
+
+    if available_sources <= 1:
+
+        confidence_cap = 55
+
+    elif available_sources == 2:
+
+        confidence_cap = 65
+
+    elif available_sources == 3:
+
+        confidence_cap = 75
+
+    elif available_sources == 4:
+
+        confidence_cap = 85
+
+    elif available_sources == 5:
+
+        confidence_cap = 92
+
+    else:
+
+        confidence_cap = 95
+
+    confidence = min(
+        confidence,
+        confidence_cap
+    )
+
     confidence = max(
-
         0,
-
-        min(
-            confidence,
-            95
-        )
-
+        min(confidence, 95)
     )
 
     return round(
@@ -514,36 +432,34 @@ def _calculate_confidence(
 
 
 # =========================================================
-# DIRECTIONAL PROBABILITIES
+# PROBABILITY DISTRIBUTION
 # =========================================================
 
 def _calculate_probabilities(
     bullish_score,
-    bearish_score
+    bearish_score,
+    available_sources
 ):
     """
     Calculate directional probability distribution.
 
+    Probability is separate from confidence.
+
     Returns:
-
-    bullish_probability
-    bearish_probability
-    neutral_probability
-
-    Total is approximately 1.0.
+    - bullish_probability
+    - bearish_probability
+    - neutral_probability
     """
 
     total_directional = (
-
         bullish_score
         +
         bearish_score
-
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # NO DIRECTIONAL EVIDENCE
-    # -----------------------------------------------------
+    # =====================================================
 
     if total_directional <= 0:
 
@@ -557,121 +473,111 @@ def _calculate_probabilities(
 
         }
 
-    # -----------------------------------------------------
-    # DIRECTIONAL PROBABILITY
-    # -----------------------------------------------------
+    # =====================================================
+    # RAW DIRECTION RATIOS
+    # =====================================================
 
     bullish_ratio = (
-
         bullish_score
         /
         total_directional
-
     )
 
     bearish_ratio = (
-
         bearish_score
         /
         total_directional
-
     )
 
-    # -----------------------------------------------------
-    # EVIDENCE STRENGTH
-    # -----------------------------------------------------
+    # =====================================================
+    # EVIDENCE COVERAGE
+    # =====================================================
 
-    evidence_strength = min(
-
-        total_directional
+    coverage_ratio = min(
+        available_sources
         /
-        10,
-
-        1
-
+        6,
+        1.0
     )
 
-    # -----------------------------------------------------
-    # NEUTRAL PROBABILITY
-    # -----------------------------------------------------
+    # =====================================================
+    # NEUTRAL UNCERTAINTY
+    #
+    # Low source coverage increases neutral uncertainty.
+    # =====================================================
 
     neutral_probability = (
 
-        0.45
+        0.40
         *
         (
             1
             -
-            evidence_strength
+            coverage_ratio
         )
+
     )
 
-    # -----------------------------------------------------
-    # AVAILABLE DIRECTIONAL SPACE
-    # -----------------------------------------------------
+    # =====================================================
+    # DIRECTIONAL PROBABILITY SPACE
+    # =====================================================
 
     directional_space = (
-
-        1
+        1.0
         -
+        neutral_probability
+    )
+
+    bullish_probability = (
+        bullish_ratio
+        *
+        directional_space
+    )
+
+    bearish_probability = (
+        bearish_ratio
+        *
+        directional_space
+    )
+
+    # =====================================================
+    # NORMALIZATION
+    # =====================================================
+
+    total = (
+
+        bullish_probability
+        +
+        bearish_probability
+        +
         neutral_probability
 
     )
 
-    bullish_probability = (
+    if total > 0:
 
-        bullish_ratio
-        *
-        directional_space
+        bullish_probability /= total
 
-    )
+        bearish_probability /= total
 
-    bearish_probability = (
-
-        bearish_ratio
-        *
-        directional_space
-
-    )
-
-    # -----------------------------------------------------
-    # ROUND
-    # -----------------------------------------------------
-
-    bullish_probability = round(
-
-        bullish_probability,
-        4
-
-    )
-
-    bearish_probability = round(
-
-        bearish_probability,
-        4
-
-    )
-
-    neutral_probability = round(
-
-        neutral_probability,
-        4
-
-    )
+        neutral_probability /= total
 
     return {
 
-        "bullish_probability":
-
+        "bullish_probability": round(
             bullish_probability,
+            4
+        ),
 
-        "bearish_probability":
-
+        "bearish_probability": round(
             bearish_probability,
+            4
+        ),
 
-        "neutral_probability":
-
-            neutral_probability
+        "neutral_probability": round(
+            neutral_probability,
+            4
+        )
 
     }
 
@@ -687,18 +593,7 @@ def _classify_final_evidence(
     neutral_evidence
 ):
     """
-    Classify evidence relative to final AI signal.
-
-    BUY:
-        Bullish -> Supporting
-        Bearish -> Conflicting
-
-    SELL:
-        Bearish -> Supporting
-        Bullish -> Conflicting
-
-    HOLD:
-        Mixed evidence remains neutral/conflicting.
+    Classify evidence relative to final signal.
     """
 
     supporting_evidence = []
@@ -710,22 +605,16 @@ def _classify_final_evidence(
     # =====================================================
 
     if signal in (
-
         "BUY",
         "STRONG BUY"
-
     ):
 
         supporting_evidence.extend(
-
             bullish_evidence
-
         )
 
         conflicting_evidence.extend(
-
             bearish_evidence
-
         )
 
     # =====================================================
@@ -733,22 +622,16 @@ def _classify_final_evidence(
     # =====================================================
 
     elif signal in (
-
         "SELL",
         "STRONG SELL"
-
     ):
 
         supporting_evidence.extend(
-
             bearish_evidence
-
         )
 
         conflicting_evidence.extend(
-
             bullish_evidence
-
         )
 
     # =====================================================
@@ -758,15 +641,11 @@ def _classify_final_evidence(
     else:
 
         conflicting_evidence.extend(
-
             bullish_evidence
-
         )
 
         conflicting_evidence.extend(
-
             bearish_evidence
-
         )
 
     return (
@@ -781,7 +660,7 @@ def _classify_final_evidence(
 
 
 # =========================================================
-# AI INTELLIGENCE ENGINE
+# MAIN AI INTELLIGENCE ENGINE
 # =========================================================
 
 def analyze(
@@ -789,7 +668,7 @@ def analyze(
     evidence=None
 ):
     """
-    Generate AI intelligence evidence.
+    Generate AI intelligence analysis.
 
     Parameters
     ----------
@@ -797,25 +676,16 @@ def analyze(
         Market symbol.
 
     evidence:
-        Shared MarketContext dictionary.
+        Shared MarketContext dictionary provided by
+        CentralBrain.
 
-    Supported evidence sections:
-
-        {
-            "technical": {},
-            "prediction": {},
-            "news_analysis": {},
-            "sentiment": {},
-            "pattern": {},
-            "volume": {}
-        }
-
-    CentralBrain provides the evidence.
-
-    This function:
-    - Does not fetch data
-    - Does not orchestrate modules
-    - Does not make final market decisions
+    Supported sections:
+    - technical
+    - prediction
+    - news_analysis
+    - sentiment
+    - pattern
+    - volume
     """
 
     # =====================================================
@@ -827,55 +697,31 @@ def analyze(
     )
 
     # =====================================================
-    # READ EVIDENCE
+    # READ MARKET CONTEXT
     # =====================================================
 
     technical = _safe_dict(
-
-        evidence.get(
-            "technical"
-        )
-
+        evidence.get("technical")
     )
 
     prediction = _safe_dict(
-
-        evidence.get(
-            "prediction"
-        )
-
+        evidence.get("prediction")
     )
 
     news_analysis = _safe_dict(
-
-        evidence.get(
-            "news_analysis"
-        )
-
+        evidence.get("news_analysis")
     )
 
     sentiment = _safe_dict(
-
-        evidence.get(
-            "sentiment"
-        )
-
+        evidence.get("sentiment")
     )
 
     pattern = _safe_dict(
-
-        evidence.get(
-            "pattern"
-        )
-
+        evidence.get("pattern")
     )
 
     volume = _safe_dict(
-
-        evidence.get(
-            "volume"
-        )
-
+        evidence.get("volume")
     )
 
     # =====================================================
@@ -897,28 +743,20 @@ def analyze(
     available_sources = 0
 
     # =====================================================
-    # TECHNICAL EVIDENCE
+    # TECHNICAL
     # =====================================================
 
     if technical:
 
         available_sources += 1
 
-        technical_signal = _normalize_signal(
-
-            technical.get(
-                "signal"
-            )
-
+        direction = _normalize_signal(
+            technical.get("signal")
         )
 
-        (
-            bullish_score,
-            bearish_score
+        bullish_score, bearish_score = _register_evidence(
 
-        ) = _register_evidence(
-
-            direction=technical_signal,
+            direction=direction,
 
             weight=2,
 
@@ -949,41 +787,29 @@ def analyze(
         )
 
         confidence_sources.append(
-
             _safe_confidence(
-
                 technical.get(
                     "confidence",
                     50
                 )
-
             )
-
         )
 
     # =====================================================
-    # PREDICTION EVIDENCE
+    # PREDICTION
     # =====================================================
 
     if prediction:
 
         available_sources += 1
 
-        prediction_signal = _normalize_signal(
-
-            prediction.get(
-                "signal"
-            )
-
+        direction = _normalize_signal(
+            prediction.get("signal")
         )
 
-        (
-            bullish_score,
-            bearish_score
+        bullish_score, bearish_score = _register_evidence(
 
-        ) = _register_evidence(
-
-            direction=prediction_signal,
+            direction=direction,
 
             weight=3,
 
@@ -1015,16 +841,12 @@ def analyze(
         )
 
         confidence_sources.append(
-
             _safe_confidence(
-
                 prediction.get(
                     "confidence",
                     50
                 )
-
             )
-
         )
 
     # =====================================================
@@ -1035,26 +857,18 @@ def analyze(
 
         available_sources += 1
 
-        news_signal = _normalize_signal(
+        direction = _normalize_signal(
 
             news_analysis.get(
                 "signal",
-
-                news_analysis.get(
-                    "sentiment"
-                )
-
+                news_analysis.get("sentiment")
             )
 
         )
 
-        (
-            bullish_score,
-            bearish_score
+        bullish_score, bearish_score = _register_evidence(
 
-        ) = _register_evidence(
-
-            direction=news_signal,
+            direction=direction,
 
             weight=1,
 
@@ -1085,46 +899,34 @@ def analyze(
         )
 
         confidence_sources.append(
-
             _safe_confidence(
-
                 news_analysis.get(
                     "confidence",
                     50
                 )
-
             )
-
         )
 
     # =====================================================
-    # MARKET SENTIMENT
+    # SENTIMENT
     # =====================================================
 
     if sentiment:
 
         available_sources += 1
 
-        sentiment_signal = _normalize_signal(
+        direction = _normalize_signal(
 
             sentiment.get(
                 "signal",
-
-                sentiment.get(
-                    "sentiment"
-                )
-
+                sentiment.get("sentiment")
             )
 
         )
 
-        (
-            bullish_score,
-            bearish_score
+        bullish_score, bearish_score = _register_evidence(
 
-        ) = _register_evidence(
-
-            direction=sentiment_signal,
+            direction=direction,
 
             weight=1,
 
@@ -1155,55 +957,37 @@ def analyze(
         )
 
         confidence_sources.append(
-
             _safe_confidence(
-
                 sentiment.get(
                     "confidence",
                     50
                 )
-
             )
-
         )
 
     # =====================================================
-    # PATTERN EVIDENCE
+    # PATTERN
     # =====================================================
 
     if pattern:
 
         available_sources += 1
 
-        pattern_signal = _normalize_signal(
-
-            pattern.get(
-                "signal"
-            )
-
+        direction = _normalize_signal(
+            pattern.get("signal")
         )
 
-        if pattern_signal == "HOLD":
+        if direction == "HOLD":
 
-            if pattern.get(
-                "bullish"
-            ):
+            if pattern.get("bullish"):
+                direction = "BUY"
 
-                pattern_signal = "BUY"
+            elif pattern.get("bearish"):
+                direction = "SELL"
 
-            elif pattern.get(
-                "bearish"
-            ):
+        bullish_score, bearish_score = _register_evidence(
 
-                pattern_signal = "SELL"
-
-        (
-            bullish_score,
-            bearish_score
-
-        ) = _register_evidence(
-
-            direction=pattern_signal,
+            direction=direction,
 
             weight=1,
 
@@ -1232,41 +1016,29 @@ def analyze(
         )
 
         confidence_sources.append(
-
             _safe_confidence(
-
                 pattern.get(
                     "confidence",
                     50
                 )
-
             )
-
         )
 
     # =====================================================
-    # VOLUME EVIDENCE
+    # VOLUME
     # =====================================================
 
     if volume:
 
         available_sources += 1
 
-        volume_signal = _normalize_signal(
-
-            volume.get(
-                "signal"
-            )
-
+        direction = _normalize_signal(
+            volume.get("signal")
         )
 
-        (
-            bullish_score,
-            bearish_score
+        bullish_score, bearish_score = _register_evidence(
 
-        ) = _register_evidence(
-
-            direction=volume_signal,
+            direction=direction,
 
             weight=1,
 
@@ -1297,32 +1069,30 @@ def analyze(
         )
 
         confidence_sources.append(
-
             _safe_confidence(
-
                 volume.get(
                     "confidence",
                     50
                 )
-
             )
-
         )
 
     # =====================================================
-    # AI SIGNAL
+    # FINAL SIGNAL
     # =====================================================
 
     signal = _resolve_signal(
 
-        bullish_score,
+        bullish_score=bullish_score,
 
-        bearish_score
+        bearish_score=bearish_score,
+
+        available_sources=available_sources
 
     )
 
     # =====================================================
-    # AI CONFIDENCE
+    # CONFIDENCE
     # =====================================================
 
     confidence = _calculate_confidence(
@@ -1338,53 +1108,27 @@ def analyze(
     )
 
     # =====================================================
-    # PROBABILITY DISTRIBUTION
+    # PROBABILITIES
     # =====================================================
 
     probabilities = _calculate_probabilities(
 
-        bullish_score,
+        bullish_score=bullish_score,
 
-        bearish_score
+        bearish_score=bearish_score,
 
-    )
-
-    bullish_probability = probabilities.get(
-
-        "bullish_probability",
-
-        0.25
-
-    )
-
-    bearish_probability = probabilities.get(
-
-        "bearish_probability",
-
-        0.25
-
-    )
-
-    neutral_probability = probabilities.get(
-
-        "neutral_probability",
-
-        0.50
+        available_sources=available_sources
 
     )
 
     # =====================================================
-    # FINAL EVIDENCE CLASSIFICATION
+    # EVIDENCE CLASSIFICATION
     # =====================================================
 
     (
-
         supporting_evidence,
-
         conflicting_evidence,
-
         neutral_evidence
-
     ) = _classify_final_evidence(
 
         signal=signal,
@@ -1398,15 +1142,15 @@ def analyze(
     )
 
     # =====================================================
-    # DEFAULT EXPLANATION
+    # EXPLANATION FALLBACKS
     # =====================================================
 
     if not supporting_evidence:
 
         supporting_evidence.append(
 
-            "No dominant directional evidence "
-            "supports a high-conviction AI signal"
+            "Insufficient dominant directional "
+            "evidence for a high-conviction signal"
 
         )
 
@@ -1420,25 +1164,19 @@ def analyze(
         )
 
     # =====================================================
-    # FINAL PREDICTION LABEL
+    # PREDICTION LABEL
     # =====================================================
 
     if signal in (
-
         "BUY",
-
         "STRONG BUY"
-
     ):
 
         prediction_label = "UP"
 
     elif signal in (
-
         "SELL",
-
         "STRONG SELL"
-
     ):
 
         prediction_label = "DOWN"
@@ -1452,30 +1190,24 @@ def analyze(
     # =====================================================
 
     total_directional = (
-
         bullish_score
-
         +
-
         bearish_score
-
     )
 
     if total_directional > 0:
 
         conflict_score = round(
 
-            min(
-                bullish_score,
-                bearish_score
+            (
+                min(
+                    bullish_score,
+                    bearish_score
+                )
+                /
+                total_directional
             )
-
-            /
-
-            total_directional
-
             *
-
             100,
 
             2
@@ -1487,7 +1219,7 @@ def analyze(
         conflict_score = 0.0
 
     # =====================================================
-    # RETURN AI INTELLIGENCE
+    # FINAL RESULT
     # =====================================================
 
     return {
@@ -1496,49 +1228,53 @@ def analyze(
 
         "symbol": symbol,
 
-        # -----------------------------------------------
-        # AI DIRECTION
-        # -----------------------------------------------
+        # Direction
 
         "signal": signal,
 
         "prediction": prediction_label,
 
-        # -----------------------------------------------
-        # CONFIDENCE
-        # -----------------------------------------------
+        # Confidence
 
         "confidence": confidence,
 
-        # -----------------------------------------------
-        # DIRECTIONAL PROBABILITIES
-        # -----------------------------------------------
+        # Probability distribution
 
         "probability": max(
 
-            bullish_probability,
+            probabilities[
+                "bullish_probability"
+            ],
 
-            bearish_probability,
+            probabilities[
+                "bearish_probability"
+            ],
 
-            neutral_probability
+            probabilities[
+                "neutral_probability"
+            ]
 
         ),
 
         "bullish_probability":
 
-            bullish_probability,
+            probabilities[
+                "bullish_probability"
+            ],
 
         "bearish_probability":
 
-            bearish_probability,
+            probabilities[
+                "bearish_probability"
+            ],
 
         "neutral_probability":
 
-            neutral_probability,
+            probabilities[
+                "neutral_probability"
+            ],
 
-        # -----------------------------------------------
-        # EVIDENCE SCORES
-        # -----------------------------------------------
+        # Evidence scores
 
         "bullish_score":
 
@@ -1556,9 +1292,7 @@ def analyze(
 
             available_sources,
 
-        # -----------------------------------------------
-        # EXPLAINABILITY
-        # -----------------------------------------------
+        # Explainability
 
         "supporting_evidence":
 
@@ -1571,10 +1305,6 @@ def analyze(
         "neutral_evidence":
 
             neutral_evidence,
-
-        # -----------------------------------------------
-        # COMBINED REASONING
-        # -----------------------------------------------
 
         "reason": {
 
@@ -1604,51 +1334,13 @@ if __name__ == "__main__":
     sample_evidence = {
 
         "technical": {
-
             "signal": "BUY",
-
             "confidence": 70
-
         },
 
         "prediction": {
-
             "signal": "BUY",
-
             "confidence": 75
-
-        },
-
-        "news_analysis": {
-
-            "sentiment": "BULLISH",
-
-            "confidence": 65
-
-        },
-
-        "sentiment": {
-
-            "sentiment": "NEUTRAL",
-
-            "confidence": 50
-
-        },
-
-        "pattern": {
-
-            "bullish": True,
-
-            "confidence": 60
-
-        },
-
-        "volume": {
-
-            "signal": "BUY",
-
-            "confidence": 70
-
         }
 
     }
